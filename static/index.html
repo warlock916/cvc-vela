@@ -284,6 +284,16 @@ const isMobile=()=>window.innerWidth<=768;
 function saveSession(s){ session=s; sessionStorage.setItem('cvc_s',JSON.stringify(s)); }
 function loadSession(){ try{return JSON.parse(sessionStorage.getItem('cvc_s')||'null');}catch{return null;} }
 
+// Fetch con gestione automatica 401
+async function fetchAuth(url, opts={}){
+  const res = await fetch(url, opts);
+  if(res.status===401 && session){
+    doLogout();
+    return null;
+  }
+  return res;
+}
+
 async function init(){
   const saved=loadSession();
   if(saved){
@@ -357,7 +367,8 @@ async function caricaTurno(){
   document.getElementById('scheda-subtitle').textContent=
     `Turno ${session.turno} — ${session.istruttore} — Corso ${session.corso}`;
   try{
-    const res=await fetch(`${API}/api/turno/${session.turno}?corso=${encodeURIComponent(session.corso)}`,{headers:{'X-Auth-Token':session.token}});
+    const res=await fetchAuth(`${API}/api/turno/${session.turno}?corso=${encodeURIComponent(session.corso)}`,{headers:{'X-Auth-Token':session.token}});
+    if(!res) return;
     const d=await res.json();
     if(!res.ok) return;
     for(const r of d.allievi){
@@ -584,12 +595,12 @@ async function salvaScheda(){
     return rec;
   });
   try{
-    const res=await fetch(`${API}/api/scheda`,{
+    const res=await fetchAuth(`${API}/api/scheda`,{
       method:'POST',headers:{'Content-Type':'application/json','X-Auth-Token':session.token},
       body:JSON.stringify({records})
     });
     const data=await res.json();
-    if(res.status===401){ sessionStorage.removeItem('cvc_s'); session=null; showErr('Sessione scaduta. Ricarica la pagina e fai nuovamente il login.'); return; }
+    if(!res) return;
     if(!res.ok) throw new Error(data.error||'Errore');
     document.getElementById('alert-ok').classList.add('show');
     setTimeout(()=>document.getElementById('alert-ok').classList.remove('show'),3000);
