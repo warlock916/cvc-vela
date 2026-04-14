@@ -25,12 +25,14 @@ def init_db():
     pts_cols  = [f"pts_{d} INTEGER" for d in DAY_KEYS]
     with get_db() as db:
         db.execute('''CREATE TABLE IF NOT EXISTS turni (
-            numero     INTEGER PRIMARY KEY,
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            numero     INTEGER NOT NULL,
+            corso      TEXT NOT NULL,
             pwd_hash   TEXT NOT NULL,
             pwd_plain  TEXT NOT NULL,
             istruttore TEXT NOT NULL,
-            corso      TEXT NOT NULL,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TEXT DEFAULT (datetime('now')),
+            UNIQUE(numero, corso)
         )''')
         db.execute(f'''CREATE TABLE IF NOT EXISTS valutazioni (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,8 +118,12 @@ def login():
 
 @app.route('/api/turno/<int:numero>/exists', methods=['GET'])
 def turno_exists(numero):
+    corso = request.args.get('corso','')
     with get_db() as db:
-        row=db.execute('SELECT numero FROM turni WHERE numero=?',(numero,)).fetchone()
+        if corso:
+            row=db.execute('SELECT id FROM turni WHERE numero=? AND corso=?',(numero,corso)).fetchone()
+        else:
+            row=db.execute('SELECT id FROM turni WHERE numero=?',(numero,)).fetchone()
     return jsonify({'exists': row is not None})
 
 @app.route('/api/turno/login', methods=['POST'])
@@ -133,14 +139,18 @@ def turno_login():
     if not (1<=numero<=60): return jsonify({'error':'Il turno deve essere tra 1 e 60'}),400
 
     with get_db() as db:
-        turno_row=db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
+        # Cerca per (numero, corso) — stesso turno può esistere per corsi diversi
+        turno_row=db.execute('SELECT * FROM turni WHERE numero=? AND corso=?',(numero,corso if corso else '')).fetchone()
         if turno_row is None:
             if not istr or not corso:
                 return jsonify({'error':'Prima apertura: inserisci anche istruttore e corso','primo_accesso':True}),400
-            db.execute('INSERT INTO turni(numero,pwd_hash,pwd_plain,istruttore,corso) VALUES(?,?,?,?,?)',
-                       (numero,hash_pwd(pwd),pwd,istr,corso))
-            db.commit()
-            turno_row=db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
+            try:
+                db.execute('INSERT INTO turni(numero,corso,pwd_hash,pwd_plain,istruttore) VALUES(?,?,?,?,?)',
+                           (numero,corso,hash_pwd(pwd),pwd,istr))
+                db.commit()
+            except Exception as ex:
+                return jsonify({'error':'Errore creazione turno: '+str(ex)}),500
+            turno_row=db.execute('SELECT * FROM turni WHERE numero=? AND corso=?',(numero,corso)).fetchone()
         else:
             if hash_pwd(pwd)!=turno_row['pwd_hash']:
                 return jsonify({'error':'Password errata per questo turno'}),401
@@ -161,10 +171,16 @@ def turno_login():
 def turno_info(numero):
     token=request.headers.get('X-Auth-Token','')
     if not check_turno_auth(numero,token): return jsonify({'error':'Non autorizzato'}),401
+    # Recupera il corso dalla sessione per trovare il turno corretto
+    corso=request.args.get('corso','')
     with get_db() as db:
-        t   =db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
-        rows=db.execute('SELECT * FROM valutazioni WHERE turno=? ORDER BY allievo',(numero,)).fetchall()
-    if not t: return jsonify({'error':'Turno non trovato'}),404
+        if corso:
+            t=db.execute('SELECT * FROM turni WHERE numero=? AND corso=?',(numero,corso)).fetchone()
+        else:
+            t=db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
+        if not t: return jsonify({'error':'Turno non trovato'}),404
+        rows=db.execute('SELECT * FROM valutazioni WHERE turno=? AND corso=? ORDER BY allievo',
+                        (numero,t['corso'])).fetchall()
     return jsonify({'turno':dict(t),'allievi':[dict(r) for r in rows]})
 
 @app.route('/api/scheda', methods=['POST'])
@@ -275,7 +291,7 @@ def stats():
         med =db.execute('SELECT AVG(punteggio_finale) FROM valutazioni WHERE punteggio_finale IS NOT NULL').fetchone()[0]
         perc=db.execute('SELECT corso,COUNT(*) n,AVG(punteggio_finale) media FROM valutazioni GROUP BY corso ORDER BY corso').fetchall()
         # Turni con password in chiaro (visibile solo all'admin)
-        turni=db.execute('SELECT numero,istruttore,corso,pwd_plain FROM turni ORDER BY numero').fetchall()
+        turni=db.execute('SELECT numero,istruttore,corso,pwd_plain FROM turni ORDER BY numero,corso').fetchall()
     return jsonify({'totale':tot,'istruttori':istr,'corsi_attivi':cors,
                     'media_generale':round(med,1) if med else None,
                     'per_corso':[dict(r) for r in perc],
