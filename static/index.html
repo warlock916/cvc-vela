@@ -5,140 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CVC – Scheda Valutazione Allievi</title>
 <style>
-:root {
-  --blu:#1F4E79; --blu2:#2E75B6; --azzurro:#BDD7EE;
-  --oro:#FFD700; --verde:#70AD47; --rosso:#C00000;
-  --grigio:#F2F2F2; --bordo:#CCCCCC; --testo:#1a1a1a;
+:root{
+  --blu:#1F4E79;--blu2:#2E75B6;--azzurro:#BDD7EE;
+  --oro:#FFD700;--verde:#70AD47;--rosso:#C00000;
+  --grigio:#F2F2F2;--bordo:#CCCCCC;--testo:#1a1a1a;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#e8f0f7;color:var(--testo);min-height:100vh;}
-header{background:var(--blu);color:white;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
-header h1{font-size:1.2rem;}
-header span{font-size:.82rem;opacity:.8;}
+header{background:var(--blu);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+header h1{font-size:1.1rem;}
 nav{background:var(--blu2);display:flex;}
-nav button{background:none;border:none;color:rgba(255,255,255,.75);padding:11px 22px;cursor:pointer;font-size:.9rem;border-bottom:3px solid transparent;transition:all .2s;}
+nav button{background:none;border:none;color:rgba(255,255,255,.75);padding:10px 20px;cursor:pointer;font-size:.88rem;border-bottom:3px solid transparent;transition:all .2s;}
 nav button:hover{color:white;background:rgba(255,255,255,.1);}
 nav button.active{color:white;border-bottom:3px solid var(--oro);font-weight:bold;}
-.container{max-width:960px;margin:28px auto;padding:0 16px 60px;}
-.card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:26px 30px;margin-bottom:22px;}
-.card h2{color:var(--blu);font-size:1.05rem;margin-bottom:18px;padding-bottom:9px;border-bottom:2px solid var(--azzurro);}
-label{display:block;font-size:.83rem;font-weight:bold;color:#444;margin-bottom:4px;}
-input[type=text],input[type=password],select{width:100%;padding:8px 11px;border:1.5px solid var(--bordo);border-radius:6px;font-size:.92rem;transition:border .2s;}
+.container{max-width:1600px;margin:20px auto;padding:0 12px 60px;}
+.card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:22px 26px;margin-bottom:18px;}
+.card h2{color:var(--blu);font-size:1rem;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--azzurro);}
+.scheda-header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+label{display:block;font-size:.82rem;font-weight:bold;color:#444;margin-bottom:4px;}
+input[type=text],input[type=password],select{width:100%;padding:7px 10px;border:1.5px solid var(--bordo);border-radius:6px;font-size:.9rem;transition:border .2s;}
 input:focus,select:focus{outline:none;border-color:var(--blu2);}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.full{grid-column:1/-1;}
-.criteri-wrap{margin-top:18px;}
-.criterio-block{margin-bottom:14px;}
-.criterio-title{font-weight:bold;font-size:.88rem;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.giorni-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.giorno-cell{text-align:center;}
-.giorno-cell label{font-size:.75rem;color:#888;margin-bottom:3px;}
-.giorno-cell input{padding:5px 4px;text-align:center;font-size:.9rem;width:100%;border:1.5px solid var(--bordo);border-radius:5px;}
-.giorno-cell input:focus{outline:none;border-color:var(--blu2);}
-.giorno-cell input.invalid{border-color:var(--rosso);background:#fff0f0;}
-.pts-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;align-items:center;}
-.pts-badge{background:var(--blu);color:white;border-radius:6px;padding:5px 4px;text-align:center;font-weight:bold;font-size:.9rem;min-height:32px;display:flex;align-items:center;justify-content:center;}
-.pts-label{font-size:.78rem;color:#666;margin-bottom:3px;}
-.finale-box{background:var(--blu);color:white;border-radius:10px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;}
-.finale-box .lbl{font-size:.95rem;opacity:.9;}
-.finale-box .val{font-size:2.6rem;font-weight:bold;color:var(--oro);line-height:1;}
-.finale-box .det{font-size:.78rem;opacity:.7;margin-top:3px;}
-.alert{padding:11px 15px;border-radius:6px;margin-bottom:14px;font-size:.88rem;display:none;}
+
+/* Tabella scheda */
+.table-wrap{overflow-x:auto;margin-top:4px;}
+table.scheda{border-collapse:collapse;font-size:.74rem;white-space:nowrap;}
+table.scheda th,table.scheda td{border:1px solid #ddd;padding:3px 5px;text-align:center;}
+
+/* Riga 1 header: Nome + gruppi giorno */
+table.scheda thead tr:first-child th{background:var(--blu);color:white;font-size:.78rem;padding:6px 5px;}
+/* Riga 2 header: criteri */
+table.scheda thead tr:nth-child(2) th{font-size:.7rem;padding:4px 3px;font-weight:600;}
+/* Riga 3 header: G1..G6,Fin etichette giorni */
+table.scheda thead tr:nth-child(3) th{font-size:.68rem;padding:3px 2px;font-weight:normal;color:#555;}
+
+table.scheda td.nome-cell{text-align:left;min-width:130px;font-weight:600;background:#f5f5f5;position:sticky;left:0;z-index:2;border-right:2px solid #bbb;}
+table.scheda th.nome-th{position:sticky;left:0;z-index:3;min-width:130px;}
+
+/* Celle input voto */
+table.scheda td input{width:32px;padding:2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.74rem;}
+table.scheda td input:focus{outline:none;border-color:var(--blu2);background:#e8f5ff;}
+table.scheda td input.invalid{border-color:var(--rosso);background:#fff0f0;}
+
+/* Celle punteggio calcolato */
+td.pts-day{background:var(--oro);color:#333;font-weight:bold;font-size:.8rem;min-width:30px;}
+td.pts-finale-row{background:#e6a817;color:white;font-weight:bold;font-size:.85rem;min-width:36px;}
+
+/* Separatore tra gruppi giorno */
+th.sep-th,td.sep-td{border-left:2px solid #999 !important;}
+
+.add-row{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap;}
+.add-row input{flex:1;min-width:160px;max-width:260px;}
+.alert{padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:.86rem;display:none;}
 .alert.show{display:block;}
 .alert-ok{background:#e8f5e0;border-left:4px solid var(--verde);color:#3a6020;}
 .alert-err{background:#fce8e8;border-left:4px solid var(--rosso);color:#7a1010;}
-.btn{padding:9px 22px;border:none;border-radius:6px;font-size:.9rem;font-weight:bold;cursor:pointer;transition:all .2s;}
-.btn-primary{background:var(--blu2);color:white;} .btn-primary:hover{background:var(--blu);}
-.btn-success{background:var(--verde);color:white;} .btn-success:hover{background:#5a9038;}
-.btn-danger{background:var(--rosso);color:white;font-size:.78rem;padding:5px 10px;} .btn-danger:hover{opacity:.85;}
-.btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);} .btn-outline:hover{background:var(--azzurro);}
-.btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
-.toolbar input,.toolbar select{width:auto;flex:1;min-width:140px;}
-.badge{background:var(--blu2);color:white;border-radius:20px;padding:2px 9px;font-size:.78rem;font-weight:bold;}
-table{width:100%;border-collapse:collapse;font-size:.82rem;}
-thead tr{background:var(--blu);color:white;}
-thead th{padding:9px 10px;text-align:left;font-weight:600;}
-tbody tr{border-bottom:1px solid #eee;transition:background .15s;}
-tbody tr:hover{background:var(--grigio);}
-tbody td{padding:8px 10px;}
-.tag{background:var(--azzurro);color:var(--blu);border-radius:4px;padding:2px 7px;font-weight:bold;font-size:.78rem;}
-.score{background:var(--oro);color:#333;border-radius:4px;padding:2px 8px;font-weight:bold;display:inline-block;min-width:28px;text-align:center;}
-.empty{text-align:center;padding:38px;color:#aaa;}
-.admin-gate{text-align:center;padding:36px 20px;}
-.admin-gate input{max-width:260px;margin:10px auto;display:block;}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:20px;}
-.stat{background:var(--grigio);border-radius:8px;padding:14px;text-align:center;}
-.stat .n{font-size:1.9rem;font-weight:bold;color:var(--blu);}
-.stat .l{font-size:.78rem;color:#666;margin-top:3px;}
-.page{display:none;} .page.active{display:block;}
-.spinner{display:none;width:20px;height:20px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:16px auto;}
+.btn{padding:8px 20px;border:none;border-radius:6px;font-size:.88rem;font-weight:bold;cursor:pointer;transition:all .2s;}
+.btn-primary{background:var(--blu2);color:white;}.btn-primary:hover{background:var(--blu);}
+.btn-success{background:var(--verde);color:white;}.btn-success:hover{background:#5a9038;}
+.btn-danger{background:var(--rosso);color:white;font-size:.74rem;padding:3px 7px;}
+.btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);}.btn-outline:hover{background:var(--azzurro);}
+.btn-sm{padding:5px 12px;font-size:.8rem;}
+.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+.toolbar input,.toolbar select{width:auto;flex:1;min-width:130px;}
+.badge{background:var(--blu2);color:white;border-radius:20px;padding:2px 8px;font-size:.76rem;font-weight:bold;}
+table.riepilogo{width:100%;border-collapse:collapse;font-size:.8rem;}
+table.riepilogo thead tr{background:var(--blu);color:white;}
+table.riepilogo th{padding:8px 10px;text-align:left;font-weight:600;}
+table.riepilogo tbody tr{border-bottom:1px solid #eee;}
+table.riepilogo tbody tr:hover{background:var(--grigio);}
+table.riepilogo td{padding:7px 10px;}
+.tag{background:var(--azzurro);color:var(--blu);border-radius:4px;padding:2px 6px;font-weight:bold;font-size:.76rem;}
+.score{background:var(--oro);color:#333;border-radius:4px;padding:2px 7px;font-weight:bold;display:inline-block;min-width:26px;text-align:center;}
+.empty{text-align:center;padding:32px;color:#aaa;}
+.admin-gate{text-align:center;padding:32px 20px;}
+.admin-gate input{max-width:240px;margin:10px auto;display:block;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
+.stat{background:var(--grigio);border-radius:8px;padding:12px;text-align:center;}
+.stat .n{font-size:1.8rem;font-weight:bold;color:var(--blu);}
+.stat .l{font-size:.76rem;color:#666;margin-top:3px;}
+.page{display:none;}.page.active{display:block;}
+.spinner{display:none;width:18px;height:18px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:14px auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:600px){.grid2{grid-template-columns:1fr;}.giorni-row{grid-template-columns:repeat(4,1fr);}.card{padding:16px 14px;}header h1{font-size:1rem;}}
+@media(max-width:600px){.scheda-header{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
-<header>
-  <h1>⚓ CVC – Scheda Valutazione Allievi</h1>
-  <span id="hdr-count"></span>
-</header>
+<header><h1>⚓ CVC – Scheda Valutazione Allievi</h1></header>
 <nav>
-  <button class="active" onclick="showPage('inserimento',this)">✏️ Inserimento</button>
-  <button onclick="showPage('riepilogo',this)">📋 Riepilogo</button>
+  <button class="active" onclick="showPage('scheda',this)">📋 Scheda</button>
+  <button onclick="showPage('riepilogo',this)">📊 Riepilogo</button>
   <button onclick="showPage('admin',this)">🔒 Admin</button>
 </nav>
-
 <div class="container">
 
-<!-- ══ INSERIMENTO ══ -->
-<div id="page-inserimento" class="page active">
-<div class="card">
-  <h2>📝 Nuova Valutazione</h2>
-  <div id="alert-ok"  class="alert alert-ok">✅ Valutazione salvata correttamente!</div>
-  <div id="alert-err" class="alert alert-err"><span id="err-msg">Compila tutti i campi obbligatori.</span></div>
-
-  <div class="grid2">
-    <div><label>Istruttore *</label><input type="text" id="istruttore" placeholder="Nome e Cognome"></div>
-    <div><label>Allievo *</label><input type="text" id="allievo" placeholder="Nome e Cognome"></div>
-    <div>
-      <label>Corso *</label>
-      <select id="corso" onchange="aggiornaCalcolo()">
-        <option value="">— Seleziona —</option>
-        <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
-        <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
-      </select>
+<!-- ══ SCHEDA ══ -->
+<div id="page-scheda" class="page active">
+  <div class="card">
+    <h2>📋 Intestazione Scheda</h2>
+    <div class="scheda-header">
+      <div><label>Istruttore *</label><input type="text" id="istruttore" placeholder="Nome e Cognome"></div>
+      <div>
+        <label>Corso *</label>
+        <select id="corso" onchange="onCorsoChange()">
+          <option value="">— Seleziona —</option>
+          <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
+          <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
+        </select>
+      </div>
+      <div><label>Turno *</label><input type="text" id="turno" placeholder="es. Estate 2025 – Sett. 1"></div>
     </div>
   </div>
 
-  <div class="criteri-wrap" id="criteri-wrap"></div>
-
-  <div style="margin-top:16px;">
-    <div class="pts-label">Punteggi giornalieri:</div>
-    <div class="pts-row" id="pts-row"></div>
-  </div>
-
-  <div class="finale-box">
-    <div>
-      <div class="lbl">PUNTEGGIO FINALE</div>
-      <div class="det" id="finale-det">Seleziona corso e inserisci i voti</div>
+  <div class="card">
+    <h2>👥 Allievi</h2>
+    <div id="alert-ok"  class="alert alert-ok">✅ Scheda salvata correttamente!</div>
+    <div id="alert-err" class="alert alert-err"><span id="err-msg"></span></div>
+    <div class="table-wrap">
+      <table class="scheda" id="scheda-table">
+        <thead id="scheda-thead"></thead>
+        <tbody id="scheda-tbody"></tbody>
+      </table>
     </div>
-    <div class="val" id="finale-val" style="opacity:.35">—</div>
+    <div class="add-row">
+      <input type="text" id="nuovo-allievo" placeholder="Nome allievo…" onkeydown="if(event.key==='Enter')aggiungiAllievo()">
+      <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Aggiungi allievo</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="salvaScheda()">💾 Salva Scheda</button>
+      <button class="btn btn-outline"  onclick="resetScheda()">🔄 Nuova Scheda</button>
+    </div>
   </div>
-
-  <div class="btn-row">
-    <button class="btn btn-success" onclick="salva()">💾 Salva Valutazione</button>
-    <button class="btn btn-outline"  onclick="resetForm()">🔄 Pulisci</button>
-  </div>
-</div>
 </div>
 
 <!-- ══ RIEPILOGO ══ -->
 <div id="page-riepilogo" class="page">
 <div class="card">
-  <h2>📋 Tutte le Valutazioni <span class="badge" id="count-badge">0</span></h2>
+  <h2>📊 Riepilogo <span class="badge" id="count-badge">0</span></h2>
   <div class="toolbar">
-    <input type="text"  id="f-nome"  placeholder="🔍 Cerca allievo o istruttore…" oninput="loadRiepilogo()">
+    <input type="text" id="f-q" placeholder="🔍 Cerca allievo, istruttore, turno…" oninput="loadRiepilogo()">
     <select id="f-corso" onchange="loadRiepilogo()">
       <option value="">Tutti i corsi</option>
       <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
@@ -146,18 +151,17 @@ tbody td{padding:8px 10px;}
     </select>
   </div>
   <div style="overflow-x:auto;">
-    <table>
+    <table class="riepilogo">
       <thead><tr>
-        <th>Data</th><th>Istruttore</th><th>Allievo</th><th>Corso</th>
-        <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>Finale</th><th></th>
+        <th>Data</th><th>Istruttore</th><th>Turno</th><th>Allievo</th><th>Corso</th>
+        <th>Pts G1</th><th>Pts G2</th><th>Pts G3</th><th>Pts G4</th><th>Pts G5</th><th>Pts G6</th><th>Pts Fin</th>
+        <th>Finale</th><th></th>
       </tr></thead>
-      <tbody id="tab-body"><tr><td colspan="13" class="empty">Caricamento...</td></tr></tbody>
+      <tbody id="tab-body"><tr><td colspan="14" class="empty">Caricamento…</td></tr></tbody>
     </table>
   </div>
   <div id="tab-spinner" class="spinner"></div>
-  <div class="btn-row">
-    <button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV (richiede accesso admin)</button>
-  </div>
+  <div class="btn-row"><button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button></div>
 </div>
 </div>
 
@@ -165,106 +169,78 @@ tbody td{padding:8px 10px;}
 <div id="page-admin" class="page">
   <div id="admin-gate" class="card admin-gate">
     <h2>🔒 Accesso Admin</h2>
-    <p style="color:#666;margin:10px 0;font-size:.9rem;">Password necessaria per statistiche ed export.</p>
+    <p style="color:#666;margin:10px 0;font-size:.88rem;">Password per statistiche ed export.</p>
     <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
-    <div class="btn-row" style="justify-content:center;margin-top:12px;">
+    <div class="btn-row" style="justify-content:center;margin-top:10px;">
       <button class="btn btn-primary" onclick="doLogin()">Accedi</button>
     </div>
-    <div id="pwd-err" style="color:var(--rosso);margin-top:10px;display:none;font-size:.88rem;">Password errata.</div>
+    <div id="pwd-err" style="color:var(--rosso);margin-top:8px;display:none;font-size:.86rem;">Password errata.</div>
   </div>
   <div id="admin-panel" style="display:none;">
+    <div class="card"><h2>📊 Statistiche</h2><div class="stats-grid" id="stats-grid"></div></div>
     <div class="card">
-      <h2>📊 Statistiche</h2>
-      <div class="stats-grid" id="stats-grid"></div>
-    </div>
-    <div class="card">
-      <h2>⚙️ Gestione dati</h2>
-      <div class="btn-row">
-        <button class="btn btn-outline" onclick="exportCSV()">📥 Esporta tutti i dati (CSV)</button>
-      </div>
-      <p style="margin-top:16px;font-size:.85rem;color:#888;">Per cancellare singole valutazioni usa la X nel Riepilogo.</p>
+      <h2>⚙️ Gestione</h2>
+      <div class="btn-row"><button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button></div>
     </div>
   </div>
 </div>
 
-</div>
-
+</div><!-- /container -->
 <script>
-const API = '';
-const CRITERI_NOMI = ['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comportamento T/I'];
-const CRITERI_KEYS = ['tec','sen','aff','pro','imp','dis','com'];
-const CRIT_COLORS  = ['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
-const PESI = {
-  D1:[.30,.10,.10,.15,.12,.13,.10], D2:[.30,.10,.10,.15,.12,.13,.10],
-  D3:[.30,.15,.15,.10,.08,.12,.10], D4:[.30,.15,.20,.05,.08,.12,.10],
-  D5:[.30,.15,.24,.05,.08,.08,.10], C1:[.35,.15,.10,.10,.10,.10,.10],
-  C2:[.35,.15,.10,.10,.10,.10,.10], C3:[.30,.20,.15,.05,.10,.10,.10],
-  C4:[.25,.25,.15,.05,.10,.10,.10], C5:[.25,.25,.15,.05,.10,.10,.10],
+const API='';
+const CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I'];
+const CRITERI_KEYS=['tec','sen','aff','pro','imp','dis','com'];
+// Colori per i 7 gruppi-giorno (G1..G6 + Finale)
+const DAY_COLORS=['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
+const DAY_LABELS=['G1','G2','G3','G4','G5','G6','Finale'];
+const N_DAYS=7; // G1..G6 + Finale
+
+const PESI={
+  D1:[.30,.10,.10,.15,.12,.13,.10],D2:[.30,.10,.10,.15,.12,.13,.10],
+  D3:[.30,.15,.15,.10,.08,.12,.10],D4:[.30,.15,.20,.05,.08,.12,.10],
+  D5:[.30,.15,.24,.05,.08,.08,.10],C1:[.35,.15,.10,.10,.10,.10,.10],
+  C2:[.35,.15,.10,.10,.10,.10,.10],C3:[.30,.20,.15,.05,.10,.10,.10],
+  C4:[.25,.25,.15,.05,.10,.10,.10],C5:[.25,.25,.15,.05,.10,.10,.10],
 };
-let adminToken = sessionStorage.getItem('cvc_token') || null;
 
-// ══ Build form ══════════════════════════════════════════════════════════
-function buildCriteri() {
-  const wrap = document.getElementById('criteri-wrap');
-  wrap.innerHTML = '';
-  CRITERI_NOMI.forEach((nome, ci) => {
-    const key = CRITERI_KEYS[ci];
-    const color = CRIT_COLORS[ci];
-    let giorni = '';
-    for(let g=1;g<=7;g++){
-      giorni += `<div class="giorno-cell">
-        <label>${g===7?'Finale':'G'+g}</label>
-        <input type="number" id="${key}_g${g}" min="1" max="10" placeholder="—"
-          oninput="validateVoto(this);aggiornaCalcolo()">
-      </div>`;
-    }
-    const block = document.createElement('div');
-    block.className = 'criterio-block';
-    block.innerHTML = `
-      <div class="criterio-title" style="color:${color}">
-        <span style="width:12px;height:12px;background:${color};border-radius:3px;display:inline-block;flex-shrink:0"></span>
-        ${nome}
-      </div>
-      <div class="giorni-row">${giorni}</div>`;
-    wrap.appendChild(block);
+let adminToken=sessionStorage.getItem('cvc_token')||null;
+let allievi=[];
+
+// ══ Build intestazione tabella ══════════════════════════════════════════
+// Struttura colonne: Nome | [Tec G1, Sen G1, ..., Com G1, PtsG1] | [Tec G2 ... PtsG2] | ... | [Tec Fin ... PtsFin] | PunteggioFinale | X
+function buildTableHeader(){
+  const thead=document.getElementById('scheda-thead');
+
+  // Riga 1: Nome + un th per ogni giorno (colspan = N_CRITERI+1) + Punteggio Finale
+  let r1=`<tr><th rowspan="2" class="nome-th" style="background:var(--blu);color:white">Allievo</th>`;
+  DAY_LABELS.forEach((lbl,di)=>{
+    const bg=DAY_COLORS[di];
+    const sepClass=di===0?'':'sep-th';
+    r1+=`<th colspan="${CRITERI_NOMI.length+1}" class="${sepClass}" style="background:${bg};color:white">${lbl}</th>`;
   });
+  r1+=`<th rowspan="2" style="background:#6a4c00;color:var(--oro);min-width:46px;font-size:.78rem;">Pts<br>Finale</th>`;
+  r1+=`<th rowspan="2" style="background:var(--blu);color:white;width:28px;"></th></tr>`;
 
-  // Build pts row
-  let html = '';
-  for(let g=1;g<=7;g++){
-    const isFinale = g===7;
-    html += `<div><div class="pts-label">${isFinale?'<strong>Finale</strong>':'G'+g}</div><div class="pts-badge" id="pts_g${g}" style="${isFinale?'background:var(--oro);color:#333;':''}opacity:.4">—</div></div>`;
-  }
-  document.getElementById('pts-row').innerHTML = html;
-}
-buildCriteri();
-
-// ══ Validazione voto (1-10) ═════════════════════════════════════════════
-function validateVoto(el) {
-  let v = parseInt(el.value);
-  if(el.value === '' || el.value === null) { el.classList.remove('invalid'); return; }
-  if(isNaN(v) || v < 1 || v > 10) {
-    el.classList.add('invalid');
-    el.value = Math.min(10, Math.max(1, isNaN(v) ? 1 : v));
-    setTimeout(()=>el.classList.remove('invalid'), 800);
-  } else {
-    el.classList.remove('invalid');
-  }
-}
-
-// ══ Calcolo ═════════════════════════════════════════════════════════════
-function getVoti(g) {
-  return CRITERI_KEYS.map(k => {
-    const v = parseInt(document.getElementById(`${k}_g${g}`)?.value);
-    return isNaN(v) ? null : Math.min(10, Math.max(1, v));
+  // Riga 2: per ogni giorno: Tec, Sen, ..., Com, Pts
+  let r2='<tr>';
+  DAY_LABELS.forEach((lbl,di)=>{
+    const bg=DAY_COLORS[di];
+    CRITERI_NOMI.forEach((crit,ci)=>{
+      const sep=ci===0&&di>0?' sep-th':'';
+      r2+=`<th class="${sep}" style="background:${bg};color:white;opacity:.88;font-size:.68rem;min-width:30px;">${crit.split(' ')[0]}</th>`;
+    });
+    r2+=`<th style="background:${bg};color:var(--oro);font-size:.72rem;min-width:30px;">Pts</th>`;
   });
+  r2+='</tr>';
+
+  thead.innerHTML=r1+r2;
 }
 
-function calcolaPunteggio(corso, voti) {
-  const p = PESI[corso]; if(!p) return null;
-  if(voti.some(v=>v===null)) return null;
-  const [tec,sen,,,,, com] = voti;
-  const vp = voti.reduce((s,v,i)=>s+v*p[i],0);
+// ══ Calcolo punteggio ════════════════════════════════════════════════════
+function calcolaPunteggio(corso,voti){
+  const p=PESI[corso]; if(!p||voti.some(v=>v===null)) return null;
+  const [tec,sen,,,,,com]=voti;
+  const vp=voti.reduce((s,v,i)=>s+v*p[i],0);
   let r;
   if(['D1','D2','C1','C2'].includes(corso)){
     if(tec===5||com===5) r=5; else r=tec+1<vp?tec+1:vp;
@@ -276,84 +252,151 @@ function calcolaPunteggio(corso, voti) {
     if(tec===5||sen===5||com===5) r=5;
     else if(tec===8&&sen===8) r=Math.max(8,vp);
     else{const m=Math.min(tec,sen);r=Math.min(tec,sen,vp)<m?m:Math.min(tec,sen,vp);}
-  }
+  } else return null;
   return Math.floor(r);
 }
 
-function aggiornaCalcolo() {
-  const corso = document.getElementById('corso').value;
-  const pts = [];
-  for(let g=1;g<=7;g++){
-    const voti = getVoti(g);
-    const pt = corso ? calcolaPunteggio(corso, voti) : null;
-    pts.push(pt);
-    const el = document.getElementById(`pts_g${g}`);
-    if(el){ el.textContent=pt!==null?pt:'—'; el.style.opacity=pt!==null?'1':'.4'; }
-  }
-  const validi = pts.filter(p=>p!==null);
-  const finale = validi.length ? Math.floor(validi.reduce((a,b)=>a+b,0)/validi.length) : null;
-  // pts_g7 è già aggiornato nel loop, non serve elemento separato
-  const fv = document.getElementById('finale-val');
-  fv.textContent=finale!==null?finale:'—'; fv.style.opacity=finale!==null?'1':'.35';
-  document.getElementById('finale-det').textContent =
-    finale!==null ? `Media di ${validi.length} giorn${validi.length===1?'o':'i'} compilat${validi.length===1?'o':'i'}` :
-    corso ? 'Inserisci i voti per vedere il punteggio' : 'Seleziona corso e inserisci i voti';
+// ══ Aggiungi allievo ═════════════════════════════════════════════════════
+function nomeToId(n){return n.toLowerCase().replace(/[^a-z0-9]/g,'_');}
+
+function aggiungiAllievo(){
+  const inp=document.getElementById('nuovo-allievo');
+  const nome=inp.value.trim();
+  if(!nome) return;
+  if(allievi.includes(nome)){alert('Allievo già presente.');return;}
+  allievi.push(nome);
+  inp.value='';
+  renderRiga(nome);
 }
+
+function renderRiga(nome){
+  const tbody=document.getElementById('scheda-tbody');
+  const id=nomeToId(nome);
+  const tr=document.createElement('tr');
+  tr.id=`row_${id}`;
+
+  let cells=`<td class="nome-cell">${nome}</td>`;
+
+  DAY_LABELS.forEach((lbl,di)=>{
+    const dayKey=di<6?`g${di+1}`:'fin';
+    const sepClass=di>0?' sep-td':'';
+    CRITERI_KEYS.forEach(key=>{
+      cells+=`<td class="${sepClass}"><input type="number" id="${key}_${id}_${dayKey}"
+        min="1" max="10" placeholder="—"
+        oninput="validateVoto(this);ricalcolaAllievo('${nome}')"></td>`;
+    });
+    // Punteggio giorno
+    const ptsCls=di===6?'pts-finale-row':'pts-day';
+    cells+=`<td class="${ptsCls}" id="pts_${id}_${dayKey}">—</td>`;
+  });
+
+  // Punteggio finale (media punteggi giornalieri compilati)
+  cells+=`<td class="pts-finale-row" id="ptsfin_${id}" style="background:#6a4c00;">—</td>`;
+  cells+=`<td><button class="btn btn-danger" onclick="rimuoviAllievo('${nome}')">✕</button></td>`;
+
+  tr.innerHTML=cells;
+  tbody.appendChild(tr);
+  ricalcolaAllievo(nome);
+}
+
+function rimuoviAllievo(nome){
+  allievi=allievi.filter(a=>a!==nome);
+  document.getElementById(`row_${nomeToId(nome)}`)?.remove();
+}
+
+// ══ Validazione ══════════════════════════════════════════════════════════
+function validateVoto(el){
+  if(el.value===''){el.classList.remove('invalid');return;}
+  const v=parseInt(el.value);
+  if(isNaN(v)||v<1||v>10){
+    el.classList.add('invalid');
+    el.value=Math.min(10,Math.max(1,isNaN(v)?1:v));
+    setTimeout(()=>el.classList.remove('invalid'),700);
+  } else el.classList.remove('invalid');
+}
+
+// ══ Ricalcola una riga allievo ═══════════════════════════════════════════
+function ricalcolaAllievo(nome){
+  const corso=document.getElementById('corso').value;
+  const id=nomeToId(nome);
+  const ptsGiorni=[];
+
+  DAY_LABELS.forEach((lbl,di)=>{
+    const dayKey=di<6?`g${di+1}`:'fin';
+    const voti=CRITERI_KEYS.map(key=>{
+      const el=document.getElementById(`${key}_${id}_${dayKey}`);
+      if(!el||el.value==='') return null;
+      const v=parseInt(el.value);
+      return (!isNaN(v)&&v>=1&&v<=10)?v:null;
+    });
+    const pts=corso?calcolaPunteggio(corso,voti):null;
+    ptsGiorni.push(pts);
+    const el=document.getElementById(`pts_${id}_${dayKey}`);
+    if(el){el.textContent=pts!==null?pts:'—';}
+  });
+
+  // Punteggio finale = media dei punteggi giornalieri compilati
+  const validi=ptsGiorni.filter(p=>p!==null);
+  const fin=validi.length?Math.floor(validi.reduce((a,b)=>a+b,0)/validi.length):null;
+  const finEl=document.getElementById(`ptsfin_${id}`);
+  if(finEl) finEl.textContent=fin!==null?fin:'—';
+}
+
+function onCorsoChange(){allievi.forEach(n=>ricalcolaAllievo(n));}
 
 // ══ Salva ════════════════════════════════════════════════════════════════
-async function salva() {
-  ['alert-ok','alert-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
-  const corso = document.getElementById('corso').value;
-  const istr  = document.getElementById('istruttore').value.trim();
-  const all   = document.getElementById('allievo').value.trim();
-  if(!istr||!all||!corso){
-    document.getElementById('err-msg').textContent='Compila istruttore, allievo e corso.';
-    document.getElementById('alert-err').classList.add('show'); return;
-  }
-  // Valida tutti i voti inseriti
-  let votoInvalido = false;
-  CRITERI_KEYS.forEach(k=>{ for(let g=1;g<=7;g++){
-    const el = document.getElementById(`${k}_g${g}`);
-    if(el.value!==''){const v=parseInt(el.value);if(isNaN(v)||v<1||v>10){votoInvalido=true;el.classList.add('invalid');}}
-  }});
-  if(votoInvalido){
-    document.getElementById('err-msg').textContent='Alcuni voti non sono validi (devono essere tra 1 e 10).';
-    document.getElementById('alert-err').classList.add('show'); return;
-  }
-  let almeno1 = false;
-  const payload = {istruttore:istr, allievo:all, corso};
-  for(let g=1;g<=7;g++){
-    const voti = getVoti(g);
-    if(voti.every(v=>v!==null)) almeno1=true;
-    CRITERI_KEYS.forEach((k,i)=>{ if(voti[i]!==null) payload[`${k}_g${g}`]=voti[i]; });
-  }
-  if(!almeno1){
-    document.getElementById('err-msg').textContent='Inserisci almeno un giorno completo (tutti e 7 i criteri).';
-    document.getElementById('alert-err').classList.add('show'); return;
-  }
-  try {
-    const res = await fetch(`${API}/api/valutazioni`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const data = await res.json();
+async function salvaScheda(){
+  ['alert-ok','alert-err'].forEach(i=>document.getElementById(i).classList.remove('show'));
+  const istr=document.getElementById('istruttore').value.trim();
+  const corso=document.getElementById('corso').value;
+  const turno=document.getElementById('turno').value.trim();
+  if(!istr||!corso||!turno){showErr('Compila istruttore, corso e turno.');return;}
+  if(!allievi.length){showErr('Aggiungi almeno un allievo.');return;}
+
+  const records=allievi.map(nome=>{
+    const id=nomeToId(nome);
+    const rec={istruttore:istr,corso,turno,allievo:nome};
+    DAY_LABELS.forEach((lbl,di)=>{
+      const dayKey=di<6?`g${di+1}`:'fin';
+      CRITERI_KEYS.forEach(key=>{
+        const el=document.getElementById(`${key}_${id}_${dayKey}`);
+        const v=el&&el.value!==''?parseInt(el.value):null;
+        rec[`${key}_${dayKey}`]=(v!==null&&v>=1&&v<=10)?v:null;
+      });
+      const ptsEl=document.getElementById(`pts_${id}_${dayKey}`);
+      rec[`pts_${dayKey}`]=ptsEl&&ptsEl.textContent!=='—'?parseInt(ptsEl.textContent):null;
+    });
+    const finEl=document.getElementById(`ptsfin_${id}`);
+    rec.punteggio_finale=finEl&&finEl.textContent!=='—'?parseInt(finEl.textContent):null;
+    return rec;
+  });
+
+  try{
+    const res=await fetch(`${API}/api/scheda`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records})});
+    const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Errore server');
     document.getElementById('alert-ok').classList.add('show');
-    setTimeout(resetForm,2200);
-  } catch(e){
-    document.getElementById('err-msg').textContent=e.message;
-    document.getElementById('alert-err').classList.add('show');
-  }
+    setTimeout(()=>document.getElementById('alert-ok').classList.remove('show'),3000);
+  } catch(e){showErr(e.message);}
 }
 
-function resetForm(){
+function showErr(msg){
+  document.getElementById('err-msg').textContent=msg;
+  document.getElementById('alert-err').classList.add('show');
+}
+
+function resetScheda(){
+  if(allievi.length&&!confirm('Resettare la scheda? I dati non salvati andranno persi.')) return;
   document.getElementById('istruttore').value='';
-  document.getElementById('allievo').value='';
   document.getElementById('corso').value='';
-  CRITERI_KEYS.forEach(k=>{ for(let g=1;g<=7;g++){const el=document.getElementById(`${k}_g${g}`);el.value='';el.classList.remove('invalid');}});
-  aggiornaCalcolo();
-  ['alert-ok','alert-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  document.getElementById('turno').value='';
+  allievi=[];
+  document.getElementById('scheda-tbody').innerHTML='';
+  ['alert-ok','alert-err'].forEach(i=>document.getElementById(i).classList.remove('show'));
 }
 
 // ══ Navigazione ══════════════════════════════════════════════════════════
-function showPage(name, btn){
+function showPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
@@ -366,84 +409,81 @@ function showPage(name, btn){
   }
 }
 
-// ══ Riepilogo (visibile a tutti) ═════════════════════════════════════════
+// ══ Riepilogo ════════════════════════════════════════════════════════════
 async function loadRiepilogo(){
-  const nome  = document.getElementById('f-nome').value;
-  const corso = document.getElementById('f-corso').value;
-  let url = `${API}/api/valutazioni/public?limit=500`;
-  if(nome)  url+=`&q=${encodeURIComponent(nome)}`;
+  const q=document.getElementById('f-q').value;
+  const corso=document.getElementById('f-corso').value;
+  let url=`${API}/api/valutazioni/public?limit=500`;
+  if(q)     url+=`&q=${encodeURIComponent(q)}`;
   if(corso) url+=`&corso=${encodeURIComponent(corso)}`;
   document.getElementById('tab-spinner').style.display='block';
   document.getElementById('tab-body').innerHTML='';
   try{
-    const res  = await fetch(url);
-    const data = await res.json();
+    const res=await fetch(url);
+    const data=await res.json();
     document.getElementById('count-badge').textContent=data.total||0;
-    const rows = data.rows||[];
-    if(!rows.length){
-      document.getElementById('tab-body').innerHTML='<tr><td colspan="13" class="empty">📭 Nessuna valutazione trovata.</td></tr>';
-      return;
-    }
-    document.getElementById('tab-body').innerHTML = rows.map(r=>`
+    const rows=data.rows||[];
+    if(!rows.length){document.getElementById('tab-body').innerHTML='<tr><td colspan="14" class="empty">📭 Nessun risultato.</td></tr>';return;}
+    document.getElementById('tab-body').innerHTML=rows.map(r=>`
       <tr>
-        <td>${r.data}</td>
-        <td>${r.istruttore}</td>
+        <td>${r.data}</td><td>${r.istruttore}</td><td>${r.turno||'—'}</td>
         <td><strong>${r.allievo}</strong></td>
         <td><span class="tag">${r.corso}</span></td>
-        ${[1,2,3,4,5,6].map(g=>`<td>${r['pts_g'+g]??'—'}</td>`).join('')}
-        <td><span class="score">${r.pts_g7??r.punteggio_finale??'—'}</span></td>
+        ${['g1','g2','g3','g4','g5','g6','fin'].map(d=>`<td>${r['pts_'+d]??'—'}</td>`).join('')}
+        <td><span class="score">${r.punteggio_finale??'—'}</span></td>
         <td>${adminToken?`<button class="btn btn-danger" onclick="elimina(${r.id})">✕</button>`:''}</td>
       </tr>`).join('');
-  } catch(e){ document.getElementById('tab-body').innerHTML='<tr><td colspan="13" class="empty">Errore caricamento.</td></tr>'; }
-  finally{ document.getElementById('tab-spinner').style.display='none'; }
+  } catch(e){document.getElementById('tab-body').innerHTML='<tr><td colspan="14" class="empty">Errore.</td></tr>';}
+  finally{document.getElementById('tab-spinner').style.display='none';}
 }
 
 async function elimina(id){
-  if(!confirm('Eliminare questa valutazione?')) return;
+  if(!confirm('Eliminare questo record?')) return;
   await fetch(`${API}/api/valutazioni/${id}`,{method:'DELETE',headers:{'X-Admin-Token':adminToken}});
   loadRiepilogo();
 }
 
 // ══ Admin ════════════════════════════════════════════════════════════════
 async function doLogin(){
-  const pwd = document.getElementById('pwd').value;
+  const pwd=document.getElementById('pwd').value;
   document.getElementById('pwd-err').style.display='none';
   try{
-    const res  = await fetch(`${API}/api/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
-    const data = await res.json();
-    if(!res.ok) throw new Error('err');
-    adminToken = data.token;
-    sessionStorage.setItem('cvc_token', adminToken);
+    const res=await fetch(`${API}/api/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+    const d=await res.json(); if(!res.ok) throw new Error();
+    adminToken=d.token; sessionStorage.setItem('cvc_token',adminToken);
     document.getElementById('admin-gate').style.display='none';
     document.getElementById('admin-panel').style.display='block';
     loadStats();
-  } catch{ document.getElementById('pwd-err').style.display='block'; }
+  } catch{document.getElementById('pwd-err').style.display='block';}
 }
 
 async function loadStats(){
   try{
-    const res  = await fetch(`${API}/api/stats`,{headers:{'X-Admin-Token':adminToken}});
-    const data = await res.json();
-    document.getElementById('stats-grid').innerHTML = `
-      <div class="stat"><div class="n">${data.totale}</div><div class="l">Valutazioni totali</div></div>
-      <div class="stat"><div class="n">${data.istruttori}</div><div class="l">Istruttori</div></div>
-      <div class="stat"><div class="n">${data.corsi_attivi}</div><div class="l">Corsi attivi</div></div>
-      <div class="stat"><div class="n">${data.media_generale??'—'}</div><div class="l">Media generale</div></div>
-      ${(data.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n} val.)</div></div>`).join('')}`;
-  } catch(e){ console.error(e); }
+    const res=await fetch(`${API}/api/stats`,{headers:{'X-Admin-Token':adminToken}});
+    const d=await res.json();
+    document.getElementById('stats-grid').innerHTML=`
+      <div class="stat"><div class="n">${d.totale}</div><div class="l">Valutazioni totali</div></div>
+      <div class="stat"><div class="n">${d.istruttori}</div><div class="l">Istruttori</div></div>
+      <div class="stat"><div class="n">${d.corsi_attivi}</div><div class="l">Corsi attivi</div></div>
+      <div class="stat"><div class="n">${d.media_generale??'—'}</div><div class="l">Media generale</div></div>
+      ${(d.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n})</div></div>`).join('')}`;
+  } catch(e){}
 }
 
 async function exportCSV(){
-  if(!adminToken){ alert('Accedi come admin per esportare i dati.'); return; }
+  if(!adminToken){alert('Accedi come admin per esportare.');return;}
   try{
-    const res = await fetch(`${API}/api/export/csv`,{headers:{'X-Admin-Token':adminToken}});
-    if(!res.ok) throw new Error('Nessun dato da esportare');
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a'); a.href=url; a.download='CVC_valutazioni.csv'; a.click();
+    const res=await fetch(`${API}/api/export/csv`,{headers:{'X-Admin-Token':adminToken}});
+    if(!res.ok) throw new Error('Nessun dato');
+    const blob=await res.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='CVC_valutazioni.csv';a.click();
     URL.revokeObjectURL(url);
-  } catch(e){ alert(e.message); }
+  } catch(e){alert(e.message);}
 }
+
+// Init
+buildTableHeader();
 </script>
 </body>
 </html>
