@@ -250,7 +250,7 @@ table.riepilogo td{padding:6px 9px;}
         <table class="riepilogo">
           <thead><tr>
             <th>Data</th><th>T.</th><th>Istruttore</th><th>Allievo</th><th>Corso</th>
-            <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>Finale</th><th></th>
+            <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>G7</th><th></th>
           </tr></thead>
           <tbody id="tab-body"><tr><td colspan="13" class="empty">Caricamento…</td></tr></tbody>
         </table>
@@ -271,7 +271,7 @@ const API='';
 const CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I'];
 const CRITERI_KEYS=['tec','sen','aff','pro','imp','dis','com'];
 const DAY_COLORS=['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
-const DAY_LABELS=['G1','G2','G3','G4','G5','G6','Finale'];
+const DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7'];
 const DAY_KEYS  =['g1','g2','g3','g4','g5','g6','fin'];
 const PESI={
   D1:[.30,.10,.10,.15,.12,.13,.10],D2:[.30,.10,.10,.15,.12,.13,.10],
@@ -514,29 +514,45 @@ function renderRigaMobile(nome,id){
   const container=document.getElementById('scheda-mobile');
   const div=document.createElement('div'); div.className='mobile-allievo'; div.id=`mob_${id}`;
 
-  // Header
+  // Header allievo
   let html=`<div class="mobile-allievo-header"><span>${nome}</span><button class="btn btn-danger btn-sm" onclick="rimuoviAllievo('${nome}')">✕</button></div>`;
 
-  // Giorno labels
-  html+=`<div class="mobile-giorni">`;
-  DAY_LABELS.forEach(lbl=>{ html+=`<div class="mobile-giorno"><div class="mobile-giorno-label">${lbl}</div></div>`; });
-  html+=`</div>`;
-
-  // Criteri × giorni
-  html+=`<div class="mobile-criteri">`;
-  CRITERI_KEYS.forEach((key,ci)=>{
-    html+=`<div class="mobile-criterio"><div class="mobile-criterio-nome">${CRITERI_NOMI[ci].split(' ')[0]}</div>`;
-    DAY_KEYS.forEach(dk=>{
-      html+=`<input type="number" id="${key}_${id}_${dk}" min="1" max="10" placeholder="—" oninput="validateVoto(this);ricalcolaAllievo('${nome}')">`;
-    });
-    html+=`</div>`;
+  // Tabella unica: prima riga = etichette giorni, poi una riga per criterio, ultima riga punteggi
+  // Usiamo una table per garantire allineamento perfetto
+  html+=`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+  <table style="border-collapse:collapse;width:100%;font-size:.75rem;">
+    <thead><tr>
+      <th style="padding:5px 4px;background:#f0f0f0;text-align:left;min-width:70px;font-size:.7rem;">Criterio</th>`;
+  DAY_LABELS.forEach((lbl,di)=>{
+    const bg=DAY_COLORS[di];
+    html+=`<th style="padding:5px 3px;background:${bg};color:white;text-align:center;min-width:40px;">${lbl}</th>`;
   });
-  html+=`</div>`;
+  html+=`</tr></thead><tbody>`;
+
+  // Una riga per ogni criterio
+  CRITERI_KEYS.forEach((key,ci)=>{
+    html+=`<tr><td style="padding:3px 4px;font-size:.7rem;font-weight:bold;color:#555;background:#fafafa;">${CRITERI_NOMI[ci]}</td>`;
+    DAY_KEYS.forEach((dk,di)=>{
+      const bg=DAY_COLORS[di]+'22';
+      html+=`<td style="padding:2px;background:${bg};text-align:center;">
+        <input type="number" id="${key}_${id}_${dk}" min="1" max="10" placeholder="—"
+          style="width:38px;padding:3px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.82rem;font-weight:bold;"
+          oninput="validateVoto(this);ricalcolaAllievo('${nome}')">
+      </td>`;
+    });
+    html+=`</tr>`;
+  });
 
   // Riga punteggi
-  html+=`<div class="mobile-pts-row"><div class="mobile-pts-label">Pts</div>`;
-  DAY_KEYS.forEach(dk=>{ html+=`<div class="mobile-pts-cell ${dk==='fin'?'mobile-pts-fin':''}" id="pts_${id}_${dk}">—</div>`; });
-  html+=`</div>`;
+  html+=`<tr><td style="padding:4px;font-size:.7rem;font-weight:bold;color:var(--blu);background:#f0f6ff;">Pts</td>`;
+  DAY_KEYS.forEach((dk,di)=>{
+    const isFin=dk==='fin';
+    const bg=isFin?'#e6a817':'var(--oro)';
+    const col=isFin?'white':'#333';
+    html+=`<td style="padding:2px;text-align:center;"><div id="pts_${id}_${dk}"
+      style="background:${bg};color:${col};font-weight:bold;font-size:.8rem;border-radius:3px;padding:3px 2px;text-align:center;">—</div></td>`;
+  });
+  html+=`</tr></tbody></table></div>`;
 
   div.innerHTML=html; container.appendChild(div);
 }
