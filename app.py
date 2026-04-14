@@ -13,13 +13,25 @@ DATABASE_URL = os.environ.get('DATABASE_URL', '')
 USE_PG = bool(DATABASE_URL)
 
 if USE_PG:
-    import psycopg2
-    import psycopg2.extras
-    def get_db():
-        conn = psycopg2.connect(DATABASE_URL)
-        return conn
-    PH = '%s'   # placeholder PostgreSQL
-else:
+    try:
+        import pg8000.native
+        import pg8000
+        import urllib.parse as _up
+        def get_db():
+            # pg8000 usa parametri separati, non la stringa URL
+            r = _up.urlparse(DATABASE_URL)
+            conn = pg8000.connect(
+                host=r.hostname, port=r.port or 5432,
+                database=r.path.lstrip('/'),
+                user=r.username, password=r.password,
+                ssl_context=True
+            )
+            return conn
+        PH = '%s'
+    except ImportError:
+        USE_PG = False
+
+if not USE_PG:
     import sqlite3
     DB = os.environ.get('DB_PATH', 'cvc.db')
     def get_db():
