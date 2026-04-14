@@ -345,6 +345,7 @@ async function doTurnoLogin(){
   }
   try{
     const res=await fetch(`${API}/api/turno/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res) return;
     const d=await res.json();
     if(!res.ok){
       if(d.primo_accesso){primoAccesso=true;document.getElementById('primo-extra').classList.add('show');}
@@ -603,8 +604,8 @@ async function salvaScheda(){
       method:'POST',headers:{'Content-Type':'application/json','X-Auth-Token':session.token},
       body:JSON.stringify({records})
     });
-    const data=await res.json();
     if(!res) return;
+    const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Errore');
     document.getElementById('alert-ok').classList.add('show');
     setTimeout(()=>document.getElementById('alert-ok').classList.remove('show'),3000);
