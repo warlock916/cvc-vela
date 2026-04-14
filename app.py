@@ -309,6 +309,17 @@ def export_csv():
     return Response('\ufeff'+out.getvalue(),mimetype='text/csv',
                     headers={'Content-Disposition':'attachment; filename=CVC_valutazioni.csv'})
 
+@app.route('/api/reset', methods=['POST'])
+@check_admin
+def reset_db():
+    """Cancella tutti i dati e ricrea il DB pulito."""
+    with get_db() as db:
+        db.execute('DELETE FROM valutazioni')
+        db.execute('DELETE FROM turni')
+        db.execute('DELETE FROM sessions')
+        db.commit()
+    return jsonify({'ok': True})
+
 @app.route('/api/verify', methods=['GET'])
 def verify():
     token=request.headers.get('X-Auth-Token','')
