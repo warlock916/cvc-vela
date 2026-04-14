@@ -246,10 +246,9 @@ table.riepilogo td{padding:6px 9px;}
         <table class="riepilogo">
           <thead><tr>
             <th>Data</th><th>T.</th><th>Istruttore</th><th>Allievo</th><th>Corso</th>
-            <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>Fin</th>
-            <th>Finale</th><th></th>
+            <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>Fin</th><th></th>
           </tr></thead>
-          <tbody id="tab-body"><tr><td colspan="14" class="empty">Caricamento…</td></tr></tbody>
+          <tbody id="tab-body"><tr><td colspan="13" class="empty">Caricamento…</td></tr></tbody>
         </table>
       </div>
       <div id="tab-spinner" class="spinner"></div>
@@ -286,7 +285,7 @@ async function init(){
   if(saved){
     const res=await fetch(`${API}/api/verify`,{headers:{'X-Auth-Token':saved.token}});
     if(res.ok){ session=saved; enterApp(); return; }
-    sessionStorage.removeItem('cvc_s');
+    sessionStorage.clear();
   }
   showPage('login');
 }
@@ -541,6 +540,7 @@ async function salvaScheda(){
       body:JSON.stringify({records})
     });
     const data=await res.json();
+    if(res.status===401){ sessionStorage.removeItem('cvc_s'); session=null; showErr('Sessione scaduta. Ricarica la pagina e fai nuovamente il login.'); return; }
     if(!res.ok) throw new Error(data.error||'Errore');
     document.getElementById('alert-ok').classList.add('show');
     setTimeout(()=>document.getElementById('alert-ok').classList.remove('show'),3000);
@@ -628,19 +628,18 @@ async function loadRiepilogo(){
     const data=await res.json();
     document.getElementById('count-badge').textContent=data.total||0;
     const rows=data.rows||[];
-    if(!rows.length){document.getElementById('tab-body').innerHTML='<tr><td colspan="14" class="empty">📭 Nessun risultato.</td></tr>';return;}
+    if(!rows.length){document.getElementById('tab-body').innerHTML='<tr><td colspan="13" class="empty">📭 Nessun risultato.</td></tr>';return;}
     document.getElementById('tab-body').innerHTML=rows.map(r=>`
       <tr>
         <td>${r.data}</td><td><strong>T${r.turno}</strong></td><td>${r.istruttore}</td>
         <td><strong>${r.allievo}</strong></td><td><span class="tag">${r.corso}</span></td>
         ${DAY_KEYS.map(dk=>`<td>${r['pts_'+dk]??'—'}</td>`).join('')}
-        <td><span class="score">${r.punteggio_finale??'—'}</span></td>
         <td style="white-space:nowrap;">
           <button class="btn btn-warning" style="margin-right:3px;" onclick="apriModal(${r.id})">✏️</button>
           <button class="btn btn-danger" onclick="elimina(${r.id})">✕</button>
         </td>
       </tr>`).join('');
-  }catch{document.getElementById('tab-body').innerHTML='<tr><td colspan="14" class="empty">Errore.</td></tr>';}
+  }catch{document.getElementById('tab-body').innerHTML='<tr><td colspan="13" class="empty">Errore.</td></tr>';}
   finally{document.getElementById('tab-spinner').style.display='none';}
 }
 
