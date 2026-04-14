@@ -24,15 +24,14 @@ def init_db():
     voti_cols = [f"{c}_{d} INTEGER" for c in CRITERI for d in DAY_KEYS]
     pts_cols  = [f"pts_{d} INTEGER" for d in DAY_KEYS]
     with get_db() as db:
-        # Tabella turni: numero turno (1-60) + password hashata + metadati
         db.execute('''CREATE TABLE IF NOT EXISTS turni (
-            numero    INTEGER PRIMARY KEY,
-            pwd_hash  TEXT NOT NULL,
+            numero     INTEGER PRIMARY KEY,
+            pwd_hash   TEXT NOT NULL,
+            pwd_plain  TEXT NOT NULL,
             istruttore TEXT NOT NULL,
-            corso     TEXT NOT NULL,
+            corso      TEXT NOT NULL,
             created_at TEXT DEFAULT (datetime('now'))
         )''')
-        # Tabella valutazioni
         db.execute(f'''CREATE TABLE IF NOT EXISTS valutazioni (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
             data             TEXT NOT NULL,
@@ -44,7 +43,6 @@ def init_db():
             {", ".join(pts_cols)},
             punteggio_finale REAL
         )''')
-        # Sessioni admin
         db.execute('''CREATE TABLE IF NOT EXISTS sessions (
             token TEXT PRIMARY KEY,
             tipo  TEXT DEFAULT 'admin',
@@ -85,7 +83,6 @@ def calcola_punteggio(corso, voti):
     else: return None
     return int(math.floor(result))
 
-# ── Auth helpers ──────────────────────────────────────────────────────────
 def check_admin(f):
     @functools.wraps(f)
     def wrapper(*args,**kwargs):
@@ -97,20 +94,17 @@ def check_admin(f):
     return wrapper
 
 def check_turno_auth(turno_num, token):
-    """Verifica che il token sia valido per questo turno (o sia admin)."""
     with get_db() as db:
-        row = db.execute(
+        row=db.execute(
             "SELECT token FROM sessions WHERE token=? AND (tipo='admin' OR (tipo='turno' AND turno=?))",
             (token, turno_num)
         ).fetchone()
     return row is not None
 
-# ── Routes ────────────────────────────────────────────────────────────────
 @app.route('/')
 def index():
     return send_from_directory('static','index.html')
 
-# Login admin
 @app.route('/api/login', methods=['POST'])
 def login():
     d=request.json or {}
@@ -120,7 +114,12 @@ def login():
         db.execute("INSERT INTO sessions(token,tipo) VALUES(?,?)",(token,'admin')); db.commit()
     return jsonify({'token':token,'tipo':'admin'})
 
-# Login turno: crea se non esiste, verifica se esiste
+@app.route('/api/turno/<int:numero>/exists', methods=['GET'])
+def turno_exists(numero):
+    with get_db() as db:
+        row=db.execute('SELECT numero FROM turni WHERE numero=?',(numero,)).fetchone()
+    return jsonify({'exists': row is not None})
+
 @app.route('/api/turno/login', methods=['POST'])
 def turno_login():
     d      = request.json or {}
@@ -128,149 +127,104 @@ def turno_login():
     pwd    = d.get('password','').strip()
     istr   = d.get('istruttore','').strip()
     corso  = d.get('corso','').strip()
-
-    if not numero or not pwd:
-        return jsonify({'error':'Turno e password obbligatori'}),400
-    try: numero = int(numero)
+    if not numero or not pwd: return jsonify({'error':'Turno e password obbligatori'}),400
+    try: numero=int(numero)
     except: return jsonify({'error':'Numero turno non valido'}),400
-    if not (1 <= numero <= 60):
-        return jsonify({'error':'Il turno deve essere tra 1 e 60'}),400
+    if not (1<=numero<=60): return jsonify({'error':'Il turno deve essere tra 1 e 60'}),400
 
     with get_db() as db:
-        turno_row = db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
-
+        turno_row=db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
         if turno_row is None:
-            # Prima volta: crea il turno
             if not istr or not corso:
                 return jsonify({'error':'Prima apertura: inserisci anche istruttore e corso','primo_accesso':True}),400
-            db.execute('INSERT INTO turni(numero,pwd_hash,istruttore,corso) VALUES(?,?,?,?)',
-                       (numero, hash_pwd(pwd), istr, corso))
+            db.execute('INSERT INTO turni(numero,pwd_hash,pwd_plain,istruttore,corso) VALUES(?,?,?,?,?)',
+                       (numero,hash_pwd(pwd),pwd,istr,corso))
             db.commit()
-            turno_row = db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
+            turno_row=db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
         else:
-            # Turno esistente: verifica password
-            if hash_pwd(pwd) != turno_row['pwd_hash']:
+            if hash_pwd(pwd)!=turno_row['pwd_hash']:
                 return jsonify({'error':'Password errata per questo turno'}),401
-
-        # Crea token sessione turno
-        token = secrets.token_hex(32)
+        token=secrets.token_hex(32)
         db.execute("INSERT INTO sessions(token,tipo,turno) VALUES(?,?,?)",(token,'turno',numero))
         db.commit()
 
+    # FIX: usa 'turno' come chiave (non 'numero') per coerenza col frontend
     return jsonify({
-        'token':   token,
-        'tipo':    'turno',
-        'numero':  numero,
+        'token':      token,
+        'tipo':       'turno',
+        'turno':      numero,
         'istruttore': turno_row['istruttore'],
         'corso':      turno_row['corso'],
-        'nuovo':   turno_row is None
     })
 
-
-# Verifica esistenza turno (pubblico, senza auth)
-@app.route("/api/turno/<int:numero>/exists", methods=["GET"])
-def turno_exists(numero):
-    with get_db() as db:
-        row = db.execute("SELECT numero FROM turni WHERE numero=?",(numero,)).fetchone()
-    return jsonify({"exists": row is not None})
-
-# Info turno (per riapertura)
 @app.route('/api/turno/<int:numero>', methods=['GET'])
 def turno_info(numero):
-    token = request.headers.get('X-Auth-Token','')
-    if not check_turno_auth(numero, token):
-        return jsonify({'error':'Non autorizzato'}),401
+    token=request.headers.get('X-Auth-Token','')
+    if not check_turno_auth(numero,token): return jsonify({'error':'Non autorizzato'}),401
     with get_db() as db:
-        t    = db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
-        rows = db.execute('SELECT * FROM valutazioni WHERE turno=? ORDER BY allievo',(numero,)).fetchall()
+        t   =db.execute('SELECT * FROM turni WHERE numero=?',(numero,)).fetchone()
+        rows=db.execute('SELECT * FROM valutazioni WHERE turno=? ORDER BY allievo',(numero,)).fetchall()
     if not t: return jsonify({'error':'Turno non trovato'}),404
     return jsonify({'turno':dict(t),'allievi':[dict(r) for r in rows]})
 
-# Salva scheda
 @app.route('/api/scheda', methods=['POST'])
 def salva_scheda():
-    d       = request.json or {}
-    records = d.get('records',[])
-    token   = request.headers.get('X-Auth-Token','')
+    d=request.json or {}
+    records=d.get('records',[])
+    token=request.headers.get('X-Auth-Token','')
     if not records: return jsonify({'error':'Nessun record'}),400
-
-    oggi = date.today().isoformat()
-    salvati = 0
-
+    oggi=date.today().isoformat(); salvati=0
     with get_db() as db:
         for rec in records:
-            corso   = rec.get('corso','')
-            istr    = rec.get('istruttore','').strip()
-            allievo = rec.get('allievo','').strip()
-            turno   = rec.get('turno')
+            corso=rec.get('corso',''); istr=rec.get('istruttore','').strip()
+            allievo=rec.get('allievo','').strip(); turno=rec.get('turno')
             if not all([corso,istr,allievo,turno]): continue
-
-            try: turno = int(turno)
+            try: turno=int(turno)
             except: continue
-
-            # Verifica autorizzazione
-            if not check_turno_auth(turno, token):
-                return jsonify({'error':'Non autorizzato per questo turno'}),401
-
+            if not check_turno_auth(turno,token): return jsonify({'error':'Non autorizzato'}),401
             cols,vals=[],[]
             for c in CRITERI:
                 for dk in DAY_KEYS:
                     v=rec.get(f'{c}_{dk}')
                     v=int(v) if v is not None and 1<=int(v)<=10 else None
                     cols.append(f'{c}_{dk}'); vals.append(v)
-
             pts_list=[]
             for dk in DAY_KEYS:
                 voti_day=[rec.get(f'{c}_{dk}') for c in CRITERI]
                 voti_day=[int(x) if x is not None and 1<=int(x)<=10 else None for x in voti_day]
                 pt=calcola_punteggio(corso,voti_day)
-                cols.append(f'pts_{dk}'); vals.append(pt)
-                pts_list.append(pt)
-
+                cols.append(f'pts_{dk}'); vals.append(pt); pts_list.append(pt)
             validi=[p for p in pts_list if p is not None]
             pf=int(math.floor(sum(validi)/len(validi))) if validi else None
-
-            # Upsert: aggiorna se allievo già esiste nel turno, inserisce altrimenti
-            existing = db.execute(
-                'SELECT id FROM valutazioni WHERE turno=? AND allievo=?',(turno,allievo)
-            ).fetchone()
-
+            existing=db.execute('SELECT id FROM valutazioni WHERE turno=? AND allievo=?',(turno,allievo)).fetchone()
             if existing:
                 set_clause=','.join(f'{c}=?' for c in cols)+',punteggio_finale=?'
-                db.execute(f'UPDATE valutazioni SET {set_clause} WHERE id=?',
-                           vals+[pf,existing['id']])
+                db.execute(f'UPDATE valutazioni SET {set_clause} WHERE id=?',vals+[pf,existing['id']])
             else:
                 all_cols=['data','istruttore','corso','turno','allievo']+cols+['punteggio_finale']
                 all_vals=[oggi,istr,corso,turno,allievo]+vals+[pf]
                 db.execute(f"INSERT INTO valutazioni ({','.join(all_cols)}) VALUES ({','.join(['?']*len(all_vals))})",all_vals)
             salvati+=1
         db.commit()
-
     return jsonify({'ok':True,'salvati':salvati})
 
-# Riepilogo (solo admin)
 @app.route('/api/valutazioni/public', methods=['GET'])
 @check_admin
 def lista_public():
-    q     = request.args.get('q','')
-    corso = request.args.get('corso','')
-    turno = request.args.get('turno','')
-    limit = int(request.args.get('limit',500))
+    q=request.args.get('q',''); corso=request.args.get('corso','')
+    turno=request.args.get('turno',''); limit=int(request.args.get('limit',500))
     pts_cols=','.join(f'pts_{dk}' for dk in DAY_KEYS)
-
     where,params=[],[]
     if q:     where.append('(allievo LIKE ? OR istruttore LIKE ?)'); params+=[f'%{q}%']*2
     if corso: where.append('corso=?'); params.append(corso)
     if turno: where.append('turno=?'); params.append(int(turno))
-
-    sql  = f'SELECT id,data,istruttore,turno,allievo,corso,{pts_cols},punteggio_finale FROM valutazioni'
-    csql = 'SELECT COUNT(*) FROM valutazioni'
+    sql=f'SELECT id,data,istruttore,turno,allievo,corso,{pts_cols},punteggio_finale FROM valutazioni'
+    csql='SELECT COUNT(*) FROM valutazioni'
     if where:
         w=' WHERE '+' AND '.join(where); sql+=w; csql+=w
     sql+=' ORDER BY turno,allievo LIMIT ?'; params.append(limit)
-
     with get_db() as db:
-        rows =db.execute(sql,params).fetchall()
+        rows=db.execute(sql,params).fetchall()
         total=db.execute(csql,params[:-1]).fetchone()[0]
     return jsonify({'total':total,'rows':[dict(r) for r in rows]})
 
@@ -298,20 +252,17 @@ def modifica(vid):
         for dk in DAY_KEYS:
             key=f'{c}_{dk}'
             if key in payload:
-                v=payload[key]
-                v=int(v) if v is not None and 1<=int(v)<=10 else None
+                v=payload[key]; v=int(v) if v is not None and 1<=int(v)<=10 else None
                 sets.append(f'{key}=?'); vals.append(v)
     for dk in DAY_KEYS:
         key=f'pts_{dk}'
-        if key in payload:
-            sets.append(f'{key}=?'); vals.append(payload[key])
+        if key in payload: sets.append(f'{key}=?'); vals.append(payload[key])
     if 'punteggio_finale' in payload:
         sets.append('punteggio_finale=?'); vals.append(payload['punteggio_finale'])
     if not sets: return jsonify({'error':'Nessun campo'}),400
     vals.append(vid)
     with get_db() as db:
-        db.execute(f"UPDATE valutazioni SET {','.join(sets)} WHERE id=?",vals)
-        db.commit()
+        db.execute(f"UPDATE valutazioni SET {','.join(sets)} WHERE id=?",vals); db.commit()
     return jsonify({'ok':True})
 
 @app.route('/api/stats', methods=['GET'])
@@ -323,7 +274,8 @@ def stats():
         cors=db.execute('SELECT COUNT(DISTINCT corso) FROM valutazioni').fetchone()[0]
         med =db.execute('SELECT AVG(punteggio_finale) FROM valutazioni WHERE punteggio_finale IS NOT NULL').fetchone()[0]
         perc=db.execute('SELECT corso,COUNT(*) n,AVG(punteggio_finale) media FROM valutazioni GROUP BY corso ORDER BY corso').fetchall()
-        turni=db.execute('SELECT numero,istruttore,corso FROM turni ORDER BY numero').fetchall()
+        # Turni con password in chiaro (visibile solo all'admin)
+        turni=db.execute('SELECT numero,istruttore,corso,pwd_plain FROM turni ORDER BY numero').fetchall()
     return jsonify({'totale':tot,'istruttori':istr,'corsi_attivi':cors,
                     'media_generale':round(med,1) if med else None,
                     'per_corso':[dict(r) for r in perc],
@@ -335,14 +287,12 @@ def export_csv():
     with get_db() as db:
         rows=db.execute('SELECT * FROM valutazioni ORDER BY turno,allievo').fetchall()
     if not rows: return jsonify({'error':'Nessun dato'}),404
-    out=io.StringIO()
-    w=csv.writer(out)
+    out=io.StringIO(); w=csv.writer(out)
     w.writerow(rows[0].keys())
     for r in rows: w.writerow(list(r))
     return Response('\ufeff'+out.getvalue(),mimetype='text/csv',
                     headers={'Content-Disposition':'attachment; filename=CVC_valutazioni.csv'})
 
-# Verifica token generico
 @app.route('/api/verify', methods=['GET'])
 def verify():
     token=request.headers.get('X-Auth-Token','')
