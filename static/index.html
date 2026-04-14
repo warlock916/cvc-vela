@@ -256,7 +256,11 @@ table.riepilogo td{padding:6px 9px;}
         </table>
       </div>
       <div id="tab-spinner" class="spinner"></div>
-      <div class="btn-row"><button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button>
+        <button class="btn btn-danger" onclick="resetDB()" style="padding:8px 18px;font-size:.86rem;">🗑️ Reset DB</button>
+      </div>
+      <p style="margin-top:10px;font-size:.8rem;color:#888;">⚠️ Reset DB cancella tutti i dati, turni, allievi e sessioni. Esporta prima il CSV se vuoi conservare i dati.</p>
     </div>
   </div>
 </div>
@@ -707,6 +711,20 @@ async function elimina(id){
   if(!confirm('Eliminare questo record?'))return;
   await fetch(`${API}/api/valutazioni/${id}`,{method:'DELETE',headers:{'X-Admin-Token':adminToken}});
   loadRiepilogo();
+}
+
+async function resetDB(){
+  if(!adminToken){ alert('Accedi come admin.'); return; }
+  if(!confirm('⚠️ ATTENZIONE\n\nQuesto cancellerà TUTTI i dati:\n- Tutti i turni e password\n- Tutti gli allievi e i voti\n- Tutte le sessioni attive\n\nSei sicuro?')) return;
+  if(!confirm('Conferma definitiva: cancellare tutto?')) return;
+  try{
+    const res=await fetch(`${API}/api/reset`,{method:'POST',headers:{'X-Admin-Token':adminToken}});
+    if(!res.ok) throw new Error('Errore');
+    adminToken=null;
+    sessionStorage.clear();
+    alert('✅ Database resettato. Tutti gli utenti dovranno fare nuovamente il login.');
+    adminLogout();
+  }catch(e){ alert('Errore durante il reset: '+e.message); }
 }
 
 async function exportCSV(){
