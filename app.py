@@ -167,6 +167,26 @@ def salva_valutazione():
 
     return jsonify({'ok': True, 'punteggio_finale': finale, 'pts_giornalieri': pts})
 
+
+@app.route("/api/valutazioni/public", methods=["GET"])
+def lista_valutazioni_public():
+    """Riepilogo visibile a tutti."""
+    q     = request.args.get("q","")
+    corso = request.args.get("corso","")
+    limit = int(request.args.get("limit", 500))
+    where, params = [], []
+    if q:     where.append("(allievo LIKE ? OR istruttore LIKE ?)"); params += [f"%{q}%", f"%{q}%"]
+    if corso: where.append("corso=?"); params.append(corso)
+    sql = "SELECT id,data,istruttore,allievo,corso,pts_g1,pts_g2,pts_g3,pts_g4,pts_g5,pts_g6,pts_g7,punteggio_finale FROM valutazioni"
+    if where: sql += " WHERE " + " AND ".join(where)
+    sql += " ORDER BY id DESC LIMIT ?"
+    params.append(limit)
+    with get_db() as db:
+        rows  = db.execute(sql, params).fetchall()
+        csql  = "SELECT COUNT(*) FROM valutazioni" + (" WHERE " + " AND ".join(where) if where else "")
+        total = db.execute(csql, params[:-1]).fetchone()[0]
+    return jsonify({"total": total, "rows": [dict(r) for r in rows]})
+
 @app.route('/api/valutazioni', methods=['GET'])
 @check_admin
 def lista_valutazioni():
