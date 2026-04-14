@@ -27,35 +27,32 @@ input[type=text],input[type=password],select{width:100%;padding:8px 11px;border:
 input:focus,select:focus{outline:none;border-color:var(--blu2);}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .full{grid-column:1/-1;}
-/* criteri */
 .criteri-wrap{margin-top:18px;}
 .criterio-block{margin-bottom:14px;}
-.criterio-title{font-weight:bold;font-size:.88rem;color:var(--blu);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.criterio-title{font-weight:bold;font-size:.88rem;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
 .giorni-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
 .giorno-cell{text-align:center;}
 .giorno-cell label{font-size:.75rem;color:#888;margin-bottom:3px;}
-.giorno-cell input{padding:5px 4px;text-align:center;font-size:.9rem;}
-/* punteggi giornalieri */
-.pts-row{display:grid;grid-template-columns:repeat(7,1fr) 1fr;gap:6px;margin-top:6px;align-items:center;}
+.giorno-cell input{padding:5px 4px;text-align:center;font-size:.9rem;width:100%;border:1.5px solid var(--bordo);border-radius:5px;}
+.giorno-cell input:focus{outline:none;border-color:var(--blu2);}
+.giorno-cell input.invalid{border-color:var(--rosso);background:#fff0f0;}
+.pts-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;align-items:center;}
 .pts-badge{background:var(--blu);color:white;border-radius:6px;padding:5px 4px;text-align:center;font-weight:bold;font-size:.9rem;min-height:32px;display:flex;align-items:center;justify-content:center;}
 .pts-label{font-size:.78rem;color:#666;margin-bottom:3px;}
 .finale-box{background:var(--blu);color:white;border-radius:10px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;}
 .finale-box .lbl{font-size:.95rem;opacity:.9;}
 .finale-box .val{font-size:2.6rem;font-weight:bold;color:var(--oro);line-height:1;}
 .finale-box .det{font-size:.78rem;opacity:.7;margin-top:3px;}
-/* alert */
 .alert{padding:11px 15px;border-radius:6px;margin-bottom:14px;font-size:.88rem;display:none;}
 .alert.show{display:block;}
 .alert-ok{background:#e8f5e0;border-left:4px solid var(--verde);color:#3a6020;}
 .alert-err{background:#fce8e8;border-left:4px solid var(--rosso);color:#7a1010;}
-/* bottoni */
 .btn{padding:9px 22px;border:none;border-radius:6px;font-size:.9rem;font-weight:bold;cursor:pointer;transition:all .2s;}
 .btn-primary{background:var(--blu2);color:white;} .btn-primary:hover{background:var(--blu);}
 .btn-success{background:var(--verde);color:white;} .btn-success:hover{background:#5a9038;}
 .btn-danger{background:var(--rosso);color:white;font-size:.78rem;padding:5px 10px;} .btn-danger:hover{opacity:.85;}
 .btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);} .btn-outline:hover{background:var(--azzurro);}
 .btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
-/* tabella */
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
 .toolbar input,.toolbar select{width:auto;flex:1;min-width:140px;}
 .badge{background:var(--blu2);color:white;border-radius:20px;padding:2px 9px;font-size:.78rem;font-weight:bold;}
@@ -68,7 +65,6 @@ tbody td{padding:8px 10px;}
 .tag{background:var(--azzurro);color:var(--blu);border-radius:4px;padding:2px 7px;font-weight:bold;font-size:.78rem;}
 .score{background:var(--oro);color:#333;border-radius:4px;padding:2px 8px;font-weight:bold;display:inline-block;min-width:28px;text-align:center;}
 .empty{text-align:center;padding:38px;color:#aaa;}
-/* admin */
 .admin-gate{text-align:center;padding:36px 20px;}
 .admin-gate input{max-width:260px;margin:10px auto;display:block;}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:20px;}
@@ -76,9 +72,8 @@ tbody td{padding:8px 10px;}
 .stat .n{font-size:1.9rem;font-weight:bold;color:var(--blu);}
 .stat .l{font-size:.78rem;color:#666;margin-top:3px;}
 .page{display:none;} .page.active{display:block;}
-.spinner{display:none;width:20px;height:20px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;}
+.spinner{display:none;width:20px;height:20px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:16px auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading .spinner{display:block;}
 @media(max-width:600px){.grid2{grid-template-columns:1fr;}.giorni-row{grid-template-columns:repeat(4,1fr);}.card{padding:16px 14px;}header h1{font-size:1rem;}}
 </style>
 </head>
@@ -96,12 +91,12 @@ tbody td{padding:8px 10px;}
 
 <div class="container">
 
-<!-- ══════════════════════ INSERIMENTO ══════════════════════ -->
+<!-- ══ INSERIMENTO ══ -->
 <div id="page-inserimento" class="page active">
 <div class="card">
   <h2>📝 Nuova Valutazione</h2>
-  <div id="alert-ok"  class="alert alert-ok">✅ Valutazione salvata!</div>
-  <div id="alert-err" class="alert alert-err" id="alert-err">⚠️ <span id="err-msg">Compila tutti i campi obbligatori.</span></div>
+  <div id="alert-ok"  class="alert alert-ok">✅ Valutazione salvata correttamente!</div>
+  <div id="alert-err" class="alert alert-err"><span id="err-msg">Compila tutti i campi obbligatori.</span></div>
 
   <div class="grid2">
     <div><label>Istruttore *</label><input type="text" id="istruttore" placeholder="Nome e Cognome"></div>
@@ -118,12 +113,9 @@ tbody td{padding:8px 10px;}
 
   <div class="criteri-wrap" id="criteri-wrap"></div>
 
-  <!-- Punteggi giornalieri preview -->
   <div style="margin-top:16px;">
-    <div class="pts-label">Punteggi giornalieri (calcolati automaticamente):</div>
-    <div class="pts-row" id="pts-row">
-      <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-    </div>
+    <div class="pts-label">Punteggi giornalieri:</div>
+    <div class="pts-row" id="pts-row"></div>
   </div>
 
   <div class="finale-box">
@@ -141,12 +133,12 @@ tbody td{padding:8px 10px;}
 </div>
 </div>
 
-<!-- ══════════════════════ RIEPILOGO ══════════════════════ -->
+<!-- ══ RIEPILOGO ══ -->
 <div id="page-riepilogo" class="page">
 <div class="card">
-  <h2>📋 Riepilogo <span class="badge" id="count-badge">0</span></h2>
+  <h2>📋 Tutte le Valutazioni <span class="badge" id="count-badge">0</span></h2>
   <div class="toolbar">
-    <input type="text"  id="f-nome"  placeholder="🔍 Cerca allievo/istruttore…" oninput="loadRiepilogo()">
+    <input type="text"  id="f-nome"  placeholder="🔍 Cerca allievo o istruttore…" oninput="loadRiepilogo()">
     <select id="f-corso" onchange="loadRiepilogo()">
       <option value="">Tutti i corsi</option>
       <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
@@ -157,25 +149,26 @@ tbody td{padding:8px 10px;}
     <table>
       <thead><tr>
         <th>Data</th><th>Istruttore</th><th>Allievo</th><th>Corso</th>
-        <th>Pts G1</th><th>Pts G2</th><th>Pts G3</th><th>Pts G4</th><th>Pts G5</th><th>Pts G6</th><th>Pts G7</th>
-        <th>Finale</th><th></th>
+        <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>Finale</th><th></th>
       </tr></thead>
-      <tbody id="tab-body"></tbody>
+      <tbody id="tab-body"><tr><td colspan="13" class="empty">Caricamento...</td></tr></tbody>
     </table>
   </div>
-  <div id="tab-spinner" class="spinner" style="margin-top:20px;"></div>
-  <div class="btn-row"><button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button></div>
+  <div id="tab-spinner" class="spinner"></div>
+  <div class="btn-row">
+    <button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV (richiede accesso admin)</button>
+  </div>
 </div>
 </div>
 
-<!-- ══════════════════════ ADMIN ══════════════════════ -->
+<!-- ══ ADMIN ══ -->
 <div id="page-admin" class="page">
   <div id="admin-gate" class="card admin-gate">
     <h2>🔒 Accesso Admin</h2>
-    <p style="color:#666;margin:10px 0;font-size:.9rem;">Inserisci la password per accedere.</p>
-    <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <p style="color:#666;margin:10px 0;font-size:.9rem;">Password necessaria per statistiche ed export.</p>
+    <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="btn-row" style="justify-content:center;margin-top:12px;">
-      <button class="btn btn-primary" onclick="login()">Accedi</button>
+      <button class="btn btn-primary" onclick="doLogin()">Accedi</button>
     </div>
     <div id="pwd-err" style="color:var(--rosso);margin-top:10px;display:none;font-size:.88rem;">Password errata.</div>
   </div>
@@ -185,24 +178,22 @@ tbody td{padding:8px 10px;}
       <div class="stats-grid" id="stats-grid"></div>
     </div>
     <div class="card">
-      <h2>⚙️ Gestione</h2>
+      <h2>⚙️ Gestione dati</h2>
       <div class="btn-row">
         <button class="btn btn-outline" onclick="exportCSV()">📥 Esporta tutti i dati (CSV)</button>
-        <button class="btn btn-danger"  onclick="cancellaAdmin()">🗑️ Cancella TUTTI i dati</button>
       </div>
+      <p style="margin-top:16px;font-size:.85rem;color:#888;">Per cancellare singole valutazioni usa la X nel Riepilogo.</p>
     </div>
   </div>
 </div>
 
-</div><!-- /container -->
+</div>
 
 <script>
-// ══ Config ════════════════════════════════════════════════════════════════
-const API = '';  // stessa origine
+const API = '';
 const CRITERI_NOMI = ['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comportamento T/I'];
 const CRITERI_KEYS = ['tec','sen','aff','pro','imp','dis','com'];
 const CRIT_COLORS  = ['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
-
 const PESI = {
   D1:[.30,.10,.10,.15,.12,.13,.10], D2:[.30,.10,.10,.15,.12,.13,.10],
   D3:[.30,.15,.15,.10,.08,.12,.10], D4:[.30,.15,.20,.05,.08,.12,.10],
@@ -210,61 +201,69 @@ const PESI = {
   C2:[.35,.15,.10,.10,.10,.10,.10], C3:[.30,.20,.15,.05,.10,.10,.10],
   C4:[.25,.25,.15,.05,.10,.10,.10], C5:[.25,.25,.15,.05,.10,.10,.10],
 };
+let adminToken = sessionStorage.getItem('cvc_token') || null;
 
-let adminToken = sessionStorage.getItem('cvc_admin_token') || null;
-
-// ══ Build form criteri ════════════════════════════════════════════════════
+// ══ Build form ══════════════════════════════════════════════════════════
 function buildCriteri() {
   const wrap = document.getElementById('criteri-wrap');
   wrap.innerHTML = '';
   CRITERI_NOMI.forEach((nome, ci) => {
     const key = CRITERI_KEYS[ci];
     const color = CRIT_COLORS[ci];
-    const block = document.createElement('div');
-    block.className = 'criterio-block';
     let giorni = '';
     for(let g=1;g<=7;g++){
       giorni += `<div class="giorno-cell">
-        <label>G${g}</label>
+        <label>${g===7?'Finale':'G'+g}</label>
         <input type="number" id="${key}_g${g}" min="1" max="10" placeholder="—"
-          oninput="aggiornaCalcolo()" style="border-color:${color}20;">
+          oninput="validateVoto(this);aggiornaCalcolo()">
       </div>`;
     }
+    const block = document.createElement('div');
+    block.className = 'criterio-block';
     block.innerHTML = `
       <div class="criterio-title" style="color:${color}">
-        <span style="width:12px;height:12px;background:${color};border-radius:3px;display:inline-block;"></span>
+        <span style="width:12px;height:12px;background:${color};border-radius:3px;display:inline-block;flex-shrink:0"></span>
         ${nome}
       </div>
       <div class="giorni-row">${giorni}</div>`;
     wrap.appendChild(block);
   });
-  buildPtsRow();
-}
 
-function buildPtsRow() {
-  const row = document.getElementById('pts-row');
+  // Build pts row
   let html = '';
   for(let g=1;g<=7;g++){
-    html += `<div><div class="pts-label">G${g}</div><div class="pts-badge" id="pts_g${g}">—</div></div>`;
+    const isFinale = g===7;
+    html += `<div><div class="pts-label">${isFinale?'<strong>Finale</strong>':'G'+g}</div><div class="pts-badge" id="pts_g${g}" style="${isFinale?'background:var(--oro);color:#333;':''}opacity:.4">—</div></div>`;
   }
-  html += `<div><div class="pts-label">Finale</div><div class="pts-badge" id="pts_finale" style="background:var(--oro);color:#333;">—</div></div>`;
-  row.innerHTML = html;
+  document.getElementById('pts-row').innerHTML = html;
 }
-
 buildCriteri();
 
-// ══ Calcolo client-side (preview) ════════════════════════════════════════
+// ══ Validazione voto (1-10) ═════════════════════════════════════════════
+function validateVoto(el) {
+  let v = parseInt(el.value);
+  if(el.value === '' || el.value === null) { el.classList.remove('invalid'); return; }
+  if(isNaN(v) || v < 1 || v > 10) {
+    el.classList.add('invalid');
+    el.value = Math.min(10, Math.max(1, isNaN(v) ? 1 : v));
+    setTimeout(()=>el.classList.remove('invalid'), 800);
+  } else {
+    el.classList.remove('invalid');
+  }
+}
+
+// ══ Calcolo ═════════════════════════════════════════════════════════════
 function getVoti(g) {
   return CRITERI_KEYS.map(k => {
     const v = parseInt(document.getElementById(`${k}_g${g}`)?.value);
-    return isNaN(v) ? null : v;
+    return isNaN(v) ? null : Math.min(10, Math.max(1, v));
   });
 }
 
 function calcolaPunteggio(corso, voti) {
   const p = PESI[corso]; if(!p) return null;
   if(voti.some(v=>v===null)) return null;
-  const [tec,sen,aff,pro,imp,dis,com] = voti;
+  const [tec,sen,,,,, com] = voti;
   const vp = voti.reduce((s,v,i)=>s+v*p[i],0);
   let r;
   if(['D1','D2','C1','C2'].includes(corso)){
@@ -289,14 +288,13 @@ function aggiornaCalcolo() {
     const pt = corso ? calcolaPunteggio(corso, voti) : null;
     pts.push(pt);
     const el = document.getElementById(`pts_g${g}`);
-    if(el){ el.textContent = pt!==null ? pt : '—'; el.style.opacity = pt!==null?'1':'.4'; }
+    if(el){ el.textContent=pt!==null?pt:'—'; el.style.opacity=pt!==null?'1':'.4'; }
   }
   const validi = pts.filter(p=>p!==null);
   const finale = validi.length ? Math.floor(validi.reduce((a,b)=>a+b,0)/validi.length) : null;
-  document.getElementById('pts_finale').textContent = finale!==null ? finale : '—';
+  // pts_g7 è già aggiornato nel loop, non serve elemento separato
   const fv = document.getElementById('finale-val');
-  fv.textContent = finale!==null ? finale : '—';
-  fv.style.opacity = finale!==null ? '1' : '.35';
+  fv.textContent=finale!==null?finale:'—'; fv.style.opacity=finale!==null?'1':'.35';
   document.getElementById('finale-det').textContent =
     finale!==null ? `Media di ${validi.length} giorn${validi.length===1?'o':'i'} compilat${validi.length===1?'o':'i'}` :
     corso ? 'Inserisci i voti per vedere il punteggio' : 'Seleziona corso e inserisci i voti';
@@ -308,37 +306,39 @@ async function salva() {
   const corso = document.getElementById('corso').value;
   const istr  = document.getElementById('istruttore').value.trim();
   const all   = document.getElementById('allievo').value.trim();
-
   if(!istr||!all||!corso){
-    document.getElementById('err-msg').textContent = 'Compila istruttore, allievo e corso.';
+    document.getElementById('err-msg').textContent='Compila istruttore, allievo e corso.';
     document.getElementById('alert-err').classList.add('show'); return;
   }
-
-  // Almeno un giorno completo
+  // Valida tutti i voti inseriti
+  let votoInvalido = false;
+  CRITERI_KEYS.forEach(k=>{ for(let g=1;g<=7;g++){
+    const el = document.getElementById(`${k}_g${g}`);
+    if(el.value!==''){const v=parseInt(el.value);if(isNaN(v)||v<1||v>10){votoInvalido=true;el.classList.add('invalid');}}
+  }});
+  if(votoInvalido){
+    document.getElementById('err-msg').textContent='Alcuni voti non sono validi (devono essere tra 1 e 10).';
+    document.getElementById('alert-err').classList.add('show'); return;
+  }
   let almeno1 = false;
   const payload = {istruttore:istr, allievo:all, corso};
   for(let g=1;g<=7;g++){
     const voti = getVoti(g);
-    const completo = voti.every(v=>v!==null);
-    if(completo) almeno1=true;
+    if(voti.every(v=>v!==null)) almeno1=true;
     CRITERI_KEYS.forEach((k,i)=>{ if(voti[i]!==null) payload[`${k}_g${g}`]=voti[i]; });
   }
   if(!almeno1){
-    document.getElementById('err-msg').textContent = 'Inserisci almeno un giorno completo (tutti i 7 criteri).';
+    document.getElementById('err-msg').textContent='Inserisci almeno un giorno completo (tutti e 7 i criteri).';
     document.getElementById('alert-err').classList.add('show'); return;
   }
-
   try {
-    const res = await fetch(`${API}/api/valutazioni`,{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
+    const res = await fetch(`${API}/api/valutazioni`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data = await res.json();
     if(!res.ok) throw new Error(data.error||'Errore server');
     document.getElementById('alert-ok').classList.add('show');
-    setTimeout(resetForm, 2000);
-  } catch(e) {
-    document.getElementById('err-msg').textContent = e.message;
+    setTimeout(resetForm,2200);
+  } catch(e){
+    document.getElementById('err-msg').textContent=e.message;
     document.getElementById('alert-err').classList.add('show');
   }
 }
@@ -347,7 +347,7 @@ function resetForm(){
   document.getElementById('istruttore').value='';
   document.getElementById('allievo').value='';
   document.getElementById('corso').value='';
-  CRITERI_KEYS.forEach(k=>{ for(let g=1;g<=7;g++) document.getElementById(`${k}_g${g}`).value=''; });
+  CRITERI_KEYS.forEach(k=>{ for(let g=1;g<=7;g++){const el=document.getElementById(`${k}_g${g}`);el.value='';el.classList.remove('invalid');}});
   aggiornaCalcolo();
   ['alert-ok','alert-err'].forEach(id=>document.getElementById(id).classList.remove('show'));
 }
@@ -360,26 +360,25 @@ function showPage(name, btn){
   if(btn) btn.classList.add('active');
   if(name==='riepilogo') loadRiepilogo();
   if(name==='admin'){
-    document.getElementById('admin-gate').style.display = adminToken?'none':'block';
-    document.getElementById('admin-panel').style.display = adminToken?'block':'none';
+    document.getElementById('admin-gate').style.display=adminToken?'none':'block';
+    document.getElementById('admin-panel').style.display=adminToken?'block':'none';
     if(adminToken) loadStats();
   }
 }
 
-// ══ Riepilogo ════════════════════════════════════════════════════════════
+// ══ Riepilogo (visibile a tutti) ═════════════════════════════════════════
 async function loadRiepilogo(){
-  if(!adminToken){ document.getElementById('tab-body').innerHTML=
-    '<tr><td colspan="13" class="empty">🔒 Accedi come admin per vedere il riepilogo.</td></tr>'; return; }
   const nome  = document.getElementById('f-nome').value;
   const corso = document.getElementById('f-corso').value;
-  let url = `${API}/api/valutazioni?limit=200`;
-  if(nome)  url+=`&allievo=${encodeURIComponent(nome)}`;
+  let url = `${API}/api/valutazioni/public?limit=500`;
+  if(nome)  url+=`&q=${encodeURIComponent(nome)}`;
   if(corso) url+=`&corso=${encodeURIComponent(corso)}`;
   document.getElementById('tab-spinner').style.display='block';
+  document.getElementById('tab-body').innerHTML='';
   try{
-    const res  = await fetch(url,{headers:{'X-Admin-Token':adminToken}});
+    const res  = await fetch(url);
     const data = await res.json();
-    document.getElementById('count-badge').textContent = data.total||0;
+    document.getElementById('count-badge').textContent=data.total||0;
     const rows = data.rows||[];
     if(!rows.length){
       document.getElementById('tab-body').innerHTML='<tr><td colspan="13" class="empty">📭 Nessuna valutazione trovata.</td></tr>';
@@ -391,11 +390,11 @@ async function loadRiepilogo(){
         <td>${r.istruttore}</td>
         <td><strong>${r.allievo}</strong></td>
         <td><span class="tag">${r.corso}</span></td>
-        ${[1,2,3,4,5,6,7].map(g=>`<td>${r[`pts_g${g}`]??'—'}</td>`).join('')}
-        <td><span class="score">${r.punteggio_finale??'—'}</span></td>
-        <td><button class="btn btn-danger" onclick="elimina(${r.id})">✕</button></td>
+        ${[1,2,3,4,5,6].map(g=>`<td>${r['pts_g'+g]??'—'}</td>`).join('')}
+        <td><span class="score">${r.pts_g7??r.punteggio_finale??'—'}</span></td>
+        <td>${adminToken?`<button class="btn btn-danger" onclick="elimina(${r.id})">✕</button>`:''}</td>
       </tr>`).join('');
-  } catch(e){ console.error(e); }
+  } catch(e){ document.getElementById('tab-body').innerHTML='<tr><td colspan="13" class="empty">Errore caricamento.</td></tr>'; }
   finally{ document.getElementById('tab-spinner').style.display='none'; }
 }
 
@@ -405,8 +404,8 @@ async function elimina(id){
   loadRiepilogo();
 }
 
-// ══ Admin ═════════════════════════════════════════════════════════════════
-async function login(){
+// ══ Admin ════════════════════════════════════════════════════════════════
+async function doLogin(){
   const pwd = document.getElementById('pwd').value;
   document.getElementById('pwd-err').style.display='none';
   try{
@@ -414,7 +413,7 @@ async function login(){
     const data = await res.json();
     if(!res.ok) throw new Error('err');
     adminToken = data.token;
-    sessionStorage.setItem('cvc_admin_token', adminToken);
+    sessionStorage.setItem('cvc_token', adminToken);
     document.getElementById('admin-gate').style.display='none';
     document.getElementById('admin-panel').style.display='block';
     loadStats();
@@ -434,23 +433,14 @@ async function loadStats(){
   } catch(e){ console.error(e); }
 }
 
-async function cancellaAdmin(){
-  if(!confirm('ATTENZIONE: cancella TUTTI i dati. Sei sicuro?')) return;
-  // Cancella una per una (endpoint batch non implementato, usa export prima)
-  alert('Esporta prima il CSV, poi cancella le singole voci dal riepilogo.');
-}
-
 async function exportCSV(){
-  if(!adminToken){ alert('Accedi come admin per esportare.'); return; }
-  window.open(`${API}/api/export/csv?token=${adminToken}`, '_blank');
-  // Alternativa: fetch con header
+  if(!adminToken){ alert('Accedi come admin per esportare i dati.'); return; }
   try{
     const res = await fetch(`${API}/api/export/csv`,{headers:{'X-Admin-Token':adminToken}});
-    if(!res.ok) throw new Error('Nessun dato');
+    if(!res.ok) throw new Error('Nessun dato da esportare');
     const blob = await res.blob();
     const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href=url; a.download='CVC_valutazioni.csv'; a.click();
+    const a    = document.createElement('a'); a.href=url; a.download='CVC_valutazioni.csv'; a.click();
     URL.revokeObjectURL(url);
   } catch(e){ alert(e.message); }
 }
