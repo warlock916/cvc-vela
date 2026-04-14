@@ -426,27 +426,40 @@ function importaExcel(input){
   const reader = new FileReader();
   reader.onload = function(e){
     try{
-      const wb = XLSX.read(e.target.result, {type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
+      const wb   = XLSX.read(e.target.result, {type:'array'});
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+
+      // Legge con header:1 (prima riga = intestazioni)
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-      let aggiunti=0, saltati=0;
-      for(const row of rows){
-        const nome = (row[0]||'').toString().trim();
-        if(!nome || nome==='' ) continue;
-        // Salta intestazioni comuni
-        if(/nome|allievo|studente|cognome/i.test(nome)) continue;
+      if(rows.length < 2){ alert('Nessun allievo trovato nel file.'); return; }
+
+      // Riga 0 = intestazioni: cerca la colonna con "Allievo" (case-insensitive)
+      const intestazioni = rows[0].map(c => c.toString().trim().toLowerCase());
+      const colIdx = intestazioni.indexOf('allievo');
+      if(colIdx === -1){
+        alert('Colonna "Allievo" non trovata nella prima riga.\nAssicurati che una cella della prima riga contenga "Allievo".');
+        return;
+      }
+
+      // Righe dati: dalla riga 1 in poi
+      let aggiunti=0, saltati=0, vuoti=0;
+      for(let i=1; i<rows.length; i++){
+        const nome = (rows[i][colIdx]||'').toString().trim();
+        if(!nome){ vuoti++; continue; }
         if(allievi.includes(nome)){ saltati++; continue; }
         allievi.push(nome);
         renderRiga(nome);
         aggiunti++;
       }
+
       let msg = `✅ Importati ${aggiunti} allievi`;
-      if(saltati>0) msg += ` (${saltati} già presenti saltati)`;
+      if(saltati>0) msg += `\n⚠️ ${saltati} già presenti (saltati)`;
+      if(vuoti>0)   msg += `\nℹ️ ${vuoti} righe vuote ignorate`;
       alert(msg);
     } catch(err){
-      alert('Errore nella lettura del file Excel: ' + err.message);
+      alert('Errore nella lettura del file: ' + err.message);
     }
-    input.value=''; // reset per permettere reimportazione dello stesso file
+    input.value='';
   };
   reader.readAsArrayBuffer(file);
 }
