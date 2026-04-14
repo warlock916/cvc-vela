@@ -14,6 +14,7 @@
 body{font-family:Arial,sans-serif;background:#e8f0f7;color:var(--testo);min-height:100vh;}
 header{background:var(--blu);color:white;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 header h1{font-size:1.1rem;}
+header .hdr-info{font-size:.82rem;opacity:.85;text-align:right;line-height:1.5;}
 nav{background:var(--blu2);display:flex;}
 nav button{background:none;border:none;color:rgba(255,255,255,.75);padding:10px 20px;cursor:pointer;font-size:.88rem;border-bottom:3px solid transparent;transition:all .2s;}
 nav button:hover{color:white;background:rgba(255,255,255,.1);}
@@ -21,38 +22,35 @@ nav button.active{color:white;border-bottom:3px solid var(--oro);font-weight:bol
 .container{max-width:1600px;margin:20px auto;padding:0 12px 60px;}
 .card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:22px 26px;margin-bottom:18px;}
 .card h2{color:var(--blu);font-size:1rem;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--azzurro);}
-.scheda-header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
-label{display:block;font-size:.82rem;font-weight:bold;color:#444;margin-bottom:4px;}
-input[type=text],input[type=password],select{width:100%;padding:7px 10px;border:1.5px solid var(--bordo);border-radius:6px;font-size:.9rem;transition:border .2s;}
-input:focus,select:focus{outline:none;border-color:var(--blu2);}
 
-/* Tabella scheda */
+/* Login screen */
+.login-screen{max-width:440px;margin:60px auto;}
+.login-screen .card{padding:32px;}
+.login-screen h2{text-align:center;margin-bottom:24px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:.83rem;font-weight:bold;color:#444;margin-bottom:4px;}
+.form-row input,.form-row select{width:100%;padding:9px 12px;border:1.5px solid var(--bordo);border-radius:6px;font-size:.92rem;}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--blu2);}
+.primo-accesso-extra{display:none;border-top:1px dashed var(--bordo);padding-top:14px;margin-top:14px;}
+.primo-accesso-extra.show{display:block;}
+
+label{display:block;font-size:.82rem;font-weight:bold;color:#444;margin-bottom:4px;}
+input[type=text],input[type=password],input[type=number],select{padding:7px 10px;border:1.5px solid var(--bordo);border-radius:6px;font-size:.9rem;transition:border .2s;}
+input:focus,select:focus{outline:none;border-color:var(--blu2);}
+.scheda-header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
 .table-wrap{overflow-x:auto;margin-top:4px;}
 table.scheda{border-collapse:collapse;font-size:.74rem;white-space:nowrap;}
 table.scheda th,table.scheda td{border:1px solid #ddd;padding:3px 5px;text-align:center;}
-
-/* Riga 1 header: Nome + gruppi giorno */
 table.scheda thead tr:first-child th{background:var(--blu);color:white;font-size:.78rem;padding:6px 5px;}
-/* Riga 2 header: criteri */
 table.scheda thead tr:nth-child(2) th{font-size:.7rem;padding:4px 3px;font-weight:600;}
-/* Riga 3 header: G1..G6,Fin etichette giorni */
-table.scheda thead tr:nth-child(3) th{font-size:.68rem;padding:3px 2px;font-weight:normal;color:#555;}
-
 table.scheda td.nome-cell{text-align:left;min-width:130px;font-weight:600;background:#f5f5f5;position:sticky;left:0;z-index:2;border-right:2px solid #bbb;}
 table.scheda th.nome-th{position:sticky;left:0;z-index:3;min-width:130px;}
-
-/* Celle input voto */
 table.scheda td input{width:32px;padding:2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.74rem;}
 table.scheda td input:focus{outline:none;border-color:var(--blu2);background:#e8f5ff;}
 table.scheda td input.invalid{border-color:var(--rosso);background:#fff0f0;}
-
-/* Celle punteggio calcolato */
 td.pts-day{background:var(--oro);color:#333;font-weight:bold;font-size:.8rem;min-width:30px;}
 td.pts-finale-row{background:#e6a817;color:white;font-weight:bold;font-size:.85rem;min-width:36px;}
-
-/* Separatore tra gruppi giorno */
 th.sep-th,td.sep-td{border-left:2px solid #999 !important;}
-
 .add-row{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap;}
 .add-row input{flex:1;min-width:160px;max-width:260px;}
 .alert{padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:.86rem;display:none;}
@@ -63,6 +61,7 @@ th.sep-th,td.sep-td{border-left:2px solid #999 !important;}
 .btn-primary{background:var(--blu2);color:white;}.btn-primary:hover{background:var(--blu);}
 .btn-success{background:var(--verde);color:white;}.btn-success:hover{background:#5a9038;}
 .btn-danger{background:var(--rosso);color:white;font-size:.74rem;padding:3px 7px;}
+.btn-warning{background:#E6A817;color:white;font-size:.74rem;padding:3px 7px;}
 .btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);}.btn-outline:hover{background:var(--azzurro);}
 .btn-sm{padding:5px 12px;font-size:.8rem;}
 .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
@@ -78,51 +77,112 @@ table.riepilogo td{padding:7px 10px;}
 .tag{background:var(--azzurro);color:var(--blu);border-radius:4px;padding:2px 6px;font-weight:bold;font-size:.76rem;}
 .score{background:var(--oro);color:#333;border-radius:4px;padding:2px 7px;font-weight:bold;display:inline-block;min-width:26px;text-align:center;}
 .empty{text-align:center;padding:32px;color:#aaa;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:white;border-radius:10px;padding:24px;max-width:95vw;max-height:90vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.modal h3{color:var(--blu);margin-bottom:16px;font-size:1rem;}
+.modal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:12px;}
+.modal-day{background:var(--grigio);border-radius:6px;padding:8px;}
+.modal-day h4{font-size:.78rem;font-weight:bold;margin-bottom:6px;text-align:center;}
+.modal-day label{font-size:.72rem;color:#555;margin-bottom:2px;display:block;}
+.modal-day input{width:100%;padding:4px;text-align:center;border:1px solid var(--bordo);border-radius:4px;font-size:.8rem;}
+.modal-pts{background:var(--oro);border-radius:4px;padding:4px;text-align:center;font-weight:bold;font-size:.82rem;margin-top:6px;}
 .admin-gate{text-align:center;padding:32px 20px;}
 .admin-gate input{max-width:240px;margin:10px auto;display:block;}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:18px;}
 .stat{background:var(--grigio);border-radius:8px;padding:12px;text-align:center;}
 .stat .n{font-size:1.8rem;font-weight:bold;color:var(--blu);}
 .stat .l{font-size:.76rem;color:#666;margin-top:3px;}
+.turni-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:12px;}
+.turno-badge{background:#f0f6ff;border:1px solid var(--azzurro);border-radius:6px;padding:8px 12px;font-size:.82rem;}
+.turno-badge strong{color:var(--blu);}
+.logout-btn{font-size:.78rem;margin-left:12px;padding:3px 10px;}
 .page{display:none;}.page.active{display:block;}
 .spinner{display:none;width:18px;height:18px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:14px auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:600px){.scheda-header{grid-template-columns:1fr;}}
+@media(max-width:600px){.scheda-header{grid-template-columns:1fr;}.modal-grid{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
 <body>
-<header><h1>⚓ CVC – Scheda Valutazione Allievi</h1></header>
-<nav>
+<header>
+  <h1>⚓ CVC – Scheda Valutazione Allievi</h1>
+  <div class="hdr-info" id="hdr-info"></div>
+</header>
+<nav id="main-nav" style="display:none;">
   <button class="active" onclick="showPage('scheda',this)">📋 Scheda</button>
-  <button onclick="showPage('riepilogo',this)">📊 Riepilogo</button>
   <button onclick="showPage('admin',this)">🔒 Admin</button>
+  <button onclick="doLogout()" style="margin-left:auto;">↩ Esci</button>
 </nav>
+
+<!-- Modal modifica (admin) -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Modifica voti</h3>
+    <div class="modal-grid" id="modal-grid"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+      <span style="font-size:.85rem;color:#666;">Punteggio finale: </span>
+      <span class="score" id="modal-finale">—</span>
+    </div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-success" onclick="salvaMod()">💾 Salva modifiche</button>
+      <button class="btn btn-outline"  onclick="chiudiModal()">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <div class="container">
 
-<!-- ══ SCHEDA ══ -->
-<div id="page-scheda" class="page active">
+<!-- ══ LOGIN ══ -->
+<div id="page-login" class="page active login-screen">
   <div class="card">
-    <h2>📋 Intestazione Scheda</h2>
-    <div class="scheda-header">
-      <div><label>Istruttore *</label><input type="text" id="istruttore" placeholder="Nome e Cognome"></div>
-      <div>
-        <label>Corso *</label>
-        <select id="corso" onchange="onCorsoChange()">
+    <h2 style="color:var(--blu)">⚓ Accesso Scheda</h2>
+    <div id="login-alert" class="alert alert-err"><span id="login-err-msg"></span></div>
+
+    <div class="form-row">
+      <label>Numero Turno (1–60)</label>
+      <input type="number" id="login-turno" min="1" max="60" placeholder="es. 1"
+        oninput="checkPrimoAccesso()">
+    </div>
+    <div class="form-row">
+      <label>Password Turno</label>
+      <input type="password" id="login-pwd" placeholder="Password"
+        onkeydown="if(event.key==='Enter')doTurnoLogin()">
+    </div>
+
+    <!-- Mostrati solo se il turno non esiste ancora -->
+    <div class="primo-accesso-extra" id="primo-extra">
+      <p style="font-size:.83rem;color:#666;margin-bottom:12px;">
+        ✨ Primo accesso: completa i dati per creare il turno.
+      </p>
+      <div class="form-row">
+        <label>Istruttore</label>
+        <input type="text" id="login-istr" placeholder="Nome e Cognome">
+      </div>
+      <div class="form-row">
+        <label>Corso</label>
+        <select id="login-corso">
           <option value="">— Seleziona —</option>
           <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
           <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
         </select>
       </div>
-      <div><label>Turno *</label><input type="text" id="turno" placeholder="es. Estate 2025 – Sett. 1"></div>
+    </div>
+
+    <div class="btn-row" style="justify-content:space-between;margin-top:20px;">
+      <button class="btn btn-success" onclick="doTurnoLogin()">Apri Scheda →</button>
+      <button class="btn btn-outline btn-sm" onclick="showAdminLogin()">Admin</button>
     </div>
   </div>
+</div>
 
+<!-- ══ SCHEDA ══ -->
+<div id="page-scheda" class="page">
   <div class="card">
-    <h2>👥 Allievi</h2>
-    <div id="alert-ok"  class="alert alert-ok">✅ Scheda salvata correttamente!</div>
+    <h2>📋 Scheda — <span id="scheda-subtitle" style="font-weight:normal;color:#555;"></span></h2>
+    <div id="alert-ok"  class="alert alert-ok">✅ Scheda salvata!</div>
     <div id="alert-err" class="alert alert-err"><span id="err-msg"></span></div>
     <div class="table-wrap">
-      <table class="scheda" id="scheda-table">
+      <table class="scheda">
         <thead id="scheda-thead"></thead>
         <tbody id="scheda-tbody"></tbody>
       </table>
@@ -133,53 +193,51 @@ table.riepilogo td{padding:7px 10px;}
     </div>
     <div class="btn-row">
       <button class="btn btn-success" onclick="salvaScheda()">💾 Salva Scheda</button>
-      <button class="btn btn-outline"  onclick="resetScheda()">🔄 Nuova Scheda</button>
     </div>
   </div>
-</div>
-
-<!-- ══ RIEPILOGO ══ -->
-<div id="page-riepilogo" class="page">
-<div class="card">
-  <h2>📊 Riepilogo <span class="badge" id="count-badge">0</span></h2>
-  <div class="toolbar">
-    <input type="text" id="f-q" placeholder="🔍 Cerca allievo, istruttore, turno…" oninput="loadRiepilogo()">
-    <select id="f-corso" onchange="loadRiepilogo()">
-      <option value="">Tutti i corsi</option>
-      <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
-      <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
-    </select>
-  </div>
-  <div style="overflow-x:auto;">
-    <table class="riepilogo">
-      <thead><tr>
-        <th>Data</th><th>Istruttore</th><th>Turno</th><th>Allievo</th><th>Corso</th>
-        <th>Pts G1</th><th>Pts G2</th><th>Pts G3</th><th>Pts G4</th><th>Pts G5</th><th>Pts G6</th><th>Pts Fin</th>
-        <th>Finale</th><th></th>
-      </tr></thead>
-      <tbody id="tab-body"><tr><td colspan="14" class="empty">Caricamento…</td></tr></tbody>
-    </table>
-  </div>
-  <div id="tab-spinner" class="spinner"></div>
-  <div class="btn-row"><button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button></div>
-</div>
 </div>
 
 <!-- ══ ADMIN ══ -->
 <div id="page-admin" class="page">
   <div id="admin-gate" class="card admin-gate">
     <h2>🔒 Accesso Admin</h2>
-    <p style="color:#666;margin:10px 0;font-size:.88rem;">Password per statistiche ed export.</p>
-    <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <p style="color:#666;margin:10px 0;font-size:.88rem;">Password amministratore.</p>
+    <input type="password" id="admin-pwd" placeholder="Password admin"
+      onkeydown="if(event.key==='Enter')doAdminLogin()">
     <div class="btn-row" style="justify-content:center;margin-top:10px;">
-      <button class="btn btn-primary" onclick="doLogin()">Accedi</button>
+      <button class="btn btn-primary" onclick="doAdminLogin()">Accedi</button>
     </div>
-    <div id="pwd-err" style="color:var(--rosso);margin-top:8px;display:none;font-size:.86rem;">Password errata.</div>
+    <div id="admin-pwd-err" style="color:var(--rosso);margin-top:8px;display:none;font-size:.86rem;">Password errata.</div>
   </div>
   <div id="admin-panel" style="display:none;">
-    <div class="card"><h2>📊 Statistiche</h2><div class="stats-grid" id="stats-grid"></div></div>
     <div class="card">
-      <h2>⚙️ Gestione</h2>
+      <h2>📊 Statistiche <button class="btn btn-outline logout-btn" onclick="adminLogout()">Esci da admin</button></h2>
+      <div class="stats-grid" id="stats-grid"></div>
+      <h3 style="color:var(--blu);margin-top:16px;margin-bottom:8px;font-size:.9rem;">Turni attivi</h3>
+      <div class="turni-list" id="turni-list"></div>
+    </div>
+    <div class="card">
+      <h2>📋 Tutte le Valutazioni <span class="badge" id="count-badge">0</span></h2>
+      <div class="toolbar">
+        <input type="text" id="f-q" placeholder="🔍 Cerca allievo, istruttore…" oninput="loadRiepilogo()">
+        <select id="f-corso" onchange="loadRiepilogo()">
+          <option value="">Tutti i corsi</option>
+          <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
+          <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
+        </select>
+        <input type="number" id="f-turno" placeholder="N. turno" min="1" max="60" oninput="loadRiepilogo()" style="max-width:100px;">
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="riepilogo">
+          <thead><tr>
+            <th>Data</th><th>Turno</th><th>Istruttore</th><th>Allievo</th><th>Corso</th>
+            <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>Fin</th>
+            <th>Finale</th><th></th>
+          </tr></thead>
+          <tbody id="tab-body"><tr><td colspan="14" class="empty">Caricamento…</td></tr></tbody>
+        </table>
+      </div>
+      <div id="tab-spinner" class="spinner"></div>
       <div class="btn-row"><button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button></div>
     </div>
   </div>
@@ -190,10 +248,9 @@ table.riepilogo td{padding:7px 10px;}
 const API='';
 const CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I'];
 const CRITERI_KEYS=['tec','sen','aff','pro','imp','dis','com'];
-// Colori per i 7 gruppi-giorno (G1..G6 + Finale)
 const DAY_COLORS=['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
 const DAY_LABELS=['G1','G2','G3','G4','G5','G6','Finale'];
-const N_DAYS=7; // G1..G6 + Finale
+const DAY_KEYS  =['g1','g2','g3','g4','g5','g6','fin'];
 
 const PESI={
   D1:[.30,.10,.10,.15,.12,.13,.10],D2:[.30,.10,.10,.15,.12,.13,.10],
@@ -203,27 +260,138 @@ const PESI={
   C4:[.25,.25,.15,.05,.10,.10,.10],C5:[.25,.25,.15,.05,.10,.10,.10],
 };
 
-let adminToken=sessionStorage.getItem('cvc_token')||null;
-let allievi=[];
+// ── Stato sessione ────────────────────────────────────────────────────────
+let session = null;   // {token, tipo, turno, istruttore, corso}
+let adminToken = null;
+let allievi = [];
 
-// ══ Build intestazione tabella ══════════════════════════════════════════
-// Struttura colonne: Nome | [Tec G1, Sen G1, ..., Com G1, PtsG1] | [Tec G2 ... PtsG2] | ... | [Tec Fin ... PtsFin] | PunteggioFinale | X
+function saveSession(s){
+  session=s;
+  sessionStorage.setItem('cvc_session', JSON.stringify(s));
+}
+function loadSession(){
+  try{ return JSON.parse(sessionStorage.getItem('cvc_session')||'null'); } catch{ return null; }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+async function init(){
+  const saved = loadSession();
+  if(saved){
+    const res = await fetch(`${API}/api/verify`,{headers:{'X-Auth-Token':saved.token}});
+    if(res.ok){ session=saved; enterApp(); return; }
+    else{ sessionStorage.removeItem('cvc_session'); }
+  }
+  showLoginPage();
+}
+
+function showLoginPage(){
+  document.getElementById('main-nav').style.display='none';
+  document.getElementById('hdr-info').textContent='';
+  showPage('login');
+}
+
+function enterApp(){
+  document.getElementById('main-nav').style.display='flex';
+  document.getElementById('hdr-info').innerHTML=
+    `Turno <strong>${session.turno}</strong> &nbsp;|&nbsp; ${session.istruttore} &nbsp;|&nbsp; ${session.corso}`;
+  buildTableHeader();
+  showPage('scheda');
+  caricaTurno();
+}
+
+// ── Login turno ───────────────────────────────────────────────────────────
+let primoAccesso = false;
+
+async function checkPrimoAccesso(){
+  const n=parseInt(document.getElementById('login-turno').value);
+  if(!n||n<1||n>60){ document.getElementById('primo-extra').classList.remove('show'); return; }
+  // Chiediamo al server se il turno esiste (senza autenticazione — solo check)
+  try{
+    const res=await fetch(`${API}/api/turno/${n}/exists`);
+    const d=await res.json();
+    primoAccesso=!d.exists;
+    document.getElementById('primo-extra').classList.toggle('show', primoAccesso);
+  } catch{}
+}
+
+async function doTurnoLogin(){
+  document.getElementById('login-alert').classList.remove('show');
+  const numero=parseInt(document.getElementById('login-turno').value);
+  const pwd=document.getElementById('login-pwd').value.trim();
+  if(!numero||!pwd){ showLoginErr('Inserisci numero turno e password.'); return; }
+
+  const payload={numero,password:pwd};
+  if(primoAccesso){
+    payload.istruttore=document.getElementById('login-istr').value.trim();
+    payload.corso=document.getElementById('login-corso').value;
+    if(!payload.istruttore||!payload.corso){ showLoginErr('Inserisci istruttore e corso per il primo accesso.'); return; }
+  }
+
+  try{
+    const res=await fetch(`${API}/api/turno/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const d=await res.json();
+    if(!res.ok){
+      if(d.primo_accesso){ primoAccesso=true; document.getElementById('primo-extra').classList.add('show'); }
+      showLoginErr(d.error||'Errore'); return;
+    }
+    saveSession(d);
+    enterApp();
+  } catch(e){ showLoginErr('Errore di connessione.'); }
+}
+
+function showLoginErr(msg){
+  document.getElementById('login-err-msg').textContent=msg;
+  document.getElementById('login-alert').classList.add('show');
+}
+
+function doLogout(){
+  session=null; adminToken=null;
+  sessionStorage.removeItem('cvc_session');
+  allievi=[];
+  document.getElementById('scheda-tbody').innerHTML='';
+  showLoginPage();
+}
+
+// ── Carica dati turno esistente ───────────────────────────────────────────
+async function caricaTurno(){
+  document.getElementById('scheda-subtitle').textContent=
+    `Turno ${session.turno} — ${session.istruttore} — Corso ${session.corso}`;
+  try{
+    const res=await fetch(`${API}/api/turno/${session.turno}`,{headers:{'X-Auth-Token':session.token}});
+    const d=await res.json();
+    if(!res.ok) return;
+    // Ripopola la tabella con gli allievi già salvati
+    for(const r of d.allievi){
+      if(!allievi.includes(r.allievo)){
+        allievi.push(r.allievo);
+        renderRiga(r.allievo);
+        // Popola i voti
+        const id=nomeToId(r.allievo);
+        DAY_KEYS.forEach(dk=>{
+          CRITERI_KEYS.forEach(key=>{
+            const el=document.getElementById(`${key}_${id}_${dk}`);
+            if(el&&r[`${key}_${dk}`]!==null) el.value=r[`${key}_${dk}`]??'';
+          });
+        });
+        ricalcolaAllievo(r.allievo);
+      }
+    }
+  } catch(e){}
+}
+
+// ── Build header tabella ──────────────────────────────────────────────────
 function buildTableHeader(){
   const thead=document.getElementById('scheda-thead');
-
-  // Riga 1: Nome + un th per ogni giorno (colspan = N_CRITERI+1) + Punteggio Finale
   let r1=`<tr><th rowspan="2" class="nome-th" style="background:var(--blu);color:white">Allievo</th>`;
   DAY_LABELS.forEach((lbl,di)=>{
     const bg=DAY_COLORS[di];
-    const sepClass=di===0?'':'sep-th';
-    r1+=`<th colspan="${CRITERI_NOMI.length+1}" class="${sepClass}" style="background:${bg};color:white">${lbl}</th>`;
+    const sep=di>0?'sep-th':'';
+    r1+=`<th colspan="${CRITERI_NOMI.length+1}" class="${sep}" style="background:${bg};color:white">${lbl}</th>`;
   });
   r1+=`<th rowspan="2" style="background:#6a4c00;color:var(--oro);min-width:46px;font-size:.78rem;">Pts<br>Finale</th>`;
-  r1+=`<th rowspan="2" style="background:var(--blu);color:white;width:28px;"></th></tr>`;
-
-  // Riga 2: per ogni giorno: Tec, Sen, ..., Com, Pts
+  r1+=`<th rowspan="2" style="background:var(--blu);width:28px;"></th></tr>`;
   let r2='<tr>';
-  DAY_LABELS.forEach((lbl,di)=>{
+  DAY_LABELS.forEach((_,di)=>{
     const bg=DAY_COLORS[di];
     CRITERI_NOMI.forEach((crit,ci)=>{
       const sep=ci===0&&di>0?' sep-th':'';
@@ -232,11 +400,10 @@ function buildTableHeader(){
     r2+=`<th style="background:${bg};color:var(--oro);font-size:.72rem;min-width:30px;">Pts</th>`;
   });
   r2+='</tr>';
-
   thead.innerHTML=r1+r2;
 }
 
-// ══ Calcolo punteggio ════════════════════════════════════════════════════
+// ── Calcolo ───────────────────────────────────────────────────────────────
 function calcolaPunteggio(corso,voti){
   const p=PESI[corso]; if(!p||voti.some(v=>v===null)) return null;
   const [tec,sen,,,,,com]=voti;
@@ -256,55 +423,43 @@ function calcolaPunteggio(corso,voti){
   return Math.floor(r);
 }
 
-// ══ Aggiungi allievo ═════════════════════════════════════════════════════
+// ── Gestione allievi ──────────────────────────────────────────────────────
 function nomeToId(n){return n.toLowerCase().replace(/[^a-z0-9]/g,'_');}
 
 function aggiungiAllievo(){
   const inp=document.getElementById('nuovo-allievo');
-  const nome=inp.value.trim();
-  if(!nome) return;
+  const nome=inp.value.trim(); if(!nome) return;
   if(allievi.includes(nome)){alert('Allievo già presente.');return;}
-  allievi.push(nome);
-  inp.value='';
+  allievi.push(nome); inp.value='';
   renderRiga(nome);
 }
 
 function renderRiga(nome){
   const tbody=document.getElementById('scheda-tbody');
   const id=nomeToId(nome);
-  const tr=document.createElement('tr');
-  tr.id=`row_${id}`;
-
+  const tr=document.createElement('tr'); tr.id=`row_${id}`;
   let cells=`<td class="nome-cell">${nome}</td>`;
-
-  DAY_LABELS.forEach((lbl,di)=>{
-    const dayKey=di<6?`g${di+1}`:'fin';
-    const sepClass=di>0?' sep-td':'';
+  DAY_KEYS.forEach((dk,di)=>{
+    const sep=di>0?' sep-td':'';
     CRITERI_KEYS.forEach(key=>{
-      cells+=`<td class="${sepClass}"><input type="number" id="${key}_${id}_${dayKey}"
-        min="1" max="10" placeholder="—"
+      cells+=`<td class="${sep}"><input type="number" id="${key}_${id}_${dk}" min="1" max="10" placeholder="—"
         oninput="validateVoto(this);ricalcolaAllievo('${nome}')"></td>`;
     });
-    // Punteggio giorno
     const ptsCls=di===6?'pts-finale-row':'pts-day';
-    cells+=`<td class="${ptsCls}" id="pts_${id}_${dayKey}">—</td>`;
+    cells+=`<td class="${ptsCls}" id="pts_${id}_${dk}">—</td>`;
   });
-
-  // Punteggio finale (media punteggi giornalieri compilati)
   cells+=`<td class="pts-finale-row" id="ptsfin_${id}" style="background:#6a4c00;">—</td>`;
   cells+=`<td><button class="btn btn-danger" onclick="rimuoviAllievo('${nome}')">✕</button></td>`;
-
-  tr.innerHTML=cells;
-  tbody.appendChild(tr);
+  tr.innerHTML=cells; tbody.appendChild(tr);
   ricalcolaAllievo(nome);
 }
 
 function rimuoviAllievo(nome){
+  if(!confirm(`Rimuovere ${nome} dalla scheda?`)) return;
   allievi=allievi.filter(a=>a!==nome);
   document.getElementById(`row_${nomeToId(nome)}`)?.remove();
 }
 
-// ══ Validazione ══════════════════════════════════════════════════════════
 function validateVoto(el){
   if(el.value===''){el.classList.remove('invalid');return;}
   const v=parseInt(el.value);
@@ -315,64 +470,54 @@ function validateVoto(el){
   } else el.classList.remove('invalid');
 }
 
-// ══ Ricalcola una riga allievo ═══════════════════════════════════════════
 function ricalcolaAllievo(nome){
-  const corso=document.getElementById('corso').value;
+  const corso=session?.corso||'';
   const id=nomeToId(nome);
   const ptsGiorni=[];
-
-  DAY_LABELS.forEach((lbl,di)=>{
-    const dayKey=di<6?`g${di+1}`:'fin';
+  DAY_KEYS.forEach((dk)=>{
     const voti=CRITERI_KEYS.map(key=>{
-      const el=document.getElementById(`${key}_${id}_${dayKey}`);
+      const el=document.getElementById(`${key}_${id}_${dk}`);
       if(!el||el.value==='') return null;
       const v=parseInt(el.value);
       return (!isNaN(v)&&v>=1&&v<=10)?v:null;
     });
     const pts=corso?calcolaPunteggio(corso,voti):null;
     ptsGiorni.push(pts);
-    const el=document.getElementById(`pts_${id}_${dayKey}`);
-    if(el){el.textContent=pts!==null?pts:'—';}
+    const el=document.getElementById(`pts_${id}_${dk}`);
+    if(el) el.textContent=pts!==null?pts:'—';
   });
-
-  // Punteggio finale = media dei punteggi giornalieri compilati
   const validi=ptsGiorni.filter(p=>p!==null);
   const fin=validi.length?Math.floor(validi.reduce((a,b)=>a+b,0)/validi.length):null;
   const finEl=document.getElementById(`ptsfin_${id}`);
   if(finEl) finEl.textContent=fin!==null?fin:'—';
 }
 
-function onCorsoChange(){allievi.forEach(n=>ricalcolaAllievo(n));}
-
-// ══ Salva ════════════════════════════════════════════════════════════════
+// ── Salva ─────────────────────────────────────────────────────────────────
 async function salvaScheda(){
   ['alert-ok','alert-err'].forEach(i=>document.getElementById(i).classList.remove('show'));
-  const istr=document.getElementById('istruttore').value.trim();
-  const corso=document.getElementById('corso').value;
-  const turno=document.getElementById('turno').value.trim();
-  if(!istr||!corso||!turno){showErr('Compila istruttore, corso e turno.');return;}
   if(!allievi.length){showErr('Aggiungi almeno un allievo.');return;}
-
   const records=allievi.map(nome=>{
     const id=nomeToId(nome);
-    const rec={istruttore:istr,corso,turno,allievo:nome};
-    DAY_LABELS.forEach((lbl,di)=>{
-      const dayKey=di<6?`g${di+1}`:'fin';
+    const rec={istruttore:session.istruttore,corso:session.corso,turno:session.turno,allievo:nome};
+    DAY_KEYS.forEach(dk=>{
       CRITERI_KEYS.forEach(key=>{
-        const el=document.getElementById(`${key}_${id}_${dayKey}`);
+        const el=document.getElementById(`${key}_${id}_${dk}`);
         const v=el&&el.value!==''?parseInt(el.value):null;
-        rec[`${key}_${dayKey}`]=(v!==null&&v>=1&&v<=10)?v:null;
+        rec[`${key}_${dk}`]=(v!==null&&v>=1&&v<=10)?v:null;
       });
-      const ptsEl=document.getElementById(`pts_${id}_${dayKey}`);
-      rec[`pts_${dayKey}`]=ptsEl&&ptsEl.textContent!=='—'?parseInt(ptsEl.textContent):null;
+      const ptsEl=document.getElementById(`pts_${id}_${dk}`);
+      rec[`pts_${dk}`]=ptsEl&&ptsEl.textContent!=='—'?parseInt(ptsEl.textContent):null;
     });
     const finEl=document.getElementById(`ptsfin_${id}`);
     rec.punteggio_finale=finEl&&finEl.textContent!=='—'?parseInt(finEl.textContent):null;
     return rec;
   });
-
   try{
-    const res=await fetch(`${API}/api/scheda`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({records})});
+    const res=await fetch(`${API}/api/scheda`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Auth-Token':session.token},
+      body:JSON.stringify({records})
+    });
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Errore server');
     document.getElementById('alert-ok').classList.add('show');
@@ -385,53 +530,99 @@ function showErr(msg){
   document.getElementById('alert-err').classList.add('show');
 }
 
-function resetScheda(){
-  if(allievi.length&&!confirm('Resettare la scheda? I dati non salvati andranno persi.')) return;
-  document.getElementById('istruttore').value='';
-  document.getElementById('corso').value='';
-  document.getElementById('turno').value='';
-  allievi=[];
-  document.getElementById('scheda-tbody').innerHTML='';
-  ['alert-ok','alert-err'].forEach(i=>document.getElementById(i).classList.remove('show'));
-}
-
-// ══ Navigazione ══════════════════════════════════════════════════════════
+// ── Navigazione ───────────────────────────────────────────────────────────
 function showPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(name==='riepilogo') loadRiepilogo();
-  if(name==='admin'){
-    document.getElementById('admin-gate').style.display=adminToken?'none':'block';
-    document.getElementById('admin-panel').style.display=adminToken?'block':'none';
-    if(adminToken) loadStats();
-  }
+  if(name==='admin') showAdminSection();
 }
 
-// ══ Riepilogo ════════════════════════════════════════════════════════════
+function showAdminLogin(){
+  showPage('admin');
+  document.getElementById('main-nav').style.display='flex';
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────
+async function showAdminSection(){
+  if(adminToken){
+    const res=await fetch(`${API}/api/stats`,{headers:{'X-Admin-Token':adminToken}});
+    if(!res.ok){ adminToken=null; }
+  }
+  document.getElementById('admin-gate').style.display  = adminToken?'none':'block';
+  document.getElementById('admin-panel').style.display = adminToken?'block':'none';
+  if(adminToken){ loadStats(); loadRiepilogo(); }
+}
+
+async function doAdminLogin(){
+  document.getElementById('admin-pwd-err').style.display='none';
+  const pwd=document.getElementById('admin-pwd').value;
+  try{
+    const res=await fetch(`${API}/api/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
+    const d=await res.json(); if(!res.ok) throw new Error();
+    adminToken=d.token;
+    document.getElementById('admin-gate').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    loadStats(); loadRiepilogo();
+  } catch{ document.getElementById('admin-pwd-err').style.display='block'; }
+}
+
+function adminLogout(){
+  adminToken=null;
+  document.getElementById('admin-gate').style.display='block';
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('admin-pwd').value='';
+}
+
+async function loadStats(){
+  if(!adminToken) return;
+  try{
+    const res=await fetch(`${API}/api/stats`,{headers:{'X-Admin-Token':adminToken}});
+    if(!res.ok){adminToken=null;return;}
+    const d=await res.json();
+    document.getElementById('stats-grid').innerHTML=`
+      <div class="stat"><div class="n">${d.totale}</div><div class="l">Valutazioni totali</div></div>
+      <div class="stat"><div class="n">${d.istruttori}</div><div class="l">Istruttori</div></div>
+      <div class="stat"><div class="n">${d.corsi_attivi}</div><div class="l">Corsi attivi</div></div>
+      <div class="stat"><div class="n">${d.media_generale??'—'}</div><div class="l">Media generale</div></div>
+      ${(d.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n})</div></div>`).join('')}`;
+    document.getElementById('turni-list').innerHTML=(d.turni||[]).map(t=>
+      `<div class="turno-badge"><strong>Turno ${t.numero}</strong><br>${t.istruttore}<br><span class="tag">${t.corso}</span></div>`
+    ).join('')||'<p style="color:#aaa;font-size:.85rem;">Nessun turno creato.</p>';
+  } catch(e){}
+}
+
 async function loadRiepilogo(){
+  if(!adminToken) return;
   const q=document.getElementById('f-q').value;
   const corso=document.getElementById('f-corso').value;
+  const turno=document.getElementById('f-turno').value;
   let url=`${API}/api/valutazioni/public?limit=500`;
   if(q)     url+=`&q=${encodeURIComponent(q)}`;
   if(corso) url+=`&corso=${encodeURIComponent(corso)}`;
+  if(turno) url+=`&turno=${encodeURIComponent(turno)}`;
   document.getElementById('tab-spinner').style.display='block';
   document.getElementById('tab-body').innerHTML='';
   try{
-    const res=await fetch(url);
+    const res=await fetch(url,{headers:{'X-Admin-Token':adminToken}});
     const data=await res.json();
     document.getElementById('count-badge').textContent=data.total||0;
     const rows=data.rows||[];
     if(!rows.length){document.getElementById('tab-body').innerHTML='<tr><td colspan="14" class="empty">📭 Nessun risultato.</td></tr>';return;}
     document.getElementById('tab-body').innerHTML=rows.map(r=>`
       <tr>
-        <td>${r.data}</td><td>${r.istruttore}</td><td>${r.turno||'—'}</td>
+        <td>${r.data}</td>
+        <td><strong>T${r.turno}</strong></td>
+        <td>${r.istruttore}</td>
         <td><strong>${r.allievo}</strong></td>
         <td><span class="tag">${r.corso}</span></td>
-        ${['g1','g2','g3','g4','g5','g6','fin'].map(d=>`<td>${r['pts_'+d]??'—'}</td>`).join('')}
+        ${DAY_KEYS.map(dk=>`<td>${r['pts_'+dk]??'—'}</td>`).join('')}
         <td><span class="score">${r.punteggio_finale??'—'}</span></td>
-        <td>${adminToken?`<button class="btn btn-danger" onclick="elimina(${r.id})">✕</button>`:''}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-warning" style="margin-right:3px;" onclick="apriModal(${r.id})">✏️</button>
+          <button class="btn btn-danger" onclick="elimina(${r.id})">✕</button>
+        </td>
       </tr>`).join('');
   } catch(e){document.getElementById('tab-body').innerHTML='<tr><td colspan="14" class="empty">Errore.</td></tr>';}
   finally{document.getElementById('tab-spinner').style.display='none';}
@@ -441,33 +632,6 @@ async function elimina(id){
   if(!confirm('Eliminare questo record?')) return;
   await fetch(`${API}/api/valutazioni/${id}`,{method:'DELETE',headers:{'X-Admin-Token':adminToken}});
   loadRiepilogo();
-}
-
-// ══ Admin ════════════════════════════════════════════════════════════════
-async function doLogin(){
-  const pwd=document.getElementById('pwd').value;
-  document.getElementById('pwd-err').style.display='none';
-  try{
-    const res=await fetch(`${API}/api/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pwd})});
-    const d=await res.json(); if(!res.ok) throw new Error();
-    adminToken=d.token; sessionStorage.setItem('cvc_token',adminToken);
-    document.getElementById('admin-gate').style.display='none';
-    document.getElementById('admin-panel').style.display='block';
-    loadStats();
-  } catch{document.getElementById('pwd-err').style.display='block';}
-}
-
-async function loadStats(){
-  try{
-    const res=await fetch(`${API}/api/stats`,{headers:{'X-Admin-Token':adminToken}});
-    const d=await res.json();
-    document.getElementById('stats-grid').innerHTML=`
-      <div class="stat"><div class="n">${d.totale}</div><div class="l">Valutazioni totali</div></div>
-      <div class="stat"><div class="n">${d.istruttori}</div><div class="l">Istruttori</div></div>
-      <div class="stat"><div class="n">${d.corsi_attivi}</div><div class="l">Corsi attivi</div></div>
-      <div class="stat"><div class="n">${d.media_generale??'—'}</div><div class="l">Media generale</div></div>
-      ${(d.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n})</div></div>`).join('')}`;
-  } catch(e){}
 }
 
 async function exportCSV(){
@@ -482,8 +646,89 @@ async function exportCSV(){
   } catch(e){alert(e.message);}
 }
 
-// Init
-buildTableHeader();
+// ── Modal modifica ────────────────────────────────────────────────────────
+let modalId=null, modalCorso=null;
+
+async function apriModal(id){
+  try{
+    const res=await fetch(`${API}/api/valutazioni/${id}/detail`,{headers:{'X-Admin-Token':adminToken}});
+    if(!res.ok) throw new Error();
+    const r=await res.json();
+    modalId=id; modalCorso=r.corso;
+    document.getElementById('modal-title').textContent=`✏️ ${r.allievo} — Turno ${r.turno} — ${r.corso}`;
+    const grid=document.getElementById('modal-grid');
+    grid.innerHTML=DAY_LABELS.map((lbl,di)=>{
+      const dk=DAY_KEYS[di]; const bg=DAY_COLORS[di];
+      return `<div class="modal-day" style="border-top:3px solid ${bg}">
+        <h4 style="color:${bg}">${lbl}</h4>
+        ${CRITERI_NOMI.map((crit,ci)=>`
+          <div><label>${crit}</label>
+          <input type="number" id="mod_${dk}_${CRITERI_KEYS[ci]}" min="1" max="10"
+            value="${r[CRITERI_KEYS[ci]+'_'+dk]??''}" placeholder="—"
+            oninput="validateVoto(this);aggiornaModalPts()"></div>`).join('')}
+        <div class="modal-pts" id="mod_pts_${dk}">Pts: ${r['pts_'+dk]??'—'}</div>
+      </div>`;
+    }).join('');
+    aggiornaModalPts();
+    document.getElementById('modal-overlay').classList.add('show');
+  } catch(e){alert('Errore caricamento dati.');}
+}
+
+function aggiornaModalPts(){
+  const ptsList=[];
+  DAY_KEYS.forEach(dk=>{
+    const voti=CRITERI_KEYS.map(key=>{
+      const el=document.getElementById(`mod_${dk}_${key}`);
+      if(!el||el.value==='') return null;
+      const v=parseInt(el.value);
+      return (!isNaN(v)&&v>=1&&v<=10)?v:null;
+    });
+    const pts=modalCorso?calcolaPunteggio(modalCorso,voti):null;
+    ptsList.push(pts);
+    const el=document.getElementById(`mod_pts_${dk}`);
+    if(el) el.textContent=`Pts: ${pts!==null?pts:'—'}`;
+  });
+  const validi=ptsList.filter(p=>p!==null);
+  const fin=validi.length?Math.floor(validi.reduce((a,b)=>a+b,0)/validi.length):null;
+  document.getElementById('modal-finale').textContent=fin!==null?fin:'—';
+}
+
+async function salvaMod(){
+  if(!modalId||!adminToken) return;
+  const payload={};
+  DAY_KEYS.forEach(dk=>{
+    CRITERI_KEYS.forEach(key=>{
+      const el=document.getElementById(`mod_${dk}_${key}`);
+      const v=el&&el.value!==''?parseInt(el.value):null;
+      payload[`${key}_${dk}`]=(v!==null&&v>=1&&v<=10)?v:null;
+    });
+    const ptsEl=document.getElementById(`mod_pts_${dk}`);
+    const pts=ptsEl?parseInt(ptsEl.textContent.replace('Pts:','').trim()):null;
+    payload[`pts_${dk}`]=isNaN(pts)?null:pts;
+  });
+  const fin=document.getElementById('modal-finale').textContent;
+  payload.punteggio_finale=fin!=='—'?parseInt(fin):null;
+  try{
+    const res=await fetch(`${API}/api/valutazioni/${modalId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Admin-Token':adminToken},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error();
+    chiudiModal(); loadRiepilogo();
+  } catch(e){alert('Errore salvataggio.');}
+}
+
+function chiudiModal(){
+  document.getElementById('modal-overlay').classList.remove('show');
+  modalId=null; modalCorso=null;
+}
+document.getElementById('modal-overlay').addEventListener('click',function(e){
+  if(e.target===this) chiudiModal();
+});
+
+// ── Start ─────────────────────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
