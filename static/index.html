@@ -69,7 +69,8 @@ th.sep-th,td.sep-td{border-left:2px solid #999 !important;}
 .mobile-pts-fin{background:#e6a817;color:white;}
 
 .add-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;}
-.add-row input{flex:1;min-width:140px;max-width:240px;}
+.add-row input[type=text]{flex:1;min-width:140px;max-width:240px;}
+#excel-input{display:none;}
 .alert{padding:9px 13px;border-radius:6px;margin-bottom:10px;font-size:.84rem;display:none;}
 .alert.show{display:block;}
 .alert-ok{background:#e8f5e0;border-left:4px solid var(--verde);color:#3a6020;}
@@ -123,6 +124,7 @@ table.riepilogo td{padding:6px 9px;}
 .spinner{display:none;width:16px;height:16px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:12px auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <header>
@@ -201,6 +203,8 @@ table.riepilogo td{padding:6px 9px;}
     <div class="add-row">
       <input type="text" id="nuovo-allievo" placeholder="Nome allievo…" onkeydown="if(event.key==='Enter')aggiungiAllievo()">
       <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Aggiungi</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('excel-input').click()">📥 Importa da Excel</button>
+      <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" onchange="importaExcel(this)">
     </div>
     <div class="btn-row">
       <button class="btn btn-success" onclick="salvaScheda()">💾 Salva Scheda</button>
@@ -415,6 +419,37 @@ function calcolaPunteggio(corso,voti){
 
 // ── Allievi ───────────────────────────────────────────────────────────────
 function nomeToId(n){return n.toLowerCase().replace(/[^a-z0-9]/g,'_');}
+
+function importaExcel(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      let aggiunti=0, saltati=0;
+      for(const row of rows){
+        const nome = (row[0]||'').toString().trim();
+        if(!nome || nome==='' ) continue;
+        // Salta intestazioni comuni
+        if(/nome|allievo|studente|cognome/i.test(nome)) continue;
+        if(allievi.includes(nome)){ saltati++; continue; }
+        allievi.push(nome);
+        renderRiga(nome);
+        aggiunti++;
+      }
+      let msg = `✅ Importati ${aggiunti} allievi`;
+      if(saltati>0) msg += ` (${saltati} già presenti saltati)`;
+      alert(msg);
+    } catch(err){
+      alert('Errore nella lettura del file Excel: ' + err.message);
+    }
+    input.value=''; // reset per permettere reimportazione dello stesso file
+  };
+  reader.readAsArrayBuffer(file);
+}
 
 function aggiungiAllievo(){
   const inp=document.getElementById('nuovo-allievo');
