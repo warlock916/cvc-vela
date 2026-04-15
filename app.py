@@ -695,6 +695,18 @@ def export_pdf_turno(turno):
         return jsonify({'error':str(ex),'detail':traceback.format_exc()}),500
 
 # ── Reset DB ──────────────────────────────────────────────────────────────
+
+@app.route('/api/check-libs', methods=['GET'])
+def check_libs():
+    results = {}
+    for lib in ['openpyxl','reportlab','pg8000','PIL']:
+        try:
+            __import__(lib)
+            results[lib] = 'OK'
+        except ImportError as e:
+            results[lib] = f'MANCANTE: {e}'
+    return jsonify(results)
+
 @app.route('/api/reset', methods=['POST'])
 @check_admin
 def reset_db():
