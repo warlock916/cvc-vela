@@ -9,7 +9,7 @@ CORS(app)
 
 ADMIN_PWD    = os.environ.get('ADMIN_PASSWORD', 'admin123')
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
-UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', '/tmp/uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 USE_PG = bool(DATABASE_URL)
@@ -295,11 +295,19 @@ def upload_foto(turno):
     file=request.files['foto']
     if not file or not allowed_file(file.filename): return jsonify({'error':'Formato non supportato'}),400
 
+    try:
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    except Exception as e:
+        return jsonify({'error':f'Impossibile creare cartella uploads: {e}'}),500
+
     # Salva con nome sicuro basato su turno+allievo
     ext=file.filename.rsplit('.',1)[1].lower()
     nome_file=secure_filename(f"t{turno}_{allievo}.{ext}")
     path=os.path.join(UPLOAD_FOLDER, nome_file)
-    file.save(path)
+    try:
+        file.save(path)
+    except Exception as e:
+        return jsonify({'error':f'Errore salvataggio file: {e}'}),500
 
     # Ridimensiona a 100x100 se PIL disponibile
     try:
@@ -720,6 +728,15 @@ def reset_db():
         cur.execute('DELETE FROM sessions')
         conn.commit()
     return jsonify({'ok':True})
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'Endpoint non trovato', 'path': request.path}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({'error': str(e)}), 500
 
 if __name__=='__main__':
     port=int(os.environ.get('PORT',5000))
