@@ -252,6 +252,7 @@ def turno_login():
     d=request.json or {}
     numero=d.get('numero'); pwd=d.get('password','').strip()
     istr=d.get('istruttore','').strip(); corso=d.get('corso','').strip(); email=d.get('email','').strip()
+    if istr and not email: return jsonify({'error':'Email obbligatoria per creare il turno'}),400
     if not numero or not pwd: return jsonify({'error':'Turno e password obbligatori'}),400
     try: numero=int(numero)
     except: return jsonify({'error':'Numero turno non valido'}),400
@@ -287,6 +288,24 @@ def turno_login():
     return jsonify({'token':token,'tipo':'turno','turno':numero,
                     'istruttore':turno_dict['istruttore'],'corso':turno_dict['corso'],
                     'fotoAbilitata': pwd==FOTO_PWD})
+
+
+@app.route('/api/turno/<int:numero>', methods=['DELETE'])
+@check_admin
+def cancella_turno(numero):
+    corso=request.args.get('corso','')
+    if not corso: return jsonify({'error':'Corso obbligatorio'}),400
+    with get_db() as conn:
+        cur=conn.cursor()
+        # Cancella valutazioni
+        cur.execute(f'DELETE FROM valutazioni WHERE turno={PH} AND corso={PH}',(numero,corso))
+        val_count = cur.rowcount
+        # Cancella turno
+        cur.execute(f'DELETE FROM turni WHERE numero={PH} AND corso={PH}',(numero,corso))
+        # Cancella sessioni del turno
+        cur.execute(f'DELETE FROM sessions WHERE tipo={PH} AND turno={PH}',('turno',numero))
+        conn.commit()
+    return jsonify({'ok':True,'valutazioni':val_count})
 
 @app.route('/api/turno/<int:numero>', methods=['GET'])
 def turno_info(numero):
