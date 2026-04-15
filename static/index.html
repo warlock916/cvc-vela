@@ -910,6 +910,10 @@ window.addEventListener('resize',()=>{
 let fotoUploadNome=null, fotoUploadId=null;
 
 function apriUploadFoto(nome, id){
+  if(!session?.fotoAbilitata){
+    alert('Il caricamento foto non è abilitato per questo accesso.');
+    return;
+  }
   fotoUploadNome=nome;
   fotoUploadId=id;
   const inp=document.getElementById('foto-input');
