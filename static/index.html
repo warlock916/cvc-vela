@@ -273,6 +273,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
         <button class="btn btn-outline" onclick="exportCSV()">📥 Esporta CSV</button>
         <button class="btn btn-outline" onclick="backupDB()">💾 Backup DB</button>
         <button class="btn btn-outline" onclick="document.getElementById('restore-input').click()">📂 Restore DB</button>
+        <button class="btn btn-warning" onclick="cancellaFoto()" style="padding:8px 18px;font-size:.86rem;">🖼️ Cancella Foto</button>
         <button class="btn btn-danger" onclick="resetDB()" style="padding:8px 18px;font-size:.86rem;">🗑️ Reset DB</button>
       </div>
       <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreDB(this)">
@@ -963,6 +964,17 @@ async function backupDB(){
   a.href=URL.createObjectURL(blob);
   a.download=`CVC_backup_${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
+}
+
+async function cancellaFoto(){
+  if(!adminToken){ alert('Accedi come admin.'); return; }
+  if(!confirm('Cancellare TUTTE le foto di tutti gli allievi?')) return;
+  try{
+    const res=await fetch(`${API}/api/foto/all`,{method:'DELETE',headers:{'X-Admin-Token':adminToken}});
+    const d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Errore');
+    alert(`✅ Cancellate ${d.cancellate} foto.`);
+  }catch(e){ alert('Errore: '+e.message); }
 }
 
 async function restoreDB(input){
