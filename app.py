@@ -339,6 +339,31 @@ def upload_foto(turno):
     except Exception as e:
         return jsonify({'error': str(e), 'trace': traceback.format_exc()[-500:]}), 500
 
+
+@app.route('/api/foto/all', methods=['DELETE'])
+@check_admin
+def delete_all_foto():
+    import shutil
+    cancellate = 0
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute('SELECT foto_url FROM valutazioni WHERE foto_url IS NOT NULL')
+            rows = cur.fetchall()
+            for row in rows:
+                url = row[0] if USE_PG else row['foto_url']
+                if url:
+                    path = os.path.join(UPLOAD_FOLDER, os.path.basename(url))
+                    try:
+                        if os.path.exists(path): os.remove(path)
+                    except: pass
+                    cancellate += 1
+            cur.execute('UPDATE valutazioni SET foto_url=NULL')
+            conn.commit()
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    return jsonify({'ok': True, 'cancellate': cancellate})
+
 @app.route('/api/foto/<int:turno>', methods=['DELETE'])
 @check_admin
 def delete_foto(turno):
