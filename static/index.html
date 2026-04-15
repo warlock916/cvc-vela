@@ -127,10 +127,16 @@ table.riepilogo td{padding:6px 9px;}
 .page{display:none;}.page.active{display:block;}
 .spinner{display:none;width:16px;height:16px;border:3px solid #ccc;border-top-color:var(--blu2);border-radius:50%;animation:spin .7s linear infinite;margin:12px auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Nasconde le frecce degli input numerici */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+<input type="file" id="foto-input" accept="image/*" style="display:none" onchange="uploadFoto(this)">
 <header>
   <h1>⚓ CVC – Blocco Note Volontari</h1>
   <div class="hdr-info" id="hdr-info"></div>
@@ -209,7 +215,7 @@ table.riepilogo td{padding:6px 9px;}
       <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Aggiungi</button>
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('excel-input').click()">📥 Importa da Excel</button>
       <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" onchange="importaExcel(this)">
-      <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="uploadFoto(this)">
+
     </div>
     <div class="btn-row">
       <button class="btn btn-success" onclick="salvaScheda()">💾 Salva Scheda</button>
@@ -512,8 +518,11 @@ function renderRigaDesktop(nome,id){
   const tr=document.createElement('tr'); tr.id=`row_${id}`;
   let cells=`<td class="nome-cell" style="padding:3px 6px;">
     <div style="display:flex;align-items:center;gap:6px;">
-      <div class="foto-cell" id="foto_${id}" onclick="apriUploadFoto('${nome}','${id}')" title="Clicca per aggiungere foto">
+      <div class="foto-cell" id="foto_${id}" title="Foto allievo"
+           onclick="apriUploadFoto('${nome}','${id}')"
+           style="cursor:pointer;position:relative;">
         <span class="foto-placeholder">👤</span>
+        <span style="position:absolute;bottom:-2px;right:-2px;background:var(--blu2);color:white;border-radius:50%;width:14px;height:14px;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1;">+</span>
       </div>
       <span>${nome}</span>
     </div>
@@ -535,8 +544,11 @@ function renderRigaMobile(nome,id){
 
   // Header allievo
   let html=`<div class="mobile-allievo-header" style="display:flex;align-items:center;gap:8px;">
-    <div class="foto-cell" id="foto_${id}" onclick="apriUploadFoto('${nome}','${id}')" title="Foto">
+    <div class="foto-cell" id="foto_${id}" title="Carica foto"
+         onclick="apriUploadFoto('${nome}','${id}')"
+         style="cursor:pointer;position:relative;">
       <span class="foto-placeholder">👤</span>
+      <span style="position:absolute;bottom:-2px;right:-2px;background:var(--blu2);color:white;border-radius:50%;width:14px;height:14px;font-size:10px;display:flex;align-items:center;justify-content:center;">+</span>
     </div>
     <span style="flex:1">${nome}</span>
     <button class="btn btn-danger btn-sm" onclick="rimuoviAllievo('${nome}')">✕</button>
@@ -903,26 +915,42 @@ function impostaFotoCaricata(id, url){
 // ── Export Excel/PDF ──────────────────────────────────────────────────────
 async function esportaExcel(){
   if(!session){ alert('Fai il login prima.'); return; }
-  const res=await fetch(`${API}/api/export/excel/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
-    {headers:{'X-Auth-Token':session.token}});
-  if(!res.ok){ alert('Errore export Excel'); return; }
-  const blob=await res.blob();
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`CVC_T${session.turno}_${session.corso}.xlsx`;
-  a.click(); URL.revokeObjectURL(a.href);
+  try{
+    const res=await fetch(`${API}/api/export/excel/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
+      {headers:{'X-Auth-Token':session.token}});
+    if(!res.ok){
+      const ct=res.headers.get('content-type')||'';
+      if(ct.includes('json')){ const e=await res.json(); alert('Errore Excel: '+e.error+(e.detail?'\n'+e.detail.slice(0,300):'')); }
+      else alert('Errore export Excel (status '+res.status+')');
+      return;
+    }
+    const blob=await res.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`CVC_T${session.turno}_${session.corso}.xlsx`;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(a.href); },100);
+  }catch(e){ alert('Errore Excel: '+e.message); }
 }
 
 async function esportaPDF(){
   if(!session){ alert('Fai il login prima.'); return; }
-  const res=await fetch(`${API}/api/export/pdf/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
-    {headers:{'X-Auth-Token':session.token}});
-  if(!res.ok){ alert('Errore export PDF'); return; }
-  const blob=await res.blob();
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`CVC_T${session.turno}_${session.corso}.pdf`;
-  a.click(); URL.revokeObjectURL(a.href);
+  try{
+    const res=await fetch(`${API}/api/export/pdf/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
+      {headers:{'X-Auth-Token':session.token}});
+    if(!res.ok){
+      const ct=res.headers.get('content-type')||'';
+      if(ct.includes('json')){ const e=await res.json(); alert('Errore PDF: '+e.error+(e.detail?'\n'+e.detail.slice(0,300):'')); }
+      else alert('Errore export PDF (status '+res.status+')');
+      return;
+    }
+    const blob=await res.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`CVC_T${session.turno}_${session.corso}.pdf`;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(a.href); },100);
+  }catch(e){ alert('Errore PDF: '+e.message); }
 }
 
 // ── Backup / Restore DB ───────────────────────────────────────────────────
