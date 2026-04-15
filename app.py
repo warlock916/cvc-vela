@@ -287,53 +287,57 @@ def allowed_file(filename):
 
 @app.route('/api/foto/<int:turno>', methods=['POST'])
 def upload_foto(turno):
-    token=request.headers.get('X-Auth-Token','')
-    allievo=request.args.get('allievo','').strip()
-    if not allievo: return jsonify({'error':'Nome allievo mancante'}),400
-    if not check_turno_auth(turno, token): return jsonify({'error':'Non autorizzato'}),401
-    if 'foto' not in request.files: return jsonify({'error':'Nessun file'}),400
-    file=request.files['foto']
-    if not file or not allowed_file(file.filename): return jsonify({'error':'Formato non supportato'}),400
-
+    import traceback
     try:
+        token=request.headers.get('X-Auth-Token','')
+        allievo=request.args.get('allievo','').strip()
+        if not allievo: return jsonify({'error':'Nome allievo mancante'}),400
+        if not check_turno_auth(turno, token): return jsonify({'error':'Non autorizzato'}),401
+        if 'foto' not in request.files: return jsonify({'error':'Nessun file'}),400
+        file=request.files['foto']
+        if not file or not file.filename: return jsonify({'error':'File vuoto'}),400
+
+        # Estensione e salvataggio
+        fname = file.filename
+        if '.' not in fname: return jsonify({'error':'File senza estensione'}),400
+        ext = fname.rsplit('.',1)[1].lower()
+        if ext not in {'png','jpg','jpeg','gif','webp'}:
+            return jsonify({'error':f'Formato .{ext} non supportato'}),400
+
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    except Exception as e:
-        return jsonify({'error':f'Impossibile creare cartella uploads: {e}'}),500
-
-    # Salva con nome sicuro basato su turno+allievo
-    ext=file.filename.rsplit('.',1)[1].lower()
-    nome_file=secure_filename(f"t{turno}_{allievo}.{ext}")
-    path=os.path.join(UPLOAD_FOLDER, nome_file)
-    try:
+        nome_file = secure_filename(f"t{turno}_{allievo}.{ext}")
+        path = os.path.join(UPLOAD_FOLDER, nome_file)
         file.save(path)
+
+        # Ridimensiona se PIL disponibile (opzionale)
+        try:
+            from PIL import Image
+            img=Image.open(path).convert('RGB')
+            w,h=img.size; m=min(w,h)
+            img=img.crop(((w-m)//2,(h-m)//2,(w+m)//2,(h+m)//2))
+            img=img.resize((100,100), Image.LANCZOS)
+            img.save(path, quality=85)
+        except: pass
+
+        foto_url = f'/uploads/{nome_file}'
+
+        # Aggiorna DB (non blocca se fallisce)
+        try:
+            with get_db() as conn:
+                cur=conn.cursor()
+                cur.execute(f'SELECT id FROM valutazioni WHERE turno={PH} AND allievo={PH}',(turno,allievo))
+                row=cur.fetchone()
+                if row:
+                    eid=row[0] if USE_PG else row['id']
+                    cur.execute(f'UPDATE valutazioni SET foto_url={PH} WHERE id={PH}',(foto_url,eid))
+                    conn.commit()
+        except Exception as db_err:
+            pass  # foto salvata comunque
+
+        return jsonify({'ok':True,'foto_url':foto_url})
+
     except Exception as e:
-        return jsonify({'error':f'Errore salvataggio file: {e}'}),500
-
-    # Ridimensiona a 100x100 se PIL disponibile
-    try:
-        from PIL import Image
-        img=Image.open(path)
-        img=img.convert('RGB')
-        img.thumbnail((100,100), Image.LANCZOS)
-        # Crop quadrato centrato
-        w,h=img.size
-        m=min(w,h)
-        img=img.crop(((w-m)//2,(h-m)//2,(w+m)//2,(h+m)//2))
-        img=img.resize((100,100), Image.LANCZOS)
-        img.save(path, quality=85)
-    except: pass
-
-    foto_url=f'/uploads/{nome_file}'
-    # Aggiorna DB
-    with get_db() as conn:
-        cur=conn.cursor()
-        cur.execute(f'SELECT id FROM valutazioni WHERE turno={PH} AND allievo={PH}',(turno,allievo))
-        row=cur.fetchone()
-        if row:
-            eid=row[0] if USE_PG else row['id']
-            cur.execute(f'UPDATE valutazioni SET foto_url={PH} WHERE id={PH}',(foto_url,eid))
-            conn.commit()
-    return jsonify({'ok':True,'foto_url':foto_url})
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()[-500:]}), 500
 
 @app.route('/api/foto/<int:turno>', methods=['DELETE'])
 @check_admin
