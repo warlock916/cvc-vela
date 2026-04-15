@@ -687,29 +687,46 @@ def export_pdf_turno(turno):
 
     try:
         buf=io.BytesIO()
-        doc=SimpleDocTemplate(buf,pagesize=landscape(A4),
-                              leftMargin=10*mm,rightMargin=10*mm,topMargin=10*mm,bottomMargin=10*mm)
+        # Margini minimi per massimizzare lo spazio
+        MAR = 6*mm
+        doc=SimpleDocTemplate(buf, pagesize=landscape(A4),
+                              leftMargin=MAR, rightMargin=MAR,
+                              topMargin=8*mm, bottomMargin=8*mm)
+
         BLU=colors.HexColor('#1F4E79')
         ORO=colors.HexColor('#FFD700')
         DAY_C=[colors.HexColor(f'#{x}') for x in ['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']]
-        CRITERI_NOMI=['Tecnica','Sen.Naut.','Affid.','Progress.','Impegno','Dispon.','Comp.T/I']
+        # Nomi criteri abbreviati per stare nella colonna stretta
+        CRITERI_NOMI=['Tec','Naut','Aff','Pro','Imp','Dis','Com']
         DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
 
-        styles=getSampleStyleSheet()
-        story=[]
-        title_style=ParagraphStyle('t',fontSize=12,textColor=colors.white,backColor=BLU,
-                                    spaceAfter=4,alignment=1,fontName='Helvetica-Bold')
-        sub_style=ParagraphStyle('s',fontSize=8,spaceAfter=4,fontName='Helvetica')
-        story.append(Paragraph('CVC – Blocco Note Volontari',title_style))
-        story.append(Paragraph(f'Turno {turno} | Corso {t["corso"]} | Istruttore: {t["istruttore"]} | Data: {date.today().isoformat()}',sub_style))
-        story.append(Spacer(1,3*mm))
+        # Calcolo larghezze colonne per stare esattamente nell'A4 landscape
+        from reportlab.lib.pagesizes import A4, landscape as ls
+        PAGE_W = ls(A4)[0]
+        available = PAGE_W - 2*MAR
+        NOME_W = 22*mm
+        n_data_cols = 7 * (len(CRITERI_NOMI)+1)  # 56 colonne
+        DATA_W = (available - NOME_W) / n_data_cols
+        col_w = [NOME_W] + [DATA_W] * n_data_cols
 
+        story=[]
+        title_style=ParagraphStyle('t',fontSize=10,textColor=colors.white,backColor=BLU,
+                                    spaceAfter=2,alignment=1,fontName='Helvetica-Bold')
+        sub_style=ParagraphStyle('s',fontSize=7,spaceAfter=2,fontName='Helvetica')
+        story.append(Paragraph('CVC – Blocco Note Volontari',title_style))
+        story.append(Paragraph(
+            f'Turno {turno} | Corso {t["corso"]} | Istruttore: {t["istruttore"]} | Data: {date.today().isoformat()}',
+            sub_style))
+        story.append(Spacer(1,2*mm))
+
+        # Riga 1: Nome + gruppi giorno
         header1=['Allievo']
         for lbl in DAY_LABELS:
             header1+=[lbl]+['']*(len(CRITERI_NOMI))
+        # Riga 2: sotto-intestazioni criteri + Pts
         header2=['']
         for _ in DAY_LABELS:
-            header2+=CRITERI_NOMI+['Pts']
+            header2+=CRITERI_NOMI+['P']
 
         table_data=[header1,header2]
         for allievo in allievi:
@@ -717,34 +734,59 @@ def export_pdf_turno(turno):
             for dk in ['g1','g2','g3','g4','g5','g6','fin']:
                 for key in CRITERI:
                     v=allievo.get(f'{key}_{dk}')
-                    row_data.append(str(v) if v is not None else '—')
+                    row_data.append(str(v) if v is not None else '')
                 pts=allievo.get(f'pts_{dk}')
-                row_data.append(str(pts) if pts is not None else '—')
+                row_data.append(str(pts) if pts is not None else '')
             table_data.append(row_data)
 
-        col_w=[28*mm]+[6*mm]*(7*(len(CRITERI_NOMI)+1))
-        tbl=Table(table_data,colWidths=col_w,repeatRows=2)
+        tbl=Table(table_data, colWidths=col_w, repeatRows=2)
+
+        FS = 5.5  # font size per dati
         style_cmds=[
-            ('BACKGROUND',(0,0),(-1,0),BLU),('TEXTCOLOR',(0,0),(-1,0),colors.white),
-            ('FONTNAME',(0,0),(-1,1),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),7),
-            ('ALIGN',(0,0),(-1,-1),'CENTER'),('ALIGN',(0,2),(0,-1),'LEFT'),
-            ('VALIGN',(0,0),(-1,-1),'MIDDLE'),('GRID',(0,0),(-1,-1),0.3,colors.grey),
+            # Intestazione riga 1
+            ('BACKGROUND',(0,0),(0,1),BLU),
+            ('TEXTCOLOR',(0,0),(0,1),colors.white),
+            ('FONTNAME',(0,0),(-1,1),'Helvetica-Bold'),
+            ('FONTSIZE',(0,0),(-1,1),FS),
+            ('FONTSIZE',(0,2),(-1,-1),FS),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
+            ('ALIGN',(0,2),(0,-1),'LEFT'),
+            ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+            ('GRID',(0,0),(-1,-1),0.2,colors.HexColor('#CCCCCC')),
             ('ROWBACKGROUNDS',(0,2),(-1,-1),[colors.white,colors.HexColor('#F5F5F5')]),
+            ('TOPPADDING',(0,0),(-1,-1),1),
+            ('BOTTOMPADDING',(0,0),(-1,-1),1),
+            ('LEFTPADDING',(0,0),(-1,-1),1),
+            ('RIGHTPADDING',(0,0),(-1,-1),1),
+            # Riga header 1 altezza
+            ('ROWBACKGROUNDS',(0,0),(-1,0),[BLU]),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.white),
         ]
+
+        # Colori per ogni gruppo giorno
         col=1
         for di in range(7):
             nc=len(CRITERI_NOMI)+1
+            # Header riga 1: span su tutto il gruppo
             style_cmds+=[
                 ('SPAN',(col,0),(col+nc-1,0)),
                 ('BACKGROUND',(col,0),(col+nc-1,0),DAY_C[di]),
+                ('TEXTCOLOR',(col,0),(col+nc-1,0),colors.white),
+                # Header riga 2: criteri
                 ('BACKGROUND',(col,1),(col+nc-2,1),DAY_C[di]),
                 ('TEXTCOLOR',(col,1),(col+nc-2,1),colors.white),
+                # Colonna Pts
                 ('BACKGROUND',(col+nc-1,1),(col+nc-1,1),ORO),
                 ('TEXTCOLOR',(col+nc-1,1),(col+nc-1,1),colors.black),
+                # Linea separatrice tra gruppi
+                ('LINEAFTER',(col+nc-1,0),(col+nc-1,-1),0.8,colors.HexColor('#999999')),
             ]
+            # Pts celle dati
             for r in range(2,len(table_data)):
                 style_cmds.append(('BACKGROUND',(col+nc-1,r),(col+nc-1,r),ORO))
+                style_cmds.append(('FONTNAME',(col+nc-1,r),(col+nc-1,r),'Helvetica-Bold'))
             col+=nc
+
         tbl.setStyle(TableStyle(style_cmds))
         story.append(tbl)
         doc.build(story)
