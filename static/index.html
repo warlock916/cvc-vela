@@ -178,17 +178,20 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <label>Password Turno</label>
       <input type="password" id="l-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doTurnoLogin()">
     </div>
+    <!-- Corso: sempre visibile se necessario disambiguare -->
+    <div class="form-row" id="corso-row" style="display:none;">
+      <label>Corso</label>
+      <select id="l-corso">
+        <option value="">— Seleziona —</option>
+        <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
+        <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
+      </select>
+    </div>
+    <!-- Capo turno + email: solo al primo accesso -->
     <div class="primo-extra" id="primo-extra">
       <p style="font-size:.81rem;color:#666;margin-bottom:10px;">✨ Primo accesso: completa i dati per creare il turno.</p>
       <div class="form-row"><label>Capo Turno</label><input type="text" id="l-istr" placeholder="Nome e Cognome"></div>
-      <div class="form-row">
-        <label>Corso</label>
-        <select id="l-corso">
-          <option value="">— Seleziona —</option>
-          <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
-          <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
-        </select>
-      </div>
+      <div class="form-row"><label>Email Capo Turno</label><input type="email" id="l-email" placeholder="es. mario.rossi@email.it"></div>
     </div>
 
     <div style="margin-top:20px;padding:14px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;font-size:.75rem;color:#555;max-height:180px;overflow-y:auto;line-height:1.5;">
@@ -358,13 +361,32 @@ let primoAccesso=false;
 
 async function checkPrimo(){
   const n=parseInt(document.getElementById('l-turno').value);
-  if(!n||n<1||n>60){document.getElementById('primo-extra').classList.remove('show');return;}
+  if(!n||n<1||n>60){
+    document.getElementById('primo-extra').classList.remove('show');
+    document.getElementById('corso-row').style.display='none';
+    primoAccesso=false;
+    return;
+  }
   try{
-    const corso=document.getElementById('l-corso').value;
-    const res=await fetch(`${API}/api/turno/${n}/exists${corso?'?corso='+encodeURIComponent(corso):''}`);
+    // Prima verifica senza corso: vede quanti turni con questo numero esistono
+    const res=await fetch(`${API}/api/turno/${n}/exists`);
     const d=await res.json();
-    primoAccesso=!d.exists;
-    document.getElementById('primo-extra').classList.toggle('show',primoAccesso);
+    if(!d.exists){
+      // Primo accesso: mostra tutto
+      primoAccesso=true;
+      document.getElementById('primo-extra').classList.add('show');
+      document.getElementById('corso-row').style.display='block';
+    } else if(d.count>1){
+      // Più turni con stesso numero: mostra solo il corso per disambiguare
+      primoAccesso=false;
+      document.getElementById('primo-extra').classList.remove('show');
+      document.getElementById('corso-row').style.display='block';
+    } else {
+      // Turno unico: basta solo la password
+      primoAccesso=false;
+      document.getElementById('primo-extra').classList.remove('show');
+      document.getElementById('corso-row').style.display='none';
+    }
   }catch{}
 }
 
@@ -376,10 +398,16 @@ async function doTurnoLogin(){
   const pwd=document.getElementById('l-pwd').value.trim();
   if(!numero||!pwd){showLoginErr('Inserisci numero turno e password.');return;}
   const payload={numero,password:pwd};
+  // Aggiungi corso se visibile (primo accesso o turno ambiguo)
+  const corsoRow=document.getElementById('corso-row');
+  if(corsoRow && corsoRow.style.display!=='none'){
+    payload.corso=document.getElementById('l-corso').value;
+  }
   if(primoAccesso){
     payload.istruttore=document.getElementById('l-istr').value.trim();
-    payload.corso=document.getElementById('l-corso').value;
-    if(!payload.istruttore||!payload.corso){showLoginErr('Inserisci istruttore e corso.');return;}
+    payload.email=document.getElementById('l-email').value.trim();
+    if(!payload.istruttore||!payload.corso||!payload.email){showLoginErr('Inserisci capo turno, corso ed email.');return;}
+    if(!/^[^@]+@[^@]+\.[^@]+$/.test(payload.email)){showLoginErr("Inserisci un'email valida.");return;}
   }
   try{
     const res=await fetch(`${API}/api/turno/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -747,7 +775,7 @@ async function loadStats(){
       <div class="stat"><div class="n">${d.media_generale??'—'}</div><div class="l">Media generale</div></div>
       ${(d.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n})</div></div>`).join('')}`;
     document.getElementById('turni-body').innerHTML=(d.turni||[]).map(t=>
-      `<tr><td><strong>T${t.numero}</strong></td><td>${t.istruttore}</td><td><span class="tag">${t.corso}</span></td><td><span class="pwd-cell">${t.pwd_plain}</span></td></tr>`
+      `<tr><td><strong>T${t.numero}</strong></td><td>${t.istruttore}</td><td>${t.email||'—'}</td><td><span class="tag">${t.corso}</span></td><td><span class="pwd-cell">${t.pwd_plain}</span></td></tr>`
     ).join('')||'<tr><td colspan="4" class="empty">Nessun turno.</td></tr>';
   }catch(e){}
 }
