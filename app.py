@@ -76,6 +76,7 @@ def init_db():
             pwd_hash   TEXT NOT NULL,
             pwd_plain  TEXT NOT NULL,
             istruttore TEXT NOT NULL,
+            email      TEXT,
             created_at {TS},
             UNIQUE(numero, corso)
         )''')
@@ -107,6 +108,7 @@ def migrate_db():
         with get_db() as conn:
             cur = conn.cursor()
             if USE_PG:
+                # foto_url in valutazioni
                 cur.execute(
                     "SELECT column_name FROM information_schema.columns "
                     "WHERE table_name='valutazioni' AND column_name='foto_url'"
@@ -114,11 +116,24 @@ def migrate_db():
                 if not cur.fetchone():
                     cur.execute('ALTER TABLE valutazioni ADD COLUMN foto_url TEXT')
                     conn.commit()
+                # email in turni
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='turni' AND column_name='email'"
+                )
+                if not cur.fetchone():
+                    cur.execute('ALTER TABLE turni ADD COLUMN email TEXT')
+                    conn.commit()
             else:
                 cur.execute("PRAGMA table_info(valutazioni)")
                 cols = [r[1] for r in cur.fetchall()]
                 if 'foto_url' not in cols:
                     cur.execute('ALTER TABLE valutazioni ADD COLUMN foto_url TEXT')
+                    conn.commit()
+                cur.execute("PRAGMA table_info(turni)")
+                cols2 = [r[1] for r in cur.fetchall()]
+                if 'email' not in cols2:
+                    cur.execute('ALTER TABLE turni ADD COLUMN email TEXT')
                     conn.commit()
     except Exception as e:
         print(f"Migration warning: {e}")
@@ -214,7 +229,7 @@ def turno_exists(numero):
 def turno_login():
     d=request.json or {}
     numero=d.get('numero'); pwd=d.get('password','').strip()
-    istr=d.get('istruttore','').strip(); corso=d.get('corso','').strip()
+    istr=d.get('istruttore','').strip(); corso=d.get('corso','').strip(); email=d.get('email','').strip()
     if not numero or not pwd: return jsonify({'error':'Turno e password obbligatori'}),400
     try: numero=int(numero)
     except: return jsonify({'error':'Numero turno non valido'}),400
@@ -228,8 +243,8 @@ def turno_login():
             if not istr or not corso:
                 return jsonify({'error':'Prima apertura: inserisci anche istruttore e corso','primo_accesso':True}),400
             try:
-                cur.execute(f'INSERT INTO turni(numero,corso,pwd_hash,pwd_plain,istruttore) VALUES({PH},{PH},{PH},{PH},{PH})',
-                           (numero,corso,hash_pwd(pwd),pwd,istr))
+                cur.execute(f'INSERT INTO turni(numero,corso,pwd_hash,pwd_plain,istruttore,email) VALUES({PH},{PH},{PH},{PH},{PH},{PH})',
+                           (numero,corso,hash_pwd(pwd),pwd,istr,email or None))
                 conn.commit()
             except Exception as ex:
                 conn.rollback()
@@ -485,7 +500,7 @@ def stats():
         cur.execute('SELECT AVG(punteggio_finale) FROM valutazioni WHERE punteggio_finale IS NOT NULL'); med=cur.fetchone()[0]
         cur.execute('SELECT corso,COUNT(*) n,AVG(punteggio_finale) media FROM valutazioni GROUP BY corso ORDER BY corso')
         perc=rows_to_dicts(cur.fetchall(),cur)
-        cur.execute('SELECT numero,istruttore,corso,pwd_plain FROM turni ORDER BY numero,corso')
+        cur.execute('SELECT numero,istruttore,email,corso,pwd_plain FROM turni ORDER BY numero,corso')
         turni=rows_to_dicts(cur.fetchall(),cur)
     return jsonify({'totale':tot,'istruttori':istr,'corsi_attivi':cors,
                     'media_generale':round(float(med),1) if med else None,
