@@ -175,19 +175,18 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <input type="number" id="l-turno" min="1" max="60" placeholder="es. 5" oninput="checkPrimo()">
     </div>
     <div class="form-row">
-      <label>Password Turno</label>
-      <input type="password" id="l-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doTurnoLogin()">
-    </div>
-    <!-- Corso: sempre visibile se necessario disambiguare -->
-    <div class="form-row" id="corso-row" style="display:none;">
       <label>Corso</label>
-      <select id="l-corso">
+      <select id="l-corso" onchange="checkPrimo()">
         <option value="">— Seleziona —</option>
         <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
         <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
       </select>
     </div>
-    <!-- Capo turno + email: solo al primo accesso -->
+    <div class="form-row">
+      <label>Password Turno</label>
+      <input type="password" id="l-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doTurnoLogin()">
+    </div>
+    <!-- Capo turno + email: solo se turno+corso non esiste ancora -->
     <div class="primo-extra" id="primo-extra">
       <p style="font-size:.81rem;color:#666;margin-bottom:10px;">✨ Primo accesso: completa i dati per creare il turno.</p>
       <div class="form-row"><label>Capo Turno</label><input type="text" id="l-istr" placeholder="Nome e Cognome"></div>
@@ -361,32 +360,16 @@ let primoAccesso=false;
 
 async function checkPrimo(){
   const n=parseInt(document.getElementById('l-turno').value);
-  if(!n||n<1||n>60){
-    document.getElementById('primo-extra').classList.remove('show');
-    document.getElementById('corso-row').style.display='none';
-    primoAccesso=false;
-    return;
-  }
+  const corso=document.getElementById('l-corso').value;
+  document.getElementById('primo-extra').classList.remove('show');
+  primoAccesso=false;
+  if(!n||n<1||n>60||!corso) return;
   try{
-    const res=await fetch(`${API}/api/turno/${n}/exists`);
+    const res=await fetch(`${API}/api/turno/${n}/exists?corso=${encodeURIComponent(corso)}`);
     const d=await res.json();
     if(!d.exists){
-      // Primo accesso: mostra corso + capo turno + email
       primoAccesso=true;
       document.getElementById('primo-extra').classList.add('show');
-      document.getElementById('corso-row').style.display='block';
-    } else if(d.count>1){
-      // Più turni stesso numero: mostra solo corso per disambiguare
-      primoAccesso=false;
-      document.getElementById('primo-extra').classList.remove('show');
-      document.getElementById('corso-row').style.display='block';
-    } else {
-      // Turno unico: nasconde tutto, il corso lo trova il server
-      primoAccesso=false;
-      document.getElementById('primo-extra').classList.remove('show');
-      document.getElementById('corso-row').style.display='none';
-      // Pre-carica il corso nel select (nascosto) per inviarlo comunque
-      if(d.corso) document.getElementById('l-corso').value=d.corso;
     }
   }catch{}
 }
@@ -399,15 +382,12 @@ async function doTurnoLogin(){
   const pwd=document.getElementById('l-pwd').value.trim();
   if(!numero||!pwd){showLoginErr('Inserisci numero turno e password.');return;}
   const payload={numero,password:pwd};
-  // Aggiungi corso se visibile (primo accesso o turno ambiguo)
-  const corsoRow=document.getElementById('corso-row');
-  if(corsoRow && corsoRow.style.display!=='none'){
-    payload.corso=document.getElementById('l-corso').value;
-  }
+  payload.corso=document.getElementById('l-corso').value;
+  if(!payload.corso){showLoginErr('Seleziona il corso.');return;}
   if(primoAccesso){
     payload.istruttore=document.getElementById('l-istr').value.trim();
     payload.email=document.getElementById('l-email').value.trim();
-    if(!payload.istruttore||!payload.corso||!payload.email){showLoginErr('Inserisci capo turno, corso ed email.');return;}
+    if(!payload.istruttore||!payload.email){showLoginErr('Inserisci capo turno ed email.');return;}
     if(!/^[^@]+@[^@]+\.[^@]+$/.test(payload.email)){showLoginErr("Inserisci un'email valida.");return;}
   }
   try{
