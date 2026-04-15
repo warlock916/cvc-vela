@@ -368,24 +368,25 @@ async function checkPrimo(){
     return;
   }
   try{
-    // Prima verifica senza corso: vede quanti turni con questo numero esistono
     const res=await fetch(`${API}/api/turno/${n}/exists`);
     const d=await res.json();
     if(!d.exists){
-      // Primo accesso: mostra tutto
+      // Primo accesso: mostra corso + capo turno + email
       primoAccesso=true;
       document.getElementById('primo-extra').classList.add('show');
       document.getElementById('corso-row').style.display='block';
     } else if(d.count>1){
-      // Più turni con stesso numero: mostra solo il corso per disambiguare
+      // Più turni stesso numero: mostra solo corso per disambiguare
       primoAccesso=false;
       document.getElementById('primo-extra').classList.remove('show');
       document.getElementById('corso-row').style.display='block';
     } else {
-      // Turno unico: basta solo la password
+      // Turno unico: nasconde tutto, il corso lo trova il server
       primoAccesso=false;
       document.getElementById('primo-extra').classList.remove('show');
       document.getElementById('corso-row').style.display='none';
+      // Pre-carica il corso nel select (nascosto) per inviarlo comunque
+      if(d.corso) document.getElementById('l-corso').value=d.corso;
     }
   }catch{}
 }
