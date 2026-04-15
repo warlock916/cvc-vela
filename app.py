@@ -220,10 +220,16 @@ def turno_exists(numero):
     corso=request.args.get('corso','')
     with get_db() as conn:
         cur=conn.cursor()
-        if corso: cur.execute(f'SELECT id FROM turni WHERE numero={PH} AND corso={PH}',(numero,corso))
-        else: cur.execute(f'SELECT id FROM turni WHERE numero={PH}',(numero,))
-        row=cur.fetchone()
-    return jsonify({'exists': row is not None})
+        if corso:
+            cur.execute(f'SELECT id FROM turni WHERE numero={PH} AND corso={PH}',(numero,corso))
+            row=cur.fetchone()
+            return jsonify({'exists': row is not None, 'count': 1 if row else 0, 'corso': corso})
+        else:
+            cur.execute(f'SELECT corso FROM turni WHERE numero={PH}',(numero,))
+            rows=cur.fetchall()
+            count=len(rows)
+            corso_unico=rows[0][0] if count==1 else None
+            return jsonify({'exists': count>0, 'count': count, 'corso': corso_unico})
 
 @app.route('/api/turno/login', methods=['POST'])
 def turno_login():
@@ -237,7 +243,11 @@ def turno_login():
 
     with get_db() as conn:
         cur=conn.cursor()
-        cur.execute(f'SELECT * FROM turni WHERE numero={PH} AND corso={PH}',(numero, corso if corso else ''))
+        # Se corso non fornito, cerca il turno per numero solo
+        if corso:
+            cur.execute(f'SELECT * FROM turni WHERE numero={PH} AND corso={PH}',(numero,corso))
+        else:
+            cur.execute(f'SELECT * FROM turni WHERE numero={PH}',(numero,))
         turno_dict=row_to_dict(cur.fetchone(), cur)
         if turno_dict is None:
             if not istr or not corso:
