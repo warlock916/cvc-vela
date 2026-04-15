@@ -8,6 +8,7 @@ app = Flask(__name__, static_folder='static')
 CORS(app)
 
 ADMIN_PWD    = os.environ.get('ADMIN_PASSWORD', 'admin123')
+FOTO_PWD     = os.environ.get('FOTO_PASSWORD', 'titta01')
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', '/tmp/uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -96,6 +97,7 @@ def init_db():
             token TEXT PRIMARY KEY,
             tipo  TEXT DEFAULT 'admin',
             turno INTEGER,
+            foto_ok INTEGER DEFAULT 0,
             created_at {TS}
         )''')
         conn.commit()
@@ -124,6 +126,14 @@ def migrate_db():
                 if not cur.fetchone():
                     cur.execute('ALTER TABLE turni ADD COLUMN email TEXT')
                     conn.commit()
+                # foto_ok in sessions
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='sessions' AND column_name='foto_ok'"
+                )
+                if not cur.fetchone():
+                    cur.execute('ALTER TABLE sessions ADD COLUMN foto_ok INTEGER DEFAULT 0')
+                    conn.commit()
             else:
                 cur.execute("PRAGMA table_info(valutazioni)")
                 cols = [r[1] for r in cur.fetchall()]
@@ -134,6 +144,12 @@ def migrate_db():
                 cols2 = [r[1] for r in cur.fetchall()]
                 if 'email' not in cols2:
                     cur.execute('ALTER TABLE turni ADD COLUMN email TEXT')
+                    conn.commit()
+                # foto_ok in sessions
+                cur.execute("PRAGMA table_info(sessions)")
+                cols3 = [r[1] for r in cur.fetchall()]
+                if 'foto_ok' not in cols3:
+                    cur.execute('ALTER TABLE sessions ADD COLUMN foto_ok INTEGER DEFAULT 0')
                     conn.commit()
     except Exception as e:
         print(f"Migration warning: {e}")
@@ -265,10 +281,12 @@ def turno_login():
             if hash_pwd(pwd)!=turno_dict['pwd_hash']:
                 return jsonify({'error':'Password errata per questo turno'}),401
         token=secrets.token_hex(32)
-        cur.execute(f"INSERT INTO sessions(token,tipo,turno) VALUES({PH},{PH},{PH})",(token,'turno',numero))
+        foto_ok=1 if pwd==FOTO_PWD else 0
+        cur.execute(f"INSERT INTO sessions(token,tipo,turno,foto_ok) VALUES({PH},{PH},{PH},{PH})",(token,'turno',numero,foto_ok))
         conn.commit()
     return jsonify({'token':token,'tipo':'turno','turno':numero,
-                    'istruttore':turno_dict['istruttore'],'corso':turno_dict['corso']})
+                    'istruttore':turno_dict['istruttore'],'corso':turno_dict['corso'],
+                    'fotoAbilitata': pwd==FOTO_PWD})
 
 @app.route('/api/turno/<int:numero>', methods=['GET'])
 def turno_info(numero):
@@ -342,6 +360,13 @@ def upload_foto(turno):
         allievo=request.args.get('allievo','').strip()
         if not allievo: return jsonify({'error':'Nome allievo mancante'}),400
         if not check_turno_auth(turno, token): return jsonify({'error':'Non autorizzato'}),401
+        # Verifica permesso foto
+        with get_db() as conn2:
+            cur2=conn2.cursor()
+            cur2.execute(f'SELECT foto_ok FROM sessions WHERE token={PH}',(token,))
+            sr=cur2.fetchone()
+            fok=sr[0] if USE_PG else (sr['foto_ok'] if sr else 0)
+            if not fok: return jsonify({'error':'Caricamento foto non abilitato per questo accesso'}),403
         if 'foto' not in request.files: return jsonify({'error':'Nessun file'}),400
         file=request.files['foto']
         if not file or not file.filename: return jsonify({'error':'File vuoto'}),400
