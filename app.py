@@ -285,9 +285,11 @@ ALLOWED_EXT = {'png','jpg','jpeg','gif','webp'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXT
 
-@app.route('/api/foto/<int:turno>/<path:allievo>', methods=['POST'])
-def upload_foto(turno, allievo):
+@app.route('/api/foto/<int:turno>', methods=['POST'])
+def upload_foto(turno):
     token=request.headers.get('X-Auth-Token','')
+    allievo=request.args.get('allievo','').strip()
+    if not allievo: return jsonify({'error':'Nome allievo mancante'}),400
     if not check_turno_auth(turno, token): return jsonify({'error':'Non autorizzato'}),401
     if 'foto' not in request.files: return jsonify({'error':'Nessun file'}),400
     file=request.files['foto']
@@ -325,9 +327,10 @@ def upload_foto(turno, allievo):
             conn.commit()
     return jsonify({'ok':True,'foto_url':foto_url})
 
-@app.route('/api/foto/<int:turno>/<path:allievo>', methods=['DELETE'])
+@app.route('/api/foto/<int:turno>', methods=['DELETE'])
 @check_admin
-def delete_foto(turno, allievo):
+def delete_foto(turno):
+    allievo=request.args.get('allievo','').strip()
     with get_db() as conn:
         cur=conn.cursor()
         cur.execute(f'SELECT foto_url FROM valutazioni WHERE turno={PH} AND allievo={PH}',(turno,allievo))
@@ -497,7 +500,7 @@ def restore_db():
 # ── Export Excel scheda turno ─────────────────────────────────────────────
 @app.route('/api/export/excel/<int:turno>', methods=['GET'])
 def export_excel_turno(turno):
-    token=request.headers.get('X-Auth-Token','')
+    token=request.headers.get('X-Auth-Token','') or request.args.get('tok','')
     admin_token=request.headers.get('X-Admin-Token','')
     if not check_turno_auth(turno,token) and not admin_token:
         return jsonify({'error':'Non autorizzato'}),401
@@ -598,7 +601,7 @@ def export_excel_turno(turno):
 
 @app.route('/api/export/pdf/<int:turno>', methods=['GET'])
 def export_pdf_turno(turno):
-    token=request.headers.get('X-Auth-Token','')
+    token=request.headers.get('X-Auth-Token','') or request.args.get('tok','')
     admin_token=request.headers.get('X-Admin-Token','')
     if not check_turno_auth(turno,token) and not admin_token:
         return jsonify({'error':'Non autorizzato'}),401
