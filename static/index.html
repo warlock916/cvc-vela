@@ -180,7 +180,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
     </div>
     <div class="primo-extra" id="primo-extra">
       <p style="font-size:.81rem;color:#666;margin-bottom:10px;">✨ Primo accesso: completa i dati per creare il turno.</p>
-      <div class="form-row"><label>Istruttore</label><input type="text" id="l-istr" placeholder="Nome e Cognome"></div>
+      <div class="form-row"><label>Capo Turno</label><input type="text" id="l-istr" placeholder="Nome e Cognome"></div>
       <div class="form-row">
         <label>Corso</label>
         <select id="l-corso">
@@ -189,6 +189,23 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
           <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
         </select>
       </div>
+    </div>
+
+    <div style="margin-top:20px;padding:14px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;font-size:.75rem;color:#555;max-height:180px;overflow-y:auto;line-height:1.5;">
+      <strong style="color:var(--blu);font-size:.8rem;">Disclaimer sul trattamento dei dati personali</strong><br><br>
+      Ai sensi del Regolamento (UE) 2016/679, ogni utente che inserisce, carica o gestisce dati personali all'interno della presente piattaforma dichiara di essere direttamente responsabile della liceità, correttezza e pertinenza dei dati trattati.<br><br>
+      L'utente si impegna a:<br>
+      &bull; caricare esclusivamente dati necessari e pertinenti alle finalità del corso;<br>
+      &bull; garantire di avere idonea base giuridica per il trattamento dei dati inseriti;<br>
+      &bull; non utilizzare i dati per finalità personali, diverse o non autorizzate.<br><br>
+      I dati inseriti devono essere utilizzati esclusivamente per finalità didattiche, organizzative e di gestione del corso, ed è fatto espresso divieto di qualsiasi utilizzo improprio, diffusione o trattamento non conforme alla normativa vigente.<br><br>
+      Ciascun utente è pertanto responsabile in via esclusiva dei dati caricati e del loro utilizzo.
+    </div>
+    <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;">
+      <input type="checkbox" id="disclaimer-check" style="margin-top:2px;width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+      <label for="disclaimer-check" style="font-size:.8rem;color:#333;cursor:pointer;line-height:1.4;">
+        Ho letto e accetto il disclaimer sul trattamento dei dati personali
+      </label>
     </div>
     <div class="btn-row" style="justify-content:space-between;margin-top:16px;">
       <button class="btn btn-success" onclick="doTurnoLogin()">Apri Scheda →</button>
@@ -212,6 +229,8 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
     <div id="scheda-mobile" style="display:none;"></div>
     <div class="add-row">
       <input type="text" id="nuovo-allievo" placeholder="Nome allievo…" onkeydown="if(event.key==='Enter')aggiungiAllievo()">
+      <small style="color:#888;font-size:.75rem;display:block;margin-top:3px;">&#128100; Allievo (Solo Nome) — es: Marco</small>
+      <small style="color:#888;font-size:.75rem;display:block;margin-top:3px;">Inserire solo il Nome (es. Marco)</small>
       <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Aggiungi</button>
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('excel-input').click()">📥 Importa da Excel</button>
       <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" onchange="importaExcel(this)">
@@ -243,7 +262,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <h3 style="color:var(--blu);margin:14px 0 6px;font-size:.88rem;">🔑 Turni e Password</h3>
       <div style="overflow-x:auto;">
         <table class="turni-table" id="turni-table">
-          <thead><tr><th>Turno</th><th>Istruttore</th><th>Corso</th><th>Password</th></tr></thead>
+          <thead><tr><th>Turno</th><th>Capo Turno</th><th>Corso</th><th>Password</th></tr></thead>
           <tbody id="turni-body"></tbody>
         </table>
       </div>
@@ -262,7 +281,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <div style="overflow-x:auto;">
         <table class="riepilogo">
           <thead><tr>
-            <th>Data</th><th>T.</th><th>Istruttore</th><th>Allievo</th><th>Corso</th>
+            <th>Data</th><th>T.</th><th>Capo Turno</th><th>Allievo</th><th>Corso</th>
             <th>G1</th><th>G2</th><th>G3</th><th>G4</th><th>G5</th><th>G6</th><th>G7</th><th></th>
           </tr></thead>
           <tbody id="tab-body"><tr><td colspan="13" class="empty">Caricamento…</td></tr></tbody>
@@ -351,6 +370,8 @@ async function checkPrimo(){
 
 async function doTurnoLogin(){
   document.getElementById('login-alert').classList.remove('show');
+  const chk=document.getElementById('disclaimer-check');
+  if(chk && !chk.checked){showLoginErr('Devi accettare il disclaimer sul trattamento dei dati per continuare.');return;}
   const numero=parseInt(document.getElementById('l-turno').value);
   const pwd=document.getElementById('l-pwd').value.trim();
   if(!numero||!pwd){showLoginErr('Inserisci numero turno e password.');return;}
