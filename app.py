@@ -501,6 +501,12 @@ def export_excel_turno(turno):
     admin_token=request.headers.get('X-Admin-Token','')
     if not check_turno_auth(turno,token) and not admin_token:
         return jsonify({'error':'Non autorizzato'}),401
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font,PatternFill,Alignment,Border,Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return jsonify({'error':'openpyxl non installato'}),500
 
     corso=request.args.get('corso','')
     with get_db() as conn:
@@ -512,93 +518,98 @@ def export_excel_turno(turno):
         cur.execute(f'SELECT * FROM valutazioni WHERE turno={PH} AND corso={PH} ORDER BY allievo',(turno,t['corso']))
         allievi=rows_to_dicts(cur.fetchall(),cur)
 
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, PatternFill
-    from openpyxl.utils import get_column_letter
+    try:
+        wb=Workbook(); ws=wb.active
+        ws.title=f'T{turno}_{t["corso"]}'
+        BLU=PatternFill('solid',fgColor='1F4E79')
+        ORO=PatternFill('solid',fgColor='FFD700')
+        DAY_C=['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']
+        thin=Side(style='thin',color='CCCCCC')
+        BRD=Border(left=thin,right=thin,top=thin,bottom=thin)
+        CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I']
+        DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
 
-    wb=Workbook(); ws=wb.active
-    ws.title=f'T{turno}_{t["corso"]}'
+        ws.merge_cells('A1:D1')
+        ws['A1']='CVC – Blocco Note Volontari'
+        ws['A1'].font=Font(bold=True,size=14,color='FFFFFF')
+        ws['A1'].fill=BLU
+        ws['A1'].alignment=Alignment(horizontal='center')
+        ws['E1']=f'Turno: {turno}'; ws['F1']=f'Corso: {t["corso"]}'
+        ws['G1']=f'Istruttore: {t["istruttore"]}'; ws['H1']=f'Data: {date.today().isoformat()}'
+        ws.row_dimensions[1].height=24
 
-    BLU=PatternFill('solid',fgColor='1F4E79')
-    ORO=PatternFill('solid',fgColor='FFD700')
-    DAY_C=['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']
-    thin=Side(style='thin',color='CCCCCC')
-    BRD=Border(left=thin,right=thin,top=thin,bottom=thin)
-
-    # Intestazione scheda
-    ws.merge_cells('A1:D1')
-    ws['A1']=f'CVC – Blocco Note Volontari'
-    ws['A1'].font=Font(bold=True,size=14,color='FFFFFF'); ws['A1'].fill=BLU
-    ws['A1'].alignment=Alignment(horizontal='center')
-    ws['E1']=f'Turno: {turno}'; ws['F1']=f'Corso: {t["corso"]}'
-    ws['G1']=f'Istruttore: {t["istruttore"]}'; ws['H1']=f'Data: {date.today().isoformat()}'
-    ws.row_dimensions[1].height=24; ws.row_dimensions[2].height=8
-
-    CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I']
-    DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
-
-    # Riga 3: intestazioni gruppo
-    row=3
-    ws.cell(row=row,column=1,value='Allievo').font=Font(bold=True,color='FFFFFF')
-    ws.cell(row=row,column=1).fill=BLU; ws.cell(row=row,column=1).alignment=Alignment(horizontal='center')
-    col=2
-    for di,dlbl in enumerate(DAY_LABELS):
-        bg=PatternFill('solid',fgColor=DAY_C[di])
-        ws.merge_cells(start_row=row,start_column=col,end_row=row,end_column=col+len(CRITERI_NOMI))
-        c=ws.cell(row=row,column=col,value=dlbl)
-        c.font=Font(bold=True,color='FFFFFF'); c.fill=bg; c.alignment=Alignment(horizontal='center')
-        col+=len(CRITERI_NOMI)+1
-
-    # Riga 4: nomi criteri + Pts
-    row=4
-    ws.cell(row=row,column=1,value='').fill=BLU
-    col=2
-    for di,dlbl in enumerate(DAY_LABELS):
-        bg=PatternFill('solid',fgColor=DAY_C[di])
-        for crit in CRITERI_NOMI:
-            c=ws.cell(row=row,column=col,value=crit[:6])
-            c.font=Font(bold=True,color='FFFFFF',size=8); c.fill=bg
-            c.alignment=Alignment(horizontal='center',wrap_text=True); c.border=BRD
-            col+=1
-        c=ws.cell(row=row,column=col,value='Pts')
-        c.font=Font(bold=True,color='333333',size=9); c.fill=ORO
-        c.alignment=Alignment(horizontal='center'); c.border=BRD
-        col+=1
-
-    ws.column_dimensions['A'].width=20
-    for i in range(2,col): ws.column_dimensions[get_column_letter(i)].width=7
-    ws.row_dimensions[3].height=20; ws.row_dimensions[4].height=30
-
-    # Dati allievi
-    for a_row,allievo in enumerate(allievi, start=5):
-        ws.row_dimensions[a_row].height=18
-        ws.cell(row=a_row,column=1,value=allievo['allievo']).font=Font(bold=True)
-        ws.cell(row=a_row,column=1).border=BRD
+        row=3
+        c=ws.cell(row=row,column=1,value='Allievo')
+        c.font=Font(bold=True,color='FFFFFF'); c.fill=BLU; c.alignment=Alignment(horizontal='center')
         col=2
-        for di,dk in enumerate(['g1','g2','g3','g4','g5','g6','fin']):
-            bg=PatternFill('solid',fgColor=DAY_C[di]+'33')
-            for key in CRITERI:
-                v=allievo.get(f'{key}_{dk}')
-                c=ws.cell(row=a_row,column=col,value=v)
-                c.fill=bg; c.alignment=Alignment(horizontal='center'); c.border=BRD
+        for di,dlbl in enumerate(DAY_LABELS):
+            bg=PatternFill('solid',fgColor=DAY_C[di])
+            ws.merge_cells(start_row=row,start_column=col,end_row=row,end_column=col+len(CRITERI_NOMI))
+            c=ws.cell(row=row,column=col,value=dlbl)
+            c.font=Font(bold=True,color='FFFFFF'); c.fill=bg; c.alignment=Alignment(horizontal='center')
+            col+=len(CRITERI_NOMI)+1
+
+        row=4
+        ws.cell(row=row,column=1,value='').fill=BLU
+        col=2
+        for di in range(7):
+            bg=PatternFill('solid',fgColor=DAY_C[di])
+            for crit in CRITERI_NOMI:
+                c=ws.cell(row=row,column=col,value=crit[:6])
+                c.font=Font(bold=True,color='FFFFFF',size=8); c.fill=bg
+                c.alignment=Alignment(horizontal='center',wrap_text=True); c.border=BRD
                 col+=1
-            pts=allievo.get(f'pts_{dk}')
-            c=ws.cell(row=a_row,column=col,value=pts)
-            c.fill=ORO; c.font=Font(bold=True)
+            c=ws.cell(row=row,column=col,value='Pts')
+            c.font=Font(bold=True,color='333333',size=9); c.fill=ORO
             c.alignment=Alignment(horizontal='center'); c.border=BRD
             col+=1
 
-    buf=io.BytesIO(); wb.save(buf); buf.seek(0)
-    return send_file(buf,mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                     as_attachment=True,download_name=f'CVC_T{turno}_{t["corso"]}.xlsx')
+        ws.column_dimensions['A'].width=20
+        for i in range(2,col): ws.column_dimensions[get_column_letter(i)].width=7
+        ws.row_dimensions[3].height=20; ws.row_dimensions[4].height=30
 
-# ── Export PDF scheda turno ───────────────────────────────────────────────
+        for a_row,allievo in enumerate(allievi,start=5):
+            ws.row_dimensions[a_row].height=18
+            c=ws.cell(row=a_row,column=1,value=allievo['allievo'])
+            c.font=Font(bold=True); c.border=BRD
+            col=2
+            for di,dk in enumerate(['g1','g2','g3','g4','g5','g6','fin']):
+                bg=PatternFill('solid',fgColor=DAY_C[di]+'33')
+                for key in CRITERI:
+                    v=allievo.get(f'{key}_{dk}')
+                    c=ws.cell(row=a_row,column=col,value=v)
+                    c.fill=bg; c.alignment=Alignment(horizontal='center'); c.border=BRD
+                    col+=1
+                pts=allievo.get(f'pts_{dk}')
+                c=ws.cell(row=a_row,column=col,value=pts)
+                c.fill=ORO; c.font=Font(bold=True)
+                c.alignment=Alignment(horizontal='center'); c.border=BRD
+                col+=1
+
+        buf=io.BytesIO(); wb.save(buf); buf.seek(0)
+        return Response(
+            buf.getvalue(),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition':f'attachment; filename=CVC_T{turno}_{t["corso"]}.xlsx'}
+        )
+    except Exception as ex:
+        import traceback
+        return jsonify({'error':str(ex),'detail':traceback.format_exc()}),500
+
 @app.route('/api/export/pdf/<int:turno>', methods=['GET'])
 def export_pdf_turno(turno):
     token=request.headers.get('X-Auth-Token','')
     admin_token=request.headers.get('X-Admin-Token','')
     if not check_turno_auth(turno,token) and not admin_token:
         return jsonify({'error':'Non autorizzato'}),401
+    try:
+        from reportlab.lib.pagesizes import A4,landscape
+        from reportlab.lib import colors
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate,Table,TableStyle,Paragraph,Spacer
+        from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
+    except ImportError:
+        return jsonify({'error':'reportlab non installato'}),500
 
     corso=request.args.get('corso','')
     with get_db() as conn:
@@ -610,90 +621,78 @@ def export_pdf_turno(turno):
         cur.execute(f'SELECT * FROM valutazioni WHERE turno={PH} AND corso={PH} ORDER BY allievo',(turno,t['corso']))
         allievi=rows_to_dicts(cur.fetchall(),cur)
 
-    from reportlab.lib.pagesizes import A4,landscape
-    from reportlab.lib import colors
-    from reportlab.lib.units import mm
-    from reportlab.platypus import SimpleDocTemplate,Table,TableStyle,Paragraph,Spacer
-    from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
+    try:
+        buf=io.BytesIO()
+        doc=SimpleDocTemplate(buf,pagesize=landscape(A4),
+                              leftMargin=10*mm,rightMargin=10*mm,topMargin=10*mm,bottomMargin=10*mm)
+        BLU=colors.HexColor('#1F4E79')
+        ORO=colors.HexColor('#FFD700')
+        DAY_C=[colors.HexColor(f'#{x}') for x in ['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']]
+        CRITERI_NOMI=['Tecnica','Sen.Naut.','Affid.','Progress.','Impegno','Dispon.','Comp.T/I']
+        DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
 
-    buf=io.BytesIO()
-    doc=SimpleDocTemplate(buf,pagesize=landscape(A4),
-                          leftMargin=10*mm,rightMargin=10*mm,topMargin=10*mm,bottomMargin=10*mm)
+        styles=getSampleStyleSheet()
+        story=[]
+        title_style=ParagraphStyle('t',fontSize=12,textColor=colors.white,backColor=BLU,
+                                    spaceAfter=4,alignment=1,fontName='Helvetica-Bold')
+        sub_style=ParagraphStyle('s',fontSize=8,spaceAfter=4,fontName='Helvetica')
+        story.append(Paragraph('CVC – Blocco Note Volontari',title_style))
+        story.append(Paragraph(f'Turno {turno} | Corso {t["corso"]} | Istruttore: {t["istruttore"]} | Data: {date.today().isoformat()}',sub_style))
+        story.append(Spacer(1,3*mm))
 
-    styles=getSampleStyleSheet()
-    BLU=colors.HexColor('#1F4E79')
-    ORO=colors.HexColor('#FFD700')
-    DAY_C=[colors.HexColor(f'#{x}') for x in ['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']]
-    CRITERI_NOMI=['Tecnica','Sen.Naut.','Affid.','Progress.','Impegno','Dispon.','Comp.T/I']
-    DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
+        header1=['Allievo']
+        for lbl in DAY_LABELS:
+            header1+=[lbl]+['']*(len(CRITERI_NOMI))
+        header2=['']
+        for _ in DAY_LABELS:
+            header2+=CRITERI_NOMI+['Pts']
 
-    story=[]
-    # Titolo
-    title_style=ParagraphStyle('t',fontSize=14,textColor=colors.white,backColor=BLU,
-                                spaceAfter=4,alignment=1,fontName='Helvetica-Bold')
-    sub_style=ParagraphStyle('s',fontSize=9,spaceAfter=6,fontName='Helvetica')
-    story.append(Paragraph('CVC – Blocco Note Volontari',title_style))
-    story.append(Paragraph(f'Turno {turno} | Corso {t["corso"]} | Istruttore: {t["istruttore"]} | Data: {date.today().isoformat()}',sub_style))
-    story.append(Spacer(1,4*mm))
+        table_data=[header1,header2]
+        for allievo in allievi:
+            row_data=[allievo['allievo']]
+            for dk in ['g1','g2','g3','g4','g5','g6','fin']:
+                for key in CRITERI:
+                    v=allievo.get(f'{key}_{dk}')
+                    row_data.append(str(v) if v is not None else '—')
+                pts=allievo.get(f'pts_{dk}')
+                row_data.append(str(pts) if pts is not None else '—')
+            table_data.append(row_data)
 
-    # Intestazione tabella
-    n_cols=1+7*(len(CRITERI_NOMI)+1)
-    header1=['Allievo']
-    for lbl in DAY_LABELS:
-        header1+=[lbl]+['']*(len(CRITERI_NOMI))
-    header2=['']
-    for _ in DAY_LABELS:
-        header2+=CRITERI_NOMI+['Pts']
-
-    table_data=[header1,header2]
-    for allievo in allievi:
-        row_data=[allievo['allievo']]
-        for dk in ['g1','g2','g3','g4','g5','g6','fin']:
-            for key in CRITERI:
-                v=allievo.get(f'{key}_{dk}')
-                row_data.append(str(v) if v is not None else '—')
-            pts=allievo.get(f'pts_{dk}')
-            row_data.append(str(pts) if pts is not None else '—')
-        table_data.append(row_data)
-
-    # Larghezze colonne
-    col_w=[28*mm]+[6*mm]*( 7*(len(CRITERI_NOMI)+1) )
-    tbl=Table(table_data, colWidths=col_w, repeatRows=2)
-
-    style_cmds=[
-        ('BACKGROUND',(0,0),(-1,0),BLU),
-        ('TEXTCOLOR',(0,0),(-1,0),colors.white),
-        ('FONTNAME',(0,0),(-1,1),'Helvetica-Bold'),
-        ('FONTSIZE',(0,0),(-1,1),7),
-        ('FONTSIZE',(0,2),(-1,-1),7),
-        ('ALIGN',(0,0),(-1,-1),'CENTER'),
-        ('ALIGN',(0,2),(0,-1),'LEFT'),
-        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
-        ('GRID',(0,0),(-1,-1),0.3,colors.grey),
-        ('ROWBACKGROUNDS',(0,2),(-1,-1),[colors.white,colors.HexColor('#F5F5F5')]),
-    ]
-    # Colori per gruppo giorno
-    col=1
-    for di,_ in enumerate(DAY_LABELS):
-        nc=len(CRITERI_NOMI)+1
-        # Span header1
-        style_cmds.append(('SPAN',(col,0),(col+nc-1,0)))
-        style_cmds.append(('BACKGROUND',(col,0),(col+nc-1,0),DAY_C[di]))
-        style_cmds.append(('BACKGROUND',(col,1),(col+nc-2,1),DAY_C[di]))
-        style_cmds.append(('TEXTCOLOR',(col,1),(col+nc-2,1),colors.white))
-        # Colonna Pts in oro
-        style_cmds.append(('BACKGROUND',(col+nc-1,1),(col+nc-1,1),ORO))
-        style_cmds.append(('TEXTCOLOR',(col+nc-1,1),(col+nc-1,1),colors.black))
-        for r in range(2,len(table_data)):
-            style_cmds.append(('BACKGROUND',(col+nc-1,r),(col+nc-1,r),ORO))
-        col+=nc
-
-    tbl.setStyle(TableStyle(style_cmds))
-    story.append(tbl)
-    doc.build(story)
-    buf.seek(0)
-    return send_file(buf,mimetype='application/pdf',as_attachment=True,
-                     download_name=f'CVC_T{turno}_{t["corso"]}.pdf')
+        col_w=[28*mm]+[6*mm]*(7*(len(CRITERI_NOMI)+1))
+        tbl=Table(table_data,colWidths=col_w,repeatRows=2)
+        style_cmds=[
+            ('BACKGROUND',(0,0),(-1,0),BLU),('TEXTCOLOR',(0,0),(-1,0),colors.white),
+            ('FONTNAME',(0,0),(-1,1),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),7),
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),('ALIGN',(0,2),(0,-1),'LEFT'),
+            ('VALIGN',(0,0),(-1,-1),'MIDDLE'),('GRID',(0,0),(-1,-1),0.3,colors.grey),
+            ('ROWBACKGROUNDS',(0,2),(-1,-1),[colors.white,colors.HexColor('#F5F5F5')]),
+        ]
+        col=1
+        for di in range(7):
+            nc=len(CRITERI_NOMI)+1
+            style_cmds+=[
+                ('SPAN',(col,0),(col+nc-1,0)),
+                ('BACKGROUND',(col,0),(col+nc-1,0),DAY_C[di]),
+                ('BACKGROUND',(col,1),(col+nc-2,1),DAY_C[di]),
+                ('TEXTCOLOR',(col,1),(col+nc-2,1),colors.white),
+                ('BACKGROUND',(col+nc-1,1),(col+nc-1,1),ORO),
+                ('TEXTCOLOR',(col+nc-1,1),(col+nc-1,1),colors.black),
+            ]
+            for r in range(2,len(table_data)):
+                style_cmds.append(('BACKGROUND',(col+nc-1,r),(col+nc-1,r),ORO))
+            col+=nc
+        tbl.setStyle(TableStyle(style_cmds))
+        story.append(tbl)
+        doc.build(story)
+        buf.seek(0)
+        return Response(
+            buf.getvalue(),
+            mimetype='application/pdf',
+            headers={'Content-Disposition':f'attachment; filename=CVC_T{turno}_{t["corso"]}.pdf'}
+        )
+    except Exception as ex:
+        import traceback
+        return jsonify({'error':str(ex),'detail':traceback.format_exc()}),500
 
 # ── Reset DB ──────────────────────────────────────────────────────────────
 @app.route('/api/reset', methods=['POST'])
