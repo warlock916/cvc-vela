@@ -130,8 +130,8 @@ table.riepilogo td{padding:6px 9px;}
 
 /* Nasconde le frecce degli input numerici */
 input[type=number]::-webkit-outer-spin-button,
-input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none !important;margin:0 !important;display:none !important;}
+input[type=number]{-moz-appearance:textfield !important;appearance:textfield !important;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -573,7 +573,7 @@ function renderRigaMobile(nome,id){
       const bg=DAY_COLORS[di]+'22';
       html+=`<td style="padding:2px;background:${bg};text-align:center;">
         <input type="number" id="${key}_${id}_${dk}" min="1" max="10" placeholder="—"
-          style="width:46px;padding:4px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.9rem;font-weight:bold;"
+          style="width:46px;padding:4px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.9rem;font-weight:bold;-webkit-appearance:none;-moz-appearance:textfield;appearance:textfield;"
           oninput="validateVoto(this);ricalcolaAllievo('${nome}')">
       </td>`;
     });
@@ -893,7 +893,7 @@ async function uploadFoto(input){
   const formData=new FormData();
   formData.append('foto', file);
   try{
-    const res=await fetch(`${API}/api/foto/${session.turno}/${encodeURIComponent(nome)}`,{
+    const res=await fetch(`${API}/api/foto/${session.turno}?allievo=${encodeURIComponent(nome)}`,{
       method:'POST',
       headers:{'X-Auth-Token':session.token},
       body:formData
@@ -916,7 +916,7 @@ function impostaFotoCaricata(id, url){
 async function esportaExcel(){
   if(!session){ alert('Fai il login prima.'); return; }
   try{
-    const res=await fetch(`${API}/api/export/excel/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
+    const res=await fetch(`${API}/api/export/excel/${session.turno}?corso=${encodeURIComponent(session.corso)}&tok=${encodeURIComponent(session.token)}`,
       {headers:{'X-Auth-Token':session.token}});
     if(!res.ok){
       const ct=res.headers.get('content-type')||'';
@@ -936,7 +936,7 @@ async function esportaExcel(){
 async function esportaPDF(){
   if(!session){ alert('Fai il login prima.'); return; }
   try{
-    const res=await fetch(`${API}/api/export/pdf/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
+    const res=await fetch(`${API}/api/export/pdf/${session.turno}?corso=${encodeURIComponent(session.corso)}&tok=${encodeURIComponent(session.token)}`,
       {headers:{'X-Auth-Token':session.token}});
     if(!res.ok){
       const ct=res.headers.get('content-type')||'';
