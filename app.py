@@ -101,6 +101,30 @@ def init_db():
 
 init_db()
 
+def migrate_db():
+    """Aggiunge colonne mancanti al DB esistente."""
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            if USE_PG:
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='valutazioni' AND column_name='foto_url'"
+                )
+                if not cur.fetchone():
+                    cur.execute('ALTER TABLE valutazioni ADD COLUMN foto_url TEXT')
+                    conn.commit()
+            else:
+                cur.execute("PRAGMA table_info(valutazioni)")
+                cols = [r[1] for r in cur.fetchall()]
+                if 'foto_url' not in cols:
+                    cur.execute('ALTER TABLE valutazioni ADD COLUMN foto_url TEXT')
+                    conn.commit()
+    except Exception as e:
+        print(f"Migration warning: {e}")
+
+migrate_db()
+
 PESI = {
     'D1':[.30,.10,.10,.15,.12,.13,.10],'D2':[.30,.10,.10,.15,.12,.13,.10],
     'D3':[.30,.15,.15,.10,.08,.12,.10],'D4':[.30,.15,.20,.05,.08,.12,.10],
