@@ -190,7 +190,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
     <div class="primo-extra" id="primo-extra">
       <p style="font-size:.81rem;color:#666;margin-bottom:10px;">✨ Primo accesso: completa i dati per creare il turno.</p>
       <div class="form-row"><label>Capo Turno</label><input type="text" id="l-istr" placeholder="Nome e Cognome"></div>
-      <div class="form-row"><label>Email Capo Turno</label><input type="email" id="l-email" placeholder="es. mario.rossi@email.it"></div>
+      <div class="form-row"><label>Email Capo Turno *</label><input type="email" id="l-email" placeholder="es. mario.rossi@email.it" required></div>
     </div>
 
     <div style="margin-top:20px;padding:14px;background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;font-size:.75rem;color:#555;max-height:180px;overflow-y:auto;line-height:1.5;">
@@ -756,7 +756,7 @@ async function loadStats(){
       <div class="stat"><div class="n">${d.media_generale??'—'}</div><div class="l">Media generale</div></div>
       ${(d.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n})</div></div>`).join('')}`;
     document.getElementById('turni-body').innerHTML=(d.turni||[]).map(t=>
-      `<tr><td><strong>T${t.numero}</strong></td><td>${t.istruttore}</td><td>${t.email||'—'}</td><td><span class="tag">${t.corso}</span></td><td><span class="pwd-cell">${t.pwd_plain}</span></td></tr>`
+      `<tr><td><strong>T${t.numero}</strong></td><td>${t.istruttore}</td><td>${t.email||'—'}</td><td><span class="tag">${t.corso}</span></td><td><span class="pwd-cell">${t.pwd_plain}</span></td><td><button class="btn btn-danger" onclick="cancellaTurno(${t.numero},'${t.corso}')">🗑️</button></td></tr>`
     ).join('')||'<tr><td colspan="4" class="empty">Nessun turno.</td></tr>';
   }catch(e){}
 }
@@ -998,6 +998,20 @@ async function backupDB(){
   a.href=URL.createObjectURL(blob);
   a.download=`CVC_backup_${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
+}
+
+async function cancellaTurno(numero, corso){
+  if(!adminToken){ alert('Accedi come admin.'); return; }
+  if(!confirm(`⚠️ Cancellare il Turno ${numero} - ${corso}?\nVerranno eliminati tutti gli allievi e i voti di questo turno.`)) return;
+  try{
+    const res=await fetch(`${API}/api/turno/${numero}?corso=${encodeURIComponent(corso)}`,{
+      method:'DELETE', headers:{'X-Admin-Token':adminToken}
+    });
+    const d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Errore');
+    alert(`✅ Turno ${numero} ${corso} eliminato (${d.valutazioni} valutazioni rimosse).`);
+    loadStats(); loadRiepilogo();
+  }catch(e){ alert('Errore: '+e.message); }
 }
 
 async function cancellaFoto(){
