@@ -494,27 +494,35 @@ function importaExcel(input){
     try{
       const wb   = XLSX.read(e.target.result, {type:'array'});
       const ws   = wb.Sheets[wb.SheetNames[0]];
-
-      // Legge con header:1 (prima riga = intestazioni)
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
       if(rows.length < 2){ alert('Nessun allievo trovato nel file.'); return; }
 
-      // Riga 0 = intestazioni: cerca la colonna con "Allievo" (case-insensitive)
-      const intestazioni = rows[0].map(c => c.toString().trim().toLowerCase());
-      const colIdx = intestazioni.indexOf('allievo');
-      if(colIdx === -1){
-        alert('Colonna "Allievo" non trovata nella prima riga.\nAssicurati che una cella della prima riga contenga "Allievo".');
-        return;
+      // Cerca la riga di intestazione (quella che contiene "Nominativo" o "Allievo")
+      let dataStartRow = 1;
+      for(let i=0;i<Math.min(rows.length,5);i++){
+        const first = (rows[i][0]||'').toString().trim().toLowerCase();
+        if(first==='nominativo'||first==='allievo'||first==='nome'){
+          dataStartRow = i+1; // i dati iniziano dalla riga successiva
+          break;
+        }
       }
 
-      // Righe dati: dalla riga 1 in poi
       let aggiunti=0, saltati=0, vuoti=0;
-      for(let i=1; i<rows.length; i++){
-        const nome = (rows[i][colIdx]||'').toString().trim();
+      for(let i=dataStartRow; i<rows.length; i++){
+        const cella = (rows[i][0]||'').toString().trim();
+        if(!cella){ vuoti++; continue; }
+
+        // Prende l'ULTIMA parola della cella (= il nome, essendo formato "Cognome Nome")
+        const parti = cella.split(/\s+/).filter(p=>p.length>0);
+        const nome = parti[parti.length-1];
         if(!nome){ vuoti++; continue; }
-        if(allievi.includes(nome)){ saltati++; continue; }
-        allievi.push(nome);
-        renderRiga(nome);
+
+        // Capitalizza la prima lettera
+        const nomeFormattato = nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
+
+        if(allievi.includes(nomeFormattato)){ saltati++; continue; }
+        allievi.push(nomeFormattato);
+        renderRiga(nomeFormattato);
         aggiunti++;
       }
 
