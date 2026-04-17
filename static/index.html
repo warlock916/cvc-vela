@@ -73,6 +73,12 @@ th.sep-th,td.sep-td{border-left:2px solid #999 !important;}
 .foto-cell:hover{border-color:var(--blu2);}
 .foto-placeholder{font-size:1.2rem;color:#aaa;}
 .add-row{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap;}
+.import-toast{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--blu);color:white;padding:10px 20px;border-radius:8px;font-size:.85rem;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:200;align-items:center;gap:10px;white-space:nowrap;}
+.import-toast.show{display:flex;}
+.import-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
 .add-row input[type=text]{flex:1;min-width:140px;max-width:240px;}
 #excel-input{display:none;}
 .alert{padding:9px 13px;border-radius:6px;margin-bottom:10px;font-size:.84rem;display:none;}
@@ -164,6 +170,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
   </div>
 </div>
 
+<div class="import-toast" id="import-toast"><div class="import-spinner"></div><span id="import-msg">Importazione in corso…</span></div>
 <div class="container">
 
 <!-- LOGIN -->
@@ -236,6 +243,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <small style="color:#888;font-size:.75rem;display:block;margin-top:3px;">Inserire solo il Nome (es. Marco)</small>
       <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Aggiungi</button>
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('excel-input').click()">📥 Importa da Excel</button>
+      <span id="import-status" style="font-size:.78rem;color:var(--blu2);display:none;">⏳ Caricamento in corso…</span>
       <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" onchange="importaExcel(this)">
 
     </div>
@@ -501,8 +509,14 @@ function nomeToId(n){return n.toLowerCase().replace(/[^a-z0-9]/g,'_');}
 function importaExcel(input){
   const file = input.files[0];
   if(!file) return;
+  // Mostra toast di caricamento
+  const toast=document.getElementById('import-toast');
+  const msg=document.getElementById('import-msg');
+  if(toast){ msg.textContent='Lettura file in corso…'; toast.classList.add('show'); }
   const reader = new FileReader();
   reader.onload = function(e){
+    // Piccolo delay per far apparire il toast prima del lavoro pesante
+    setTimeout(()=>{
     try{
       const wb   = XLSX.read(e.target.result, {type:'array'});
       const ws   = wb.Sheets[wb.SheetNames[0]];
@@ -533,27 +547,30 @@ function importaExcel(input){
         // Capitalizza
         let base = nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
 
-        // Se duplicato, aggiungi le prime 3 lettere del cognome
+        // Se duplicato, aggiungi numero progressivo: Matteo → Matteo2 → Matteo3
         let finale = base;
-        if(allievi.includes(finale)){
-          finale = base + '.' + cognome.slice(0,3).toLowerCase();
-        }
-        // Se ancora duplicato, aggiungi numero progressivo
         let idx=2;
-        while(allievi.includes(finale)){ finale=base+'.'+cognome.slice(0,3).toLowerCase()+idx; idx++; }
+        while(allievi.includes(finale)){ finale=base+idx; idx++; }
 
         allievi.push(finale);
         renderRiga(finale);
         aggiunti++;
       }
 
-      let msg = `✅ Importati ${aggiunti} allievi`;
-      if(vuoti>0) msg += `\nℹ️ ${vuoti} righe vuote ignorate`;
-      alert(msg);
+      if(toast) msg.textContent=`Aggiunta ${aggiunti} righe alla tabella…`;
+      // Piccola pausa per far vedere il messaggio di completamento
+      setTimeout(()=>{
+        if(toast) toast.classList.remove('show');
+        let alertMsg = `✅ Importati ${aggiunti} allievi`;
+        if(vuoti>0) alertMsg += `\nℹ️ ${vuoti} righe vuote ignorate`;
+        alert(alertMsg);
+      }, 400);
     } catch(err){
+      if(toast) toast.classList.remove('show');
       alert('Errore nella lettura del file: ' + err.message);
     }
     input.value='';
+    }, 50); // fine setTimeout lettura
   };
   reader.readAsArrayBuffer(file);
 }
