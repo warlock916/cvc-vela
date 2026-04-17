@@ -143,6 +143,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
 </header>
 <nav id="main-nav" style="display:none;">
   <button class="active" onclick="showPage('scheda',this)">📋 Scheda</button>
+  <button onclick="showPage('report',this)">🏆 Report</button>
   <button onclick="showPage('admin',this)">🔒 Admin</button>
   <button onclick="doLogout()" style="margin-left:auto;">↩ Esci</button>
 </nav>
@@ -242,6 +243,17 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <button class="btn btn-success" onclick="salvaScheda()">💾 Salva Scheda</button>
       <button class="btn btn-outline" onclick="esportaExcel()">📊 Esporta Excel</button>
       <button class="btn btn-outline" onclick="esportaPDF()">📄 Esporta PDF</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- REPORT -->
+<div id="page-report" class="page">
+  <div class="card">
+    <h2>🏆 Report — Classifica per Giorno</h2>
+    <div id="report-content">
+      <p style="color:#888;font-size:.85rem;">Salva la scheda per aggiornare il report.</p>
     </div>
   </div>
 </div>
@@ -507,28 +519,36 @@ function importaExcel(input){
         }
       }
 
-      let aggiunti=0, saltati=0, vuoti=0;
+      let aggiunti=0, vuoti=0;
       for(let i=dataStartRow; i<rows.length; i++){
         const cella = (rows[i][0]||'').toString().trim();
         if(!cella){ vuoti++; continue; }
 
-        // Prende l'ULTIMA parola della cella (= il nome, essendo formato "Cognome Nome")
+        // Prende l'ULTIMA parola = nome; la PRIMA parola = cognome
         const parti = cella.split(/\s+/).filter(p=>p.length>0);
+        if(parti.length===0){ vuoti++; continue; }
         const nome = parti[parti.length-1];
-        if(!nome){ vuoti++; continue; }
+        const cognome = parti[0];
 
-        // Capitalizza la prima lettera
-        const nomeFormattato = nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
+        // Capitalizza
+        let base = nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
 
-        if(allievi.includes(nomeFormattato)){ saltati++; continue; }
-        allievi.push(nomeFormattato);
-        renderRiga(nomeFormattato);
+        // Se duplicato, aggiungi le prime 3 lettere del cognome
+        let finale = base;
+        if(allievi.includes(finale)){
+          finale = base + '.' + cognome.slice(0,3).toLowerCase();
+        }
+        // Se ancora duplicato, aggiungi numero progressivo
+        let idx=2;
+        while(allievi.includes(finale)){ finale=base+'.'+cognome.slice(0,3).toLowerCase()+idx; idx++; }
+
+        allievi.push(finale);
+        renderRiga(finale);
         aggiunti++;
       }
 
       let msg = `✅ Importati ${aggiunti} allievi`;
-      if(saltati>0) msg += `\n⚠️ ${saltati} già presenti (saltati)`;
-      if(vuoti>0)   msg += `\nℹ️ ${vuoti} righe vuote ignorate`;
+      if(vuoti>0) msg += `\nℹ️ ${vuoti} righe vuote ignorate`;
       alert(msg);
     } catch(err){
       alert('Errore nella lettura del file: ' + err.message);
@@ -667,6 +687,8 @@ function ricalcolaAllievo(nome){
     if(el) el.textContent=pt!==null?pt:'—';
   });
   // Non mostriamo più Pts Finale separato — i punteggi giornalieri bastano
+  // Aggiorna report se visibile
+  if(document.getElementById('page-report')?.classList.contains('active')) aggiornaReport();
 }
 
 // ── Salva ─────────────────────────────────────────────────────────────────
@@ -713,6 +735,7 @@ function showPage(name,btn){
   document.getElementById('page-'+name).classList.add('active');
   if(btn) btn.classList.add('active');
   if(name==='admin') showAdminSection();
+  if(name==='report') aggiornaReport();
   if(name==='scheda'){
     // Mostra la vista giusta in base al dispositivo
     document.getElementById('scheda-desktop').style.display=isMobile()?'none':'block';
@@ -1050,6 +1073,95 @@ async function restoreDB(input){
     loadStats(); loadRiepilogo();
   }catch(e){ alert('Errore restore: '+e.message); }
   input.value='';
+}
+
+
+// ── Report classifica ─────────────────────────────────────────────────────
+function aggiornaReport(){
+  if(!allievi.length) return;
+  const corso=session?.corso||'';
+  const container=document.getElementById('report-content');
+  if(!container) return;
+
+  // Raccoglie i punteggi per ogni allievo per ogni giorno
+  const data=allievi.map(nome=>{
+    const id=nomeToId(nome);
+    const ptsGiorno=DAY_KEYS.map(dk=>{
+      const el=document.getElementById(`pts_${id}_${dk}`);
+      if(!el||el.textContent==='—') return null;
+      const v=parseInt(el.textContent);
+      return isNaN(v)?null:v;
+    });
+    const validi=ptsGiorno.filter(p=>p!==null);
+    const media=validi.length?Math.round(validi.reduce((a,b)=>a+b,0)/validi.length*10)/10:null;
+    return {nome, ptsGiorno, media};
+  });
+
+  // Costruisce il report: una classifica per ogni giorno + classifica generale
+  let html='';
+
+  // Classifica per ogni giorno
+  DAY_LABELS.forEach((lbl,di)=>{
+    const dk=DAY_KEYS[di];
+    const bg=DAY_COLORS[di];
+    // Filtra allievi con punteggio per questo giorno
+    const conPts=data.filter(d=>d.ptsGiorno[di]!==null)
+      .sort((a,b)=>b.ptsGiorno[di]-a.ptsGiorno[di]);
+    if(!conPts.length) return;
+
+    html+=`<div style="margin-bottom:16px;">
+      <h3 style="background:${bg};color:white;padding:7px 12px;border-radius:6px 6px 0 0;font-size:.88rem;margin:0;">${lbl}</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:5px 8px;text-align:center;width:36px;">#</th>
+          <th style="padding:5px 8px;text-align:left;">Allievo</th>
+          <th style="padding:5px 8px;text-align:center;width:60px;">Punti</th>
+        </tr></thead>
+        <tbody>`;
+    conPts.forEach((d,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      const rowBg=i===0?'#fffbe6':i%2===0?'white':'#f9f9f9';
+      html+=`<tr style="background:${rowBg};border-bottom:1px solid #eee;">
+        <td style="padding:5px 8px;text-align:center;font-weight:bold;">${medal||i+1}</td>
+        <td style="padding:5px 8px;">${d.nome}</td>
+        <td style="padding:5px 8px;text-align:center;">
+          <span style="background:${bg};color:white;border-radius:4px;padding:2px 8px;font-weight:bold;">${d.ptsGiorno[di]}</span>
+        </td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  });
+
+  // Classifica generale (media dei giorni compilati)
+  const conMedia=data.filter(d=>d.media!==null)
+    .sort((a,b)=>b.media-a.media);
+  if(conMedia.length){
+    html+=`<div style="margin-bottom:16px;">
+      <h3 style="background:var(--blu);color:white;padding:7px 12px;border-radius:6px 6px 0 0;font-size:.88rem;margin:0;">🏆 Classifica Generale</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:.82rem;">
+        <thead><tr style="background:#f5f5f5;">
+          <th style="padding:5px 8px;text-align:center;width:36px;">#</th>
+          <th style="padding:5px 8px;text-align:left;">Allievo</th>
+          <th style="padding:5px 8px;text-align:center;width:60px;">Media</th>
+          ${DAY_LABELS.map(l=>`<th style="padding:5px 8px;text-align:center;width:44px;">${l}</th>`).join('')}
+        </tr></thead>
+        <tbody>`;
+    conMedia.forEach((d,i)=>{
+      const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      const rowBg=i===0?'#fffbe6':i%2===0?'white':'#f9f9f9';
+      html+=`<tr style="background:${rowBg};border-bottom:1px solid #eee;">
+        <td style="padding:5px 8px;text-align:center;font-weight:bold;">${medal||i+1}</td>
+        <td style="padding:5px 8px;">${d.nome}</td>
+        <td style="padding:5px 8px;text-align:center;">
+          <span style="background:var(--oro);color:#333;border-radius:4px;padding:2px 8px;font-weight:bold;">${d.media}</span>
+        </td>
+        ${d.ptsGiorno.map((p,di)=>`<td style="padding:5px 8px;text-align:center;background:${DAY_COLORS[di]}22;">${p??'—'}</td>`).join('')}
+      </tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+
+  container.innerHTML=html||'<p style="color:#888;font-size:.85rem;">Nessun punteggio ancora calcolato.</p>';
 }
 
 init();
