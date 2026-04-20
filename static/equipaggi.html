@@ -89,12 +89,51 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
 
 <div class="card">
   <h2>⚙️ Parametri</h2>
-  <div class="grid3">
+  <div class="grid3" style="margin-bottom:10px;">
     <div><label>Barche da 2 persone</label><input type="number" id="n-b2" value="3" min="0" max="10" oninput="syncIstr()"></div>
     <div><label>Barche da 5 (+istruttore = 6)</label><input type="number" id="n-b5" value="2" min="0" max="8" oninput="syncIstr()"></div>
-    <div><label>Allievi in comandata</label>
-      <select id="n-cmd"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select>
+    <div><label>N° base in comandata</label>
+      <select id="n-cmd-base" onchange="aggiornaCmdGrid()">
+        <option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+      </select>
     </div>
+  </div>
+  <div style="background:#f8f9fa;border-radius:6px;padding:10px 12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <label style="margin:0;font-size:.8rem;">📣 Allievi in comandata per giorno/turno</label>
+      <button class="btn btn-outline" style="padding:2px 9px;font-size:.73rem;" onclick="resetCmdGrid()">↩ Reimposta default</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="border-collapse:collapse;font-size:.78rem;width:100%;">
+        <thead><tr>
+          <th style="background:var(--blu);color:white;padding:5px 8px;text-align:left;">Turno</th>
+          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Lun</th>
+          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Mar</th>
+          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Mer</th>
+          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Gio</th>
+          <th style="background:#C00000;color:white;padding:5px 8px;text-align:center;">Ven ⚡</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="padding:4px 8px;font-weight:bold;background:#E3F2FD;">☀️ Mattina</td>
+            <td id="cmd-cell-0" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-0" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td id="cmd-cell-2" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-2" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td id="cmd-cell-4" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-4" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td id="cmd-cell-6" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-6" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td id="cmd-cell-8" style="padding:3px;text-align:center;background:#FFE0E0;"><input type="number" id="cmd-8" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;border-color:var(--rosso);" title="Venerdì mattina"></td>
+          </tr>
+          <tr>
+            <td style="padding:4px 8px;font-weight:bold;background:#FFF8E1;">🌤️ Pomeriggio</td>
+            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-1" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-3" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-5" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-7" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
+            <td style="padding:3px;text-align:center;background:#FFD0D0;"><input type="number" id="cmd-9" min="0" max="20" value="5" style="width:46px;text-align:center;padding:3px;font-size:.83rem;border-color:var(--rosso);font-weight:bold;" title="Ven pomeriggio: ultima comandata (monta sabato)"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.72rem;color:#888;margin-top:6px;">⚠️ Il venerdì pomeriggio è l'ultima comandata della settimana (monta sabato). La comandata di Ven-Pom deve stare sulla stessa barca.</p>
   </div>
 </div>
 
@@ -169,6 +208,37 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
 
 <script>
 const GIORNI=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì'];
+
+function getCmdPerSlot(){
+  // Legge il numero di allievi in comandata per ogni slot dalla griglia
+  const vals=[];
+  for(let s=0;s<10;s++){
+    const el=document.getElementById(`cmd-${s}`);
+    vals.push(el?Math.max(0,parseInt(el.value)||0):4);
+  }
+  return vals;
+}
+
+function aggiornaCmdGrid(){
+  const base=parseInt(document.getElementById('n-cmd-base').value)||4;
+  for(let s=0;s<9;s++){
+    const el=document.getElementById(`cmd-${s}`);
+    if(el) el.value=base;
+  }
+  // Venerdì pomeriggio (slot 9): può essere uguale o maggiore del base
+  const el9=document.getElementById('cmd-9');
+  if(el9) el9.value=Math.max(base, parseInt(el9.value)||base);
+}
+
+function resetCmdGrid(){
+  const base=parseInt(document.getElementById('n-cmd-base').value)||4;
+  for(let s=0;s<9;s++){
+    const el=document.getElementById(`cmd-${s}`);
+    if(el) el.value=base;
+  }
+  const el9=document.getElementById('cmd-9');
+  if(el9) el9.value=Math.max(base,base); // venerdì pom = base o più
+}
 
 let als=[], istr=[], piano=null, assenze={};
 let sessionTurno=null;
@@ -323,7 +393,7 @@ function rigenera(){ if(!valida()) return; _genera(); }
 function _genera(){
   const n2=parseInt(document.getElementById('n-b2').value)||0;
   const n5=parseInt(document.getElementById('n-b5').value)||0;
-  const nCmd=parseInt(document.getElementById('n-cmd').value)||4;
+  const cmdPerSlot=getCmdPerSlot(); // array 10 elementi
   const alsOk=als.filter(a=>a.nome);
   const istrOk=istr.filter(i=>i.nome);
   const capo=alsOk.find(a=>a.isCapo);
@@ -410,20 +480,73 @@ function _genera(){
         }
     });
 
-    // Comandata: chi ha meno assegnazioni
-    const tuttiInSlot=piano[s].flatMap(b=>b.allievi);
-    const cmdCand=[...tuttiInSlot]
-      .sort((a,b)=>cmdCnt[a]-cmdCnt[b])
-      .slice(0,nCmd);
-    cmdCand.forEach(n=>cmdCnt[n]++);
+    // ── Comandata ────────────────────────────────────────────────────────
+    const nCmdSlot=cmdPerSlot[s]||0;
+    const isLastCmd=(s===9); // Venerdì pomeriggio = ultima comandata
 
-    // Trova la barca con più allievi in comandata e assegna lì
-    let bestBi=0,bestN=0;
-    piano[s].forEach((b,bi)=>{
-      const n=b.allievi.filter(n=>cmdCand.includes(n)).length;
-      if(n>bestN){bestN=n;bestBi=bi;}
-    });
-    piano[s][bestBi].cmd=cmdCand;
+    if(nCmdSlot>0){
+      const tuttiInSlot=piano[s].flatMap(b=>b.allievi);
+
+      // Scegli chi ha fatto meno comande
+      const cmdCand=[...tuttiInSlot]
+        .sort((a,b)=>cmdCnt[a]-cmdCnt[b])
+        .slice(0,nCmdSlot);
+      cmdCand.forEach(n=>cmdCnt[n]++);
+
+      // ── Stessa barca per la comandata ──────────────────────────────────
+      // Trova la barca migliore: quella che già contiene più allievi in cmdCand
+      let bestBi=0, bestN=-1;
+      piano[s].forEach((b,bi)=>{
+        const overlap=b.allievi.filter(n=>cmdCand.includes(n)).length;
+        if(overlap>bestN){bestN=overlap;bestBi=bi;}
+      });
+
+      // Se la comandata non sta tutta nella barca migliore,
+      // sposta gli allievi in comandata su quella barca
+      const barcaCmd=piano[s][bestBi];
+      const capBarca=barcaCmd.cap;
+      const nonCmd=cmdCand.filter(n=>!barcaCmd.allievi.includes(n));
+
+      if(nonCmd.length>0 && !isLastCmd){
+        // Per ogni allievo in comandata non ancora su questa barca:
+        // cerca uno scambio con allievo non-cmd su questa barca
+        nonCmd.forEach(nc=>{
+          // Barca di origine di nc
+          let srcBi=-1;
+          piano[s].forEach((b,bi)=>{ if(b.allievi.includes(nc)&&bi!==bestBi) srcBi=bi; });
+          if(srcBi<0) return;
+
+          // Allievo non-cmd sulla barca destinazione da scambiare
+          const swap=barcaCmd.allievi.find(n=>!cmdCand.includes(n));
+          if(!swap) return; // barca piena di cmd, lascia stare
+
+          // Esegui lo scambio
+          barcaCmd.allievi=barcaCmd.allievi.map(n=>n===swap?nc:n);
+          piano[s][srcBi].allievi=piano[s][srcBi].allievi.map(n=>n===nc?swap:n);
+        });
+      }
+
+      // Venerdì pomeriggio (slot 9): FORZA tutta la comandata sulla stessa barca
+      if(isLastCmd){
+        // Raccoglie tutti i cmdCand e li mette sulla barca con più capienza libera
+        const tuttiAllievi=piano[s].flatMap(b=>b.allievi);
+        // Rimuovi cmdCand da tutte le barche
+        piano[s].forEach(b=>{ b.allievi=b.allievi.filter(n=>!cmdCand.includes(n)); });
+        // Metti tutta la comandata sulla barca bestBi
+        barcaCmd.allievi=[...barcaCmd.allievi, ...cmdCand].slice(0, barcaCmd.cap);
+        // Ridistribuisci gli esclusi
+        const rimasti=tuttiAllievi.filter(n=>!cmdCand.includes(n)&&!barcaCmd.allievi.includes(n));
+        let ri=0;
+        piano[s].forEach((b,bi)=>{
+          if(bi===bestBi) return;
+          while(b.allievi.length<b.cap && ri<rimasti.length){
+            b.allievi.push(rimasti[ri++]);
+          }
+        });
+      }
+
+      piano[s][bestBi].cmd=cmdCand;
+    }
   }
 
   document.getElementById('output').style.display='block';
