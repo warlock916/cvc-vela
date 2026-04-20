@@ -182,7 +182,8 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
   <div class="stats-row" id="stats-row"></div>
   <div class="card">
     <div class="tabs">
-      <button class="tab active" onclick="showTab('piano',this)">📅 Pianificazione</button>
+      <button class="tab active" onclick="showTab('piano',this)">📅 Pianificazione Barche</button>
+      <button class="tab" onclick="showTab('cmd',this)">📣 Comandata</button>
       <button class="tab" onclick="showTab('matrice',this)">🔗 Matrice Incontri</button>
       <button class="tab" onclick="showTab('copertura',this)">👁️ Copertura Istruttori</button>
     </div>
@@ -190,7 +191,6 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
     <div style="font-size:.72rem;color:#555;margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;">
       <span style="background:var(--mat);padding:2px 7px;border-radius:3px;">☀️ Mattina</span>
       <span style="background:var(--pom);padding:2px 7px;border-radius:3px;">🌤️ Pomeriggio</span>
-      <span class="tag tag-cmd">📣 Comandata</span>
       <span class="tag tag-capo">⭐ Capo Turno (istruttore)</span>
       <span class="tag tag-istr">👨‍✈️ Istruttore</span>
       <span class="tag tag-assente">✗ Assente (click per toggle)</span>
@@ -198,6 +198,10 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
 
     <div id="tab-piano" class="tab-content active">
       <div class="piano-wrap"><table class="piano-table" id="piano-table"></table></div>
+    </div>
+    <div id="tab-cmd" class="tab-content">
+      <p style="font-size:.78rem;color:#666;margin-bottom:10px;">Rotazione comandata: <strong>Cena → Colazione → Pranzo</strong>, a partire dalla Cena di Sabato. Ultimo turno: Venerdì Pranzo ⚡</p>
+      <div style="overflow-x:auto;"><table id="cmd-table" style="border-collapse:collapse;font-size:.78rem;width:100%;"></table></div>
     </div>
     <div id="tab-matrice" class="tab-content">
       <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Quante volte due allievi condividono la stessa barca. Obiettivo: massimizzare le celle &gt; 0.</p>
@@ -215,35 +219,54 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
 <script>
 const GIORNI=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì'];
 
+// Struttura slot comandata: Sab Cena → Dom Col/Pran/Cena → ... → Ven Col/Pran
+const SLOT_CMD=[
+  {g:'Sabato',   t:'Cena',       c:'cena', last:false},
+  {g:'Domenica', t:'Colazione',  c:'col',  last:false},
+  {g:'Domenica', t:'Pranzo',     c:'pran', last:false},
+  {g:'Domenica', t:'Cena',       c:'cena', last:false},
+  {g:'Lunedì',   t:'Colazione',  c:'col',  last:false},
+  {g:'Lunedì',   t:'Pranzo',     c:'pran', last:false},
+  {g:'Lunedì',   t:'Cena',       c:'cena', last:false},
+  {g:'Martedì',  t:'Colazione',  c:'col',  last:false},
+  {g:'Martedì',  t:'Pranzo',     c:'pran', last:false},
+  {g:'Martedì',  t:'Cena',       c:'cena', last:false},
+  {g:'Mercoledì',t:'Colazione',  c:'col',  last:false},
+  {g:'Mercoledì',t:'Pranzo',     c:'pran', last:false},
+  {g:'Mercoledì',t:'Cena',       c:'cena', last:false},
+  {g:'Giovedì',  t:'Colazione',  c:'col',  last:false},
+  {g:'Giovedì',  t:'Pranzo',     c:'pran', last:false},
+  {g:'Giovedì',  t:'Cena',       c:'cena', last:false},
+  {g:'Venerdì',  t:'Colazione',  c:'col',  last:false},
+  {g:'Venerdì',  t:'Pranzo',     c:'pran', last:true},  // ultima comandata
+];
+
 function getCmdPerSlot(){
-  // Legge il numero di allievi in comandata per ogni slot dalla griglia
-  const vals=[];
-  for(let s=0;s<10;s++){
+  // Legge il numero di allievi in comandata per ogni slot dalla griglia (18 slot)
+  return SLOT_CMD.map((_,s)=>{
     const el=document.getElementById(`cmd-${s}`);
-    vals.push(el?Math.max(0,parseInt(el.value)||0):4);
-  }
-  return vals;
+    return el?Math.max(0,parseInt(el.value)||0):4;
+  });
 }
 
 function aggiornaCmdGrid(){
   const base=parseInt(document.getElementById('n-cmd-base').value)||4;
-  for(let s=0;s<9;s++){
+  SLOT_CMD.forEach((_,s)=>{
     const el=document.getElementById(`cmd-${s}`);
-    if(el) el.value=base;
-  }
-  // Venerdì pomeriggio (slot 9): può essere uguale o maggiore del base
-  const el9=document.getElementById('cmd-9');
-  if(el9) el9.value=Math.max(base, parseInt(el9.value)||base);
+    if(!el) return;
+    // Ultima comandata (Ven Pranzo): non diminuisce rispetto al base
+    if(SLOT_CMD[s].last) el.value=Math.max(base, parseInt(el.value)||base);
+    else el.value=base;
+  });
 }
 
 function resetCmdGrid(){
   const base=parseInt(document.getElementById('n-cmd-base').value)||4;
-  for(let s=0;s<9;s++){
+  SLOT_CMD.forEach((_,s)=>{
     const el=document.getElementById(`cmd-${s}`);
-    if(el) el.value=base;
-  }
-  const el9=document.getElementById('cmd-9');
-  if(el9) el9.value=Math.max(base,base); // venerdì pom = base o più
+    if(!el) return;
+    el.value=SLOT_CMD[s].last?Math.max(base,base):base;
+  });
 }
 
 let als=[], istr=[], piano=null, assenze={};
@@ -412,7 +435,7 @@ function rigenera(){ if(!valida()) return; _genera(); }
 function _genera(){
   const n2=parseInt(document.getElementById('n-b2').value)||0;
   const n5=parseInt(document.getElementById('n-b5').value)||0;
-  const cmdPerSlot=getCmdPerSlot(); // array 10 elementi
+  const cmdPerSlot=getCmdPerSlot(); // array 18 elementi (SLOT_CMD)
   const alsOk=als.filter(a=>a.nome);
   const istrOk=istr.filter(i=>i.nome);
   const capoNome=getCapoTurno();
@@ -428,13 +451,26 @@ function _genera(){
   for(let s=0;s<10;s++){
     piano.push(barche.map(b=>({nome:b.nome,cap:b.cap,allievi:[],istr:null,cmd:[]})));
   }
+  // Piano comandata separato: 18 slot × lista allievi in cmd
+  const pianoCMD=SLOT_CMD.map((_,s)=>({slot:s,allievi:[],nCmd:cmdPerSlot[s]}));
 
   // Tracker incontri
   const inc={};
   alsOk.forEach(a=>{ inc[a.nome]={}; alsOk.forEach(b=>inc[a.nome][b.nome]=0); });
 
-  // Tracker comandata
+  // Tracker comandata (18 slot)
   const cmdCnt=Object.fromEntries(alsOk.map(a=>[a.nome,0]));
+  // Assegna la comandata sui 18 slot separatamente
+  for(let sc=0;sc<SLOT_CMD.length;sc++){
+    const nC=cmdPerSlot[sc];
+    if(nC<=0) continue;
+    // Scegli chi ha fatto meno comande
+    const cand=alsOk
+      .sort((a,b)=>cmdCnt[a.nome]-cmdCnt[b.nome])
+      .slice(0,nC);
+    pianoCMD[sc].allievi=cand.map(a=>a.nome);
+    cand.forEach(a=>cmdCnt[a.nome]++);
+  }
 
   for(let s=0;s<10;s++){
     // Istruttori ruotano ogni slot
@@ -500,78 +536,13 @@ function _genera(){
         }
     });
 
-    // ── Comandata ────────────────────────────────────────────────────────
-    const nCmdSlot=cmdPerSlot[s]||0;
-    const isLastCmd=(s===9); // Venerdì pomeriggio = ultima comandata
 
-    if(nCmdSlot>0){
-      const tuttiInSlot=piano[s].flatMap(b=>b.allievi);
-
-      // Scegli chi ha fatto meno comande
-      const cmdCand=[...tuttiInSlot]
-        .sort((a,b)=>cmdCnt[a]-cmdCnt[b])
-        .slice(0,nCmdSlot);
-      cmdCand.forEach(n=>cmdCnt[n]++);
-
-      // ── Stessa barca per la comandata ──────────────────────────────────
-      // Trova la barca migliore: quella che già contiene più allievi in cmdCand
-      let bestBi=0, bestN=-1;
-      piano[s].forEach((b,bi)=>{
-        const overlap=b.allievi.filter(n=>cmdCand.includes(n)).length;
-        if(overlap>bestN){bestN=overlap;bestBi=bi;}
-      });
-
-      // Se la comandata non sta tutta nella barca migliore,
-      // sposta gli allievi in comandata su quella barca
-      const barcaCmd=piano[s][bestBi];
-      const capBarca=barcaCmd.cap;
-      const nonCmd=cmdCand.filter(n=>!barcaCmd.allievi.includes(n));
-
-      if(nonCmd.length>0 && !isLastCmd){
-        // Per ogni allievo in comandata non ancora su questa barca:
-        // cerca uno scambio con allievo non-cmd su questa barca
-        nonCmd.forEach(nc=>{
-          // Barca di origine di nc
-          let srcBi=-1;
-          piano[s].forEach((b,bi)=>{ if(b.allievi.includes(nc)&&bi!==bestBi) srcBi=bi; });
-          if(srcBi<0) return;
-
-          // Allievo non-cmd sulla barca destinazione da scambiare
-          const swap=barcaCmd.allievi.find(n=>!cmdCand.includes(n));
-          if(!swap) return; // barca piena di cmd, lascia stare
-
-          // Esegui lo scambio
-          barcaCmd.allievi=barcaCmd.allievi.map(n=>n===swap?nc:n);
-          piano[s][srcBi].allievi=piano[s][srcBi].allievi.map(n=>n===nc?swap:n);
-        });
-      }
-
-      // Venerdì pomeriggio (slot 9): FORZA tutta la comandata sulla stessa barca
-      if(isLastCmd){
-        // Raccoglie tutti i cmdCand e li mette sulla barca con più capienza libera
-        const tuttiAllievi=piano[s].flatMap(b=>b.allievi);
-        // Rimuovi cmdCand da tutte le barche
-        piano[s].forEach(b=>{ b.allievi=b.allievi.filter(n=>!cmdCand.includes(n)); });
-        // Metti tutta la comandata sulla barca bestBi
-        barcaCmd.allievi=[...barcaCmd.allievi, ...cmdCand].slice(0, barcaCmd.cap);
-        // Ridistribuisci gli esclusi
-        const rimasti=tuttiAllievi.filter(n=>!cmdCand.includes(n)&&!barcaCmd.allievi.includes(n));
-        let ri=0;
-        piano[s].forEach((b,bi)=>{
-          if(bi===bestBi) return;
-          while(b.allievi.length<b.cap && ri<rimasti.length){
-            b.allievi.push(rimasti[ri++]);
-          }
-        });
-      }
-
-      piano[s][bestBi].cmd=cmdCand;
-    }
   }
 
   document.getElementById('output').style.display='block';
   renderStats(alsOk,barche);
   renderPiano(alsOk,capo);
+  renderComandata(alsOk,capo);
   renderMatrice(alsOk,inc);
   renderCopertura(alsOk,istrOk,capo);
   document.getElementById('output').scrollIntoView({behavior:'smooth'});
@@ -639,6 +610,60 @@ function toggleAss(nome,s,el){
   const k=`${nome}_${s}`;
   if(assenze[k]){delete assenze[k];el.className=el.className.replace('tag-assente','tag-normal').replace('⭐','');el.title='Click = segna assente';}
   else{assenze[k]=true;el.className=el.className.replace(/tag-(normal|capo|cmd)/,'tag-assente');el.title='Click = segna presente';}
+}
+
+
+// ── Render tab Comandata ──────────────────────────────────────────────────
+function renderComandata(alsOk,capo){
+  const table=document.getElementById('cmd-table');
+  if(!table) return;
+
+  // Raggruppa slot per giorno
+  const giorni={};
+  SLOT_CMD.forEach((sc,i)=>{
+    if(!giorni[sc.g]) giorni[sc.g]=[];
+    giorni[sc.g].push({...sc, idx:i, allievi:pianoCMD[i].allievi});
+  });
+
+  // Header: una colonna per giorno
+  let html='<thead><tr><th style="background:var(--blu);color:white;padding:5px 8px;">Turno</th>';
+  Object.keys(giorni).forEach(g=>{
+    const n=giorni[g].length;
+    html+=`<th colspan="${n}" style="background:var(--blu);color:white;padding:5px 8px;text-align:center;border-left:2px solid rgba(255,255,255,.3);">${g}</th>`;
+  });
+  html+='</tr><tr><th style="background:var(--blu2);color:white;padding:4px 8px;font-size:.72rem;">Pasto</th>';
+  SLOT_CMD.forEach((sc,i)=>{
+    const isLast=sc.last;
+    const bg=isLast?'#C00000':'var(--blu2)';
+    html+=`<th style="background:${bg};color:white;padding:4px 6px;font-size:.7rem;border-left:1px solid rgba(255,255,255,.2);">${sc.t}${isLast?' ⚡':''}</th>`;
+  });
+  html+='</tr></thead><tbody>';
+
+  // Una riga per ogni allievo
+  alsOk.forEach(a=>{
+    html+=`<tr><td style="padding:4px 8px;font-weight:bold;border-bottom:1px solid #eee;white-space:nowrap;">${a.nome}</td>`;
+    SLOT_CMD.forEach((sc,i)=>{
+      const inCmd=pianoCMD[i].allievi.includes(a.nome);
+      const isLast=sc.last;
+      const colBg=sc.c==='cena'?'var(--cena)':sc.c==='col'?'var(--col)':'var(--pran)';
+      if(inCmd){
+        const bg=isLast?'#C00000':isLast?'var(--cmd)':'var(--cmd)';
+        html+=`<td style="text-align:center;background:${isLast?'#C00000':'var(--cmd)'};color:white;font-weight:bold;border:1px solid #ddd;">📣</td>`;
+      } else {
+        html+=`<td style="background:${colBg};border:1px solid #eee;"></td>`;
+      }
+    });
+    html+='</tr>';
+  });
+
+  // Riga riepilogo: quanti in ogni slot
+  html+='<tr style="border-top:2px solid var(--blu);"><td style="padding:4px 8px;font-weight:bold;font-size:.72rem;color:var(--blu);">N° in cmd</td>';
+  SLOT_CMD.forEach((sc,i)=>{
+    const n=pianoCMD[i].allievi.length;
+    html+=`<td style="text-align:center;font-weight:bold;font-size:.78rem;background:${sc.last?'#FFD0D0':'#f5f5f5'};border:1px solid #ddd;">${n}</td>`;
+  });
+  html+='</tr></tbody>';
+  table.innerHTML=html;
 }
 
 // ── Matrice incontri ──────────────────────────────────────────────────────
