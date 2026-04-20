@@ -5,601 +5,546 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CVC – Gestione Equipaggi</title>
 <style>
-:root {
+:root{
   --blu:#1F4E79;--blu2:#2E75B6;--azzurro:#BDD7EE;
   --oro:#FFD700;--verde:#70AD47;--rosso:#C00000;
-  --mat:#E8F4FD;--pom:#FFF8E1;
-  --cmd:#FF6B35;--assente:#FFCCCC;
-  --capo:#FFD700;
-  --grigio:#F2F2F2;--bordo:#CCC;
+  --mat:#E3F2FD;--pom:#FFF8E1;
+  --cmd:#FF6B35;--capo:#FFD700;--grigio:#F2F2F2;--bordo:#CCC;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#e8f0f7;color:#1a1a1a;min-height:100vh;}
+body{font-family:Arial,sans-serif;background:#e8f0f7;color:#1a1a1a;}
 header{background:var(--blu);color:white;padding:10px 16px;display:flex;align-items:center;gap:12px;}
 header h1{font-size:.95rem;}
 header a{color:rgba(255,255,255,.7);font-size:.8rem;text-decoration:none;}
 header a:hover{color:white;}
 .container{max-width:1400px;margin:14px auto;padding:0 10px 60px;}
 .card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:16px 18px;margin-bottom:14px;}
-.card h2{color:var(--blu);font-size:.92rem;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--azzurro);display:flex;align-items:center;gap:8px;}
+.card h2{color:var(--blu);font-size:.92rem;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--azzurro);}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 label{display:block;font-size:.78rem;font-weight:bold;color:#555;margin-bottom:3px;}
 input,select{width:100%;padding:6px 9px;border:1.5px solid var(--bordo);border-radius:5px;font-size:.83rem;}
 input:focus,select:focus{outline:none;border-color:var(--blu2);}
-.btn{padding:7px 16px;border:none;border-radius:6px;font-size:.83rem;font-weight:bold;cursor:pointer;transition:all .2s;}
+.btn{padding:7px 16px;border:none;border-radius:6px;font-size:.83rem;font-weight:bold;cursor:pointer;transition:.2s;}
 .btn-primary{background:var(--blu2);color:white;}.btn-primary:hover{background:var(--blu);}
-.btn-success{background:var(--verde);color:white;}
+.btn-success{background:var(--verde);color:white;}.btn-success:hover{filter:brightness(.9);}
 .btn-danger{background:var(--rosso);color:white;font-size:.72rem;padding:3px 7px;}
 .btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);}
-.btn-warning{background:#E6A817;color:white;}
-.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-/* Tabella allievi */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
 .allievi-table{width:100%;border-collapse:collapse;font-size:.8rem;}
-.allievi-table th{background:var(--blu);color:white;padding:6px 8px;}
-.allievi-table td{padding:5px 6px;border-bottom:1px solid #eee;}
-.allievi-table td input,.allievi-table td select{padding:3px 5px;font-size:.78rem;}
-.allievi-table td input[type=text]{width:120px;}
-.allievi-table td select{width:70px;}
-.rank-cell select{width:60px;}
-.gender-cell select{width:55px;}
-.capo-turno-row{background:#FFFDE7;}
-/* Tab pianificazione */
+.allievi-table th{background:var(--blu);color:white;padding:6px 8px;text-align:left;}
+.allievi-table td{padding:4px 6px;border-bottom:1px solid #eee;}
+.allievi-table td input[type=text]{width:100%;padding:3px 5px;font-size:.78rem;}
+.allievi-table td select{width:100%;padding:3px 5px;font-size:.78rem;}
+.capo-row{background:#FFFDE7;}
 .tabs{display:flex;gap:0;border-bottom:2px solid var(--blu2);margin-bottom:14px;}
-.tab{padding:7px 16px;cursor:pointer;font-size:.83rem;border:none;background:none;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;}
-.tab.active{color:var(--blu);border-bottom:2px solid var(--blu);font-weight:bold;}
+.tab{padding:7px 16px;cursor:pointer;font-size:.83rem;border:none;background:none;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab.active{color:var(--blu);border-bottom:3px solid var(--blu);font-weight:bold;}
 .tab-content{display:none;}.tab-content.active{display:block;}
-/* Griglia pianificazione */
-.piano-table{border-collapse:collapse;font-size:.75rem;width:100%;}
-.piano-table th{padding:5px 6px;text-align:center;background:var(--blu);color:white;font-size:.72rem;white-space:nowrap;}
-.piano-table td{padding:3px 4px;border:1px solid #ddd;vertical-align:top;min-width:110px;}
-.slot-mat{background:var(--mat);}
-.slot-pom{background:var(--pom);}
-.slot-label{font-weight:bold;font-size:.72rem;white-space:nowrap;background:#f0f0f0;padding:4px 6px;}
-.barca-cell{min-height:50px;padding:3px;}
-.allievo-tag{display:inline-block;background:#e8f0f7;border:1px solid var(--blu2);border-radius:3px;padding:1px 5px;margin:1px;font-size:.7rem;cursor:pointer;position:relative;}
-.allievo-tag.cmd{background:#FFE0D0;border-color:var(--cmd);color:#a03000;}
-.allievo-tag.assente{background:var(--assente);border-color:var(--rosso);text-decoration:line-through;}
-.allievo-tag.istr{background:#E8F5E9;border-color:var(--verde);font-weight:bold;}
-.allievo-tag.capo{background:var(--capo);border-color:#b8860b;font-weight:bold;}
-/* Matrice incontri */
+.piano-wrap{overflow-x:auto;}
+.piano-table{border-collapse:collapse;font-size:.74rem;white-space:nowrap;}
+.piano-table th{padding:5px 7px;background:var(--blu);color:white;text-align:center;border:1px solid rgba(255,255,255,.2);}
+.piano-table td{padding:3px 4px;border:1px solid #ddd;vertical-align:top;}
+.slot-lbl{background:#e0e0e0;font-weight:bold;font-size:.72rem;padding:4px 6px;white-space:nowrap;}
+.mat{background:var(--mat);}.pom{background:var(--pom);}
+.barca-cell{min-height:44px;padding:3px 2px;}
+.tag{display:inline-block;border-radius:3px;padding:1px 5px;margin:1px 1px;font-size:.68rem;cursor:pointer;border:1px solid transparent;}
+.tag-normal{background:#e8f0f7;border-color:#aac4e0;}
+.tag-cmd{background:#FFE0D0;border-color:var(--cmd);color:#a03000;font-weight:bold;}
+.tag-capo{background:var(--capo);border-color:#b8860b;font-weight:bold;}
+.tag-istr{background:#E8F5E9;border-color:var(--verde);font-style:italic;}
+.tag-assente{background:#FFCCCC;border-color:var(--rosso);text-decoration:line-through;opacity:.7;}
 .matrice-wrap{overflow-x:auto;}
-.matrice-table{border-collapse:collapse;font-size:.65rem;}
-.matrice-table th{padding:3px 4px;background:var(--blu);color:white;white-space:nowrap;font-size:.6rem;}
-.matrice-table td{padding:2px 4px;border:1px solid #ddd;text-align:center;min-width:26px;}
-.m0{background:#fff;color:#ccc;}
-.m1{background:#dbeafe;}
-.m2{background:#93c5fd;}
-.m3{background:#3b82f6;color:white;}
-.m4p{background:#1d4ed8;color:white;font-weight:bold;}
-/* Copertura istruttori */
+.mat-table{border-collapse:collapse;font-size:.65rem;}
+.mat-table th{padding:3px 4px;background:var(--blu);color:white;font-size:.6rem;white-space:nowrap;}
+.mat-table td{padding:2px 4px;border:1px solid #ddd;text-align:center;min-width:24px;}
+.m0{color:#ccc;}.m1{background:#dbeafe;}.m2{background:#93c5fd;}.m3{background:#3b82f6;color:white;}.m4{background:#1e40af;color:white;font-weight:bold;}
 .cov-table{border-collapse:collapse;font-size:.75rem;width:100%;}
 .cov-table th{background:var(--blu);color:white;padding:5px 7px;white-space:nowrap;}
-.cov-table td{padding:4px 6px;border:1px solid #eee;text-align:center;}
+.cov-table td{padding:4px 7px;border:1px solid #eee;text-align:center;}
 .cov-capo{background:#FFFDE7;}
-.cov0{color:#ccc;}
-.cov1{background:#dbeafe;}
-.cov2p{background:#3b82f6;color:white;font-weight:bold;}
-/* Assenza toggle */
-.ass-btn{font-size:.6rem;padding:1px 4px;border-radius:2px;border:none;cursor:pointer;margin-left:2px;vertical-align:middle;}
-/* Stats */
-.stat-box{background:var(--grigio);border-radius:6px;padding:8px 10px;text-align:center;}
-.stat-box .n{font-size:1.4rem;font-weight:bold;color:var(--blu);}
+.c0{color:#ccc;}.c1{background:#dbeafe;}.c2{background:#3b82f6;color:white;font-weight:bold;}
+.stat-box{background:var(--grigio);border-radius:6px;padding:8px;text-align:center;}
+.stat-box .n{font-size:1.3rem;font-weight:bold;color:var(--blu);}
 .stat-box .l{font-size:.7rem;color:#666;}
-.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:12px;}
-.badge{background:var(--blu2);color:white;border-radius:10px;padding:1px 7px;font-size:.7rem;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:12px;}
+.badge{background:var(--blu2);color:white;border-radius:10px;padding:1px 7px;font-size:.7rem;margin-left:4px;}
+.alert-info{background:#e3f2fd;border-left:4px solid var(--blu2);padding:8px 12px;border-radius:4px;font-size:.82rem;color:#1a5276;margin-bottom:10px;}
+.alert-warn{background:#fff3cd;border-left:4px solid #E6A817;padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:10px;}
 </style>
 </head>
 <body>
 <header>
-  <a href="/">← App</a>
+  <a href="/">← Torna all'App</a>
   <h1>⛵ CVC – Gestione Equipaggi</h1>
+  <span id="hdr-turno" style="margin-left:auto;font-size:.8rem;opacity:.8;"></span>
 </header>
-
 <div class="container">
 
+<!-- STATO CARICAMENTO -->
+<div id="loading-card" class="card alert-info">⏳ Caricamento allievi dal turno in corso…</div>
+
 <!-- CONFIGURAZIONE -->
+<div id="main-content" style="display:none;">
+
 <div class="card">
-  <h2>⚙️ Configurazione</h2>
-  <div class="grid3" style="margin-bottom:12px;">
-    <div><label>Barche da 2 persone</label><input type="number" id="n-barche2" value="3" min="0" max="10" oninput="aggiornaBarcheIstr()"></div>
-    <div><label>Barche da 5 persone (+istruttore)</label><input type="number" id="n-barche5" value="2" min="0" max="6" oninput="aggiornaBarcheIstr()"></div>
-    <div><label>Allievi in comandata (per mezza giornata)</label>
-      <select id="n-comandata"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select>
+  <h2>⚙️ Parametri</h2>
+  <div class="grid3">
+    <div><label>Barche da 2 persone</label><input type="number" id="n-b2" value="3" min="0" max="10" oninput="syncIstr()"></div>
+    <div><label>Barche da 5 (+istruttore = 6)</label><input type="number" id="n-b5" value="2" min="0" max="8" oninput="syncIstr()"></div>
+    <div><label>Allievi in comandata</label>
+      <select id="n-cmd"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select>
     </div>
   </div>
+</div>
+
+<div class="card">
   <div class="grid2">
     <!-- Allievi -->
     <div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <label style="margin:0;">👥 Allievi <span class="badge" id="n-allievi-badge">0</span></label>
-        <div style="display:flex;gap:5px;">
-          <button class="btn btn-outline" style="padding:3px 9px;font-size:.75rem;" onclick="aggiungiAllievo()">+ Allievo</button>
-          <button class="btn btn-outline" style="padding:3px 9px;font-size:.75rem;" onclick="importaAllievi()">📥 Importa da Scheda</button>
-        </div>
-      </div>
-      <div style="overflow-x:auto;max-height:280px;overflow-y:auto;">
+      <h2>👥 Allievi <span class="badge" id="badge-als">0</span>
+        <button class="btn btn-outline" style="margin-left:auto;padding:2px 9px;font-size:.73rem;" onclick="aggiungiAllievo()">+ Aggiungi</button>
+      </h2>
+      <div id="allievi-warn" class="alert-warn" style="display:none;"></div>
+      <div style="overflow:auto;max-height:300px;">
         <table class="allievi-table">
-          <thead><tr><th>Nome</th><th>Rank (1-5)</th><th>Genere</th><th>Capo T.</th><th></th></tr></thead>
-          <tbody id="allievi-tbody"></tbody>
+          <thead><tr><th>Nome</th><th>Rank (1–5)</th><th>Genere</th><th>⭐ Capo T.</th><th></th></tr></thead>
+          <tbody id="als-tbody"></tbody>
         </table>
       </div>
     </div>
     <!-- Istruttori -->
     <div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <label style="margin:0;">🎓 Istruttori (per barche da 5) <span class="badge" id="n-istr-badge">0</span></label>
-        <button class="btn btn-outline" style="padding:3px 9px;font-size:.75rem;" onclick="aggiungiIstruttore()">+ Istruttore</button>
-      </div>
-      <div id="istruttori-list" style="max-height:280px;overflow-y:auto;"></div>
-      <p style="font-size:.72rem;color:#888;margin-top:6px;">⚠️ Servono esattamente <strong id="istr-richiesti">2</strong> istruttori (uno per barca da 5).</p>
+      <h2>🎓 Istruttori <span class="badge" id="badge-istr">0</span>
+        <button class="btn btn-outline" style="margin-left:auto;padding:2px 9px;font-size:.73rem;" onclick="aggiungiIstr()">+ Aggiungi</button>
+      </h2>
+      <p id="istr-note" style="font-size:.75rem;color:#888;margin-bottom:8px;">Servono <strong id="istr-req">2</strong> istruttori (1 per barca da 5).</p>
+      <div id="istr-list" style="max-height:300px;overflow-y:auto;"></div>
     </div>
   </div>
 </div>
 
 <!-- GENERA -->
-<div class="card" style="text-align:center;padding:14px;">
-  <div id="config-warning" style="color:var(--rosso);font-size:.82rem;margin-bottom:8px;display:none;"></div>
-  <button class="btn btn-success" style="padding:10px 32px;font-size:.92rem;" onclick="genera()">⚡ Genera Pianificazione</button>
-  <span style="margin:0 10px;color:#aaa;">|</span>
-  <button class="btn btn-outline" onclick="rigeneraMantenendo()">🔄 Rigenera (mantieni assenze)</button>
+<div class="card" style="text-align:center;">
+  <div id="gen-warn" style="color:var(--rosso);font-size:.82rem;margin-bottom:8px;display:none;"></div>
+  <button class="btn btn-success" style="padding:10px 28px;font-size:.9rem;" onclick="genera()">⚡ Genera Pianificazione</button>
+  &nbsp;
+  <button class="btn btn-outline" onclick="rigenera()">🔄 Rigenera (mantieni assenze)</button>
 </div>
 
 <!-- OUTPUT -->
 <div id="output" style="display:none;">
   <div class="stats-row" id="stats-row"></div>
-
   <div class="card">
     <div class="tabs">
-      <button class="tab active" onclick="showTab('piano',this)">📅 Pianificazione Turni</button>
+      <button class="tab active" onclick="showTab('piano',this)">📅 Pianificazione</button>
       <button class="tab" onclick="showTab('matrice',this)">🔗 Matrice Incontri</button>
       <button class="tab" onclick="showTab('copertura',this)">👁️ Copertura Istruttori</button>
     </div>
+    <!-- Legenda -->
+    <div style="font-size:.72rem;color:#555;margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;">
+      <span style="background:var(--mat);padding:2px 7px;border-radius:3px;">☀️ Mattina</span>
+      <span style="background:var(--pom);padding:2px 7px;border-radius:3px;">🌤️ Pomeriggio</span>
+      <span class="tag tag-cmd">📣 Comandata</span>
+      <span class="tag tag-capo">⭐ Capo Turno</span>
+      <span class="tag tag-istr">👨‍✈️ Istruttore</span>
+      <span class="tag tag-assente">✗ Assente (click per toggle)</span>
+    </div>
 
-    <!-- TAB 1: Pianificazione -->
     <div id="tab-piano" class="tab-content active">
-      <div style="font-size:.73rem;color:#666;margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
-        <span style="background:var(--mat);padding:2px 8px;border-radius:4px;">Mattina</span>
-        <span style="background:var(--pom);padding:2px 8px;border-radius:4px;">Pomeriggio</span>
-        <span class="allievo-tag cmd">COMANDATA</span>
-        <span class="allievo-tag capo">Capo Turno</span>
-        <span class="allievo-tag istr">Istruttore</span>
-        <span class="allievo-tag assente">Assente</span>
-      </div>
-      <div style="overflow-x:auto;"><table class="piano-table" id="piano-table"></table></div>
+      <div class="piano-wrap"><table class="piano-table" id="piano-table"></table></div>
     </div>
-
-    <!-- TAB 2: Matrice -->
     <div id="tab-matrice" class="tab-content">
-      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Numero di volte che due allievi si trovano sulla stessa barca. Obiettivo: massimizzare le celle &gt; 0.</p>
-      <div class="matrice-wrap"><table class="matrice-table" id="matrice-table"></table></div>
+      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Quante volte due allievi condividono la stessa barca. Obiettivo: massimizzare le celle &gt; 0.</p>
+      <div class="matrice-wrap"><table class="mat-table" id="mat-table"></table></div>
     </div>
-
-    <!-- TAB 3: Copertura -->
     <div id="tab-copertura" class="tab-content">
-      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Quante volte ogni istruttore ha avuto ogni allievo a bordo.</p>
       <div style="overflow-x:auto;"><table class="cov-table" id="cov-table"></table></div>
     </div>
   </div>
 </div>
 
-</div>
+</div><!-- /main-content -->
+</div><!-- /container -->
 
 <script>
-// ── Stato globale ─────────────────────────────────────────────────────────
-let allievi=[], istruttori=[], piano=null, assenze={};
-// piano[slot][barca] = {allievi:[], istruttore:string|null, comandata:bool}
-// slot: 0..9 (0=Lun Mat, 1=Lun Pom, 2=Mar Mat, ... 9=Ven Pom)
-// assenze: {nomeAllievo: Set di slot}
-
 const GIORNI=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì'];
-const TURNI=['Mattina','Pomeriggio'];
 
-// ── Init ──────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
-  aggiornaBarcheIstr();
-  // Carica eventuali dati dalla scheda CVC
-  try{
-    const s=JSON.parse(sessionStorage.getItem('cvc_s')||'null');
-    if(s && window.opener) importaAllievi();
-  }catch{}
+let als=[], istr=[], piano=null, assenze={};
+let sessionTurno=null;
+
+// ── Init: leggi params URL e carica allievi dal turno ─────────────────────
+window.addEventListener('DOMContentLoaded', async ()=>{
+  const params=new URLSearchParams(location.search);
+  const turno=params.get('turno');
+  const corso=params.get('corso');
+  const tok=params.get('tok');
+
+  if(turno && corso && tok){
+    document.getElementById('hdr-turno').textContent=`Turno ${turno} — ${corso}`;
+    sessionTurno={turno,corso,tok};
+    await caricaAllievi(turno,corso,tok);
+  } else {
+    document.getElementById('loading-card').style.display='none';
+    document.getElementById('main-content').style.display='block';
+    // Modalità standalone: aggiungi qualche allievo di esempio
+    ['Marco','Sara','Luca','Elena','Andrea','Giulia','Davide','Chiara'].forEach((n,i)=>{
+      als.push({nome:n, rank:[3,4,2,5,1,3,4,2][i], genere:i%2===0?'M':'F', isCapo:i===0});
+    });
+    renderAls();
+    aggiungiIstr('Paolo'); aggiungiIstr('Maria');
+    syncIstr();
+  }
 });
 
-function aggiornaBarcheIstr(){
-  const n5=parseInt(document.getElementById('n-barche5').value)||0;
-  document.getElementById('istr-richiesti').textContent=n5;
-  aggiornaContatori();
+async function caricaAllievi(turno,corso,tok){
+  try{
+    const res=await fetch(`/api/turno/${turno}?corso=${encodeURIComponent(corso)}`,{
+      headers:{'X-Auth-Token':tok}
+    });
+    if(!res.ok) throw new Error('Non autorizzato');
+    const d=await res.json();
+
+    als=d.allievi.map((r,i)=>{
+      // Calcola ranking dal punteggio finale (scala 5-10 → 1-5)
+      // Se non c'è ancora punteggio finale, usa media dei punteggi giornalieri disponibili
+      let pf=r.punteggio_finale;
+      if(pf===null||pf===undefined){
+        const pts=['pts_g1','pts_g2','pts_g3','pts_g4','pts_g5','pts_g6','pts_fin']
+          .map(k=>r[k]).filter(v=>v!==null&&v!==undefined);
+        pf=pts.length ? pts.reduce((a,b)=>a+b,0)/pts.length : null;
+      }
+      // Mappa punteggio → rank 1-5
+      // 5→1, 6→2, 7→3, 8→4, 9-10→5
+      let rank=3;
+      if(pf!==null){
+        if(pf<=5) rank=1;
+        else if(pf<=6) rank=2;
+        else if(pf<=7) rank=3;
+        else if(pf<=8) rank=4;
+        else rank=5;
+      }
+      return {nome:r.allievo, rank, genere:'M', isCapo:i===0&&d.allievi.length>0};
+    });
+
+    document.getElementById('loading-card').innerHTML=
+      `✅ Caricati <strong>${als.length}</strong> allievi dal Turno ${turno} — ${corso}. Il ranking è calcolato dal punteggio attuale.`;
+    setTimeout(()=>document.getElementById('loading-card').style.display='none',3000);
+    document.getElementById('main-content').style.display='block';
+
+    renderAls();
+    syncIstr();
+
+  } catch(e){
+    document.getElementById('loading-card').className='card alert-warn';
+    document.getElementById('loading-card').innerHTML=
+      `⚠️ Impossibile caricare gli allievi: ${e.message}. Puoi inserirli manualmente.`;
+    document.getElementById('main-content').style.display='block';
+  }
 }
 
-function aggiornaContatori(){
-  document.getElementById('n-allievi-badge').textContent=allievi.length;
-  document.getElementById('n-istr-badge').textContent=istruttori.length;
+// ── Sync istruttori richiesti ──────────────────────────────────────────────
+function syncIstr(){
+  const n5=parseInt(document.getElementById('n-b5').value)||0;
+  document.getElementById('istr-req').textContent=n5;
+  // Assicura che ci siano almeno n5 istruttori
+  while(istr.length<n5) istr.push({nome:''});
+  while(istr.length>n5 && istr.length>0) istr.pop();
+  renderIstr();
+  aggiornaBadge();
 }
 
 // ── Allievi ───────────────────────────────────────────────────────────────
-function aggiungiAllievo(nome='',rank=3,genere='M',isCapo=false){
-  allievi.push({nome,rank,genere,isCapo});
-  renderAllievi();
-}
+function aggiungiAllievo(){ als.push({nome:'',rank:3,genere:'M',isCapo:false}); renderAls(); }
 
-function renderAllievi(){
-  const tbody=document.getElementById('allievi-tbody');
-  tbody.innerHTML=allievi.map((a,i)=>`
-    <tr class="${a.isCapo?'capo-turno-row':''}">
-      <td><input type="text" value="${a.nome}" placeholder="Nome" oninput="allievi[${i}].nome=this.value;aggiornaContatori()"></td>
-      <td class="rank-cell"><select onchange="allievi[${i}].rank=parseInt(this.value)">
-        ${[1,2,3,4,5].map(v=>`<option value="${v}" ${a.rank==v?'selected':''}>${v}</option>`).join('')}
+function renderAls(){
+  document.getElementById('als-tbody').innerHTML=als.map((a,i)=>`
+    <tr class="${a.isCapo?'capo-row':''}">
+      <td><input type="text" value="${a.nome}" placeholder="Nome"
+        oninput="als[${i}].nome=this.value.trim();aggiornaBadge()"></td>
+      <td><select onchange="als[${i}].rank=parseInt(this.value)">
+        ${[1,2,3,4,5].map(v=>`<option ${a.rank==v?'selected':''}>${v}</option>`).join('')}
       </select></td>
-      <td class="gender-cell"><select onchange="allievi[${i}].genere=this.value">
-        <option value="M" ${a.genere=='M'?'selected':''}>M</option>
-        <option value="F" ${a.genere=='F'?'selected':''}>F</option>
+      <td><select onchange="als[${i}].genere=this.value">
+        <option ${a.genere==='M'?'selected':''}>M</option>
+        <option ${a.genere==='F'?'selected':''}>F</option>
       </select></td>
-      <td style="text-align:center;"><input type="checkbox" ${a.isCapo?'checked':''} title="Capo Turno"
-        onchange="allievi.forEach((_,j)=>allievi[j].isCapo=false);allievi[${i}].isCapo=this.checked;renderAllievi()"></td>
-      <td><button class="btn btn-danger" onclick="allievi.splice(${i},1);renderAllievi()">✕</button></td>
+      <td style="text-align:center;"><input type="checkbox" ${a.isCapo?'checked':''}
+        onchange="als.forEach((_,j)=>als[j].isCapo=false);als[${i}].isCapo=this.checked;renderAls()"></td>
+      <td><button class="btn btn-danger" onclick="als.splice(${i},1);renderAls()">✕</button></td>
     </tr>`).join('');
-  aggiornaContatori();
-}
-
-function importaAllievi(){
-  // Tenta di leggere gli allievi dalla pagina principale CVC se aperta
-  const nomi=prompt('Incolla i nomi degli allievi (uno per riga):','');
-  if(!nomi) return;
-  nomi.split('\n').map(n=>n.trim()).filter(Boolean).forEach(n=>{
-    if(!allievi.find(a=>a.nome===n)) aggiungiAllievo(n,3,'M',false);
-  });
+  aggiornaBadge();
 }
 
 // ── Istruttori ────────────────────────────────────────────────────────────
-function aggiungiIstruttore(nome=''){
-  istruttori.push({nome});
-  renderIstruttori();
+function aggiungiIstr(nome=''){
+  istr.push({nome});
+  const n5=parseInt(document.getElementById('n-b5').value)||0;
+  if(istr.length>n5) document.getElementById('n-b5').value=istr.length;
+  renderIstr(); aggiornaBadge();
 }
 
-function renderIstruttori(){
-  const el=document.getElementById('istruttori-list');
-  el.innerHTML=istruttori.map((ist,i)=>`
-    <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px;">
+function renderIstr(){
+  document.getElementById('istr-list').innerHTML=istr.map((ist,i)=>`
+    <div style="display:flex;gap:6px;margin-bottom:5px;align-items:center;">
       <input type="text" value="${ist.nome}" placeholder="Nome istruttore"
-        oninput="istruttori[${i}].nome=this.value;aggiornaContatori()" style="flex:1;">
-      <button class="btn btn-danger" onclick="istruttori.splice(${i},1);renderIstruttori()">✕</button>
+        oninput="istr[${i}].nome=this.value.trim()" style="flex:1;">
+      <button class="btn btn-danger" onclick="istr.splice(${i},1);renderIstr();aggiornaBadge()">✕</button>
     </div>`).join('');
-  aggiornaContatori();
+  aggiornaBadge();
+}
+
+function aggiornaBadge(){
+  document.getElementById('badge-als').textContent=als.filter(a=>a.nome).length;
+  document.getElementById('badge-istr').textContent=istr.filter(i=>i.nome).length;
 }
 
 // ── Validazione ───────────────────────────────────────────────────────────
 function valida(){
-  const n2=parseInt(document.getElementById('n-barche2').value)||0;
-  const n5=parseInt(document.getElementById('n-barche5').value)||0;
-  const capienza=n2*2+n5*5;
-  const warn=document.getElementById('config-warning');
+  const n2=parseInt(document.getElementById('n-b2').value)||0;
+  const n5=parseInt(document.getElementById('n-b5').value)||0;
+  const alsOk=als.filter(a=>a.nome);
+  const istrOk=istr.filter(i=>i.nome);
+  const cap=n2*2+n5*5;
   const errs=[];
-  if(allievi.filter(a=>a.nome.trim()).length<2) errs.push('Inserisci almeno 2 allievi.');
-  if(istruttori.filter(i=>i.nome.trim()).length<n5) errs.push(`Servono ${n5} istruttori per le barche da 5.`);
-  if(allievi.length>capienza) errs.push(`Capienza barche (${capienza}) insufficiente per ${allievi.length} allievi.`);
-  if(n2+n5===0) errs.push('Configura almeno una barca.');
-  warn.textContent=errs.join(' | ');
-  warn.style.display=errs.length?'block':'none';
+  if(alsOk.length<2) errs.push('Almeno 2 allievi.');
+  if(n2+n5===0) errs.push('Almeno una barca.');
+  if(alsOk.length>cap) errs.push(`Capienza (${cap}) < allievi (${alsOk.length}).`);
+  if(istrOk.length<n5) errs.push(`Servono ${n5} istruttori.`);
+  const w=document.getElementById('gen-warn');
+  w.textContent=errs.join(' | '); w.style.display=errs.length?'block':'none';
   return errs.length===0;
 }
 
-// ── Algoritmo principale ──────────────────────────────────────────────────
-function genera(){
-  if(!valida()) return;
-  assenze={}; // reset assenze se genera da zero
-  _genera();
-}
+// ── Genera ────────────────────────────────────────────────────────────────
+function genera(){ if(!valida()) return; assenze={}; _genera(); }
+function rigenera(){ if(!valida()) return; _genera(); }
 
-function rigeneraMantenendo(){
-  if(!valida()) return;
-  _genera(true);
-}
+function _genera(){
+  const n2=parseInt(document.getElementById('n-b2').value)||0;
+  const n5=parseInt(document.getElementById('n-b5').value)||0;
+  const nCmd=parseInt(document.getElementById('n-cmd').value)||4;
+  const alsOk=als.filter(a=>a.nome);
+  const istrOk=istr.filter(i=>i.nome);
+  const capo=alsOk.find(a=>a.isCapo);
 
-function _genera(mantieni=false){
-  const n2=parseInt(document.getElementById('n-barche2').value)||0;
-  const n5=parseInt(document.getElementById('n-barche5').value)||0;
-  const nCmd=parseInt(document.getElementById('n-comandata').value)||4;
-  const nBarche=n2+n5;
-  const nSlot=10;
-
-  // Filtra allievi e istruttori validi
-  const als=allievi.filter(a=>a.nome.trim());
-  const istrs=istruttori.filter(i=>i.nome.trim()).slice(0,n5);
-  const capo=als.find(a=>a.isCapo);
-
-  // Struttura barche: [{tipo:2|5, capienza:2|5}]
+  // Struttura barche
   const barche=[];
-  for(let i=0;i<n2;i++) barche.push({id:i,tipo:2,capienza:2,nome:`Barca ${i+1}`});
-  for(let i=0;i<n5;i++) barche.push({id:n2+i,tipo:5,capienza:5,nome:`Barca ${n2+i+1} (5p)`});
+  for(let i=0;i<n2;i++) barche.push({id:i,cap:2,nome:`B${i+1}`});
+  for(let i=0;i<n5;i++) barche.push({id:n2+i,cap:5,nome:`B${n2+i+1}(5p)`});
+  const nB=barche.length;
 
-  // ── Inizializza piano ──────────────────────────────────────────────────
   piano=[];
-  for(let slot=0;slot<nSlot;slot++){
-    piano.push(barche.map(b=>({barcaId:b.id,tipo:b.tipo,nomeBarca:b.nome,allievi:[],istruttore:null,comandata:[]})));
+  for(let s=0;s<10;s++){
+    piano.push(barche.map(b=>({nome:b.nome,cap:b.cap,allievi:[],istr:null,cmd:[]})));
   }
 
-  // ── Tracker incontri (per ottimizzazione) ─────────────────────────────
-  const incontri={};
-  als.forEach(a=>{ incontri[a.nome]={}; als.forEach(b=>{ incontri[a.nome][b.nome]=0; }); });
+  // Tracker incontri
+  const inc={};
+  alsOk.forEach(a=>{ inc[a.nome]={}; alsOk.forEach(b=>inc[a.nome][b.nome]=0); });
 
-  // ── Tracker copertura capo turno ──────────────────────────────────────
-  const vistiCapo=new Set();
+  // Tracker comandata
+  const cmdCnt=Object.fromEntries(alsOk.map(a=>[a.nome,0]));
 
-  // ── Assegnazione comandata (ogni allievo almeno 1 volta) ──────────────
-  const comandateAssegnate=new Array(als.length).fill(0);
-
-  // ── Ciclo per ogni slot ───────────────────────────────────────────────
-  for(let slot=0;slot<nSlot;slot++){
-    // Allievi disponibili (non assenti)
-    const disponibili=als.filter(a=>{
-      const key=`${a.nome}_${slot}`;
-      return !assenze[key];
+  for(let s=0;s<10;s++){
+    // Istruttori ruotano ogni slot
+    const istrRot=[...istrOk];
+    for(let r=0;r<(s%Math.max(istrOk.length,1));r++) istrRot.push(istrRot.shift());
+    barche.forEach((b,bi)=>{
+      if(b.cap===5 && bi-n2 < istrRot.length)
+        piano[s][bi].istr=istrRot[bi-n2].nome;
     });
 
-    const nDisp=disponibili.length;
-    if(nDisp===0) continue;
+    // Allievi disponibili per questo slot
+    const disp=alsOk.filter(a=>!assenze[`${a.nome}_${s}`]);
+    if(!disp.length) continue;
 
-    // ── Assegna istruttori alle barche da 5 (ruotano ogni slot) ──────
-    const istrSlot=[...istrs];
-    // Ogni slot shift istruttori
-    for(let r=0;r<slot%Math.max(istrs.length,1);r++) istrSlot.push(istrSlot.shift());
+    const capTot=barche.reduce((t,b)=>t+b.cap,0);
+    const nAss=Math.min(disp.length,capTot);
+
+    // Ordina per massimizzare nuovi incontri:
+    // chi ha meno incontri totali va prima
+    const pool=[...disp].sort((a,b)=>{
+      const tA=Object.values(inc[a.nome]).reduce((s,v)=>s+v,0);
+      const tB=Object.values(inc[b.nome]).reduce((s,v)=>s+v,0);
+      return tA-tB;
+    });
+
+    const usati=new Set();
 
     barche.forEach((b,bi)=>{
-      if(b.tipo===5 && bi-n2<istrSlot.length){
-        piano[slot][bi].istruttore=istrSlot[bi-n2].nome;
-      }
-    });
-
-    // ── Separa allievi per rank (alto vs basso) e genere ─────────────
-    const disponibiliSort=[...disponibili].sort((a,b)=>{
-      // Priorità: chi ha meno incontri con altri → massimizza diversità
-      const totA=Object.values(incontri[a.nome]).reduce((s,v)=>s+v,0);
-      const totB=Object.values(incontri[b.nome]).reduce((s,v)=>s+v,0);
-      return totA-totB;
-    });
-
-    // ── Determina capienza totale ────────────────────────────────────
-    const capTot=barche.reduce((s,b)=>s+b.capienza,0);
-    const nDaAssegnare=Math.min(nDisp,capTot);
-
-    // ── Ordina allievi: prima chi ha rank basso (bilanciamento) ──────
-    const allievi_h=disponibiliSort.filter(a=>a.rank>=3);
-    const allievi_l=disponibiliSort.filter(a=>a.rank<3);
-
-    // ── Assegnazione bilanciata per barca ─────────────────────────────
-    // Per ogni barca, alternare H e L, rispettare genere
-    const pool=[...disponibiliSort];
-    const assegnati=new Set();
-
-    barche.forEach((b,bi)=>{
-      const cap=b.capienza;
-      const slotBarca=piano[slot][bi];
-      const nPosti=Math.min(cap, Math.ceil(nDaAssegnare/nBarche));
-
-      // Scegli allievi bilanciati per questa barca
+      const slotB=piano[s][bi];
+      const quota=Math.min(b.cap, Math.ceil(nAss/nB));
       const scelti=[];
-      const poolDisp=pool.filter(a=>!assegnati.has(a.nome));
 
-      // Prima un allievo con rank alto se disponibile
-      const hi=poolDisp.find(a=>a.rank>=4 && !assegnati.has(a.nome));
-      if(hi){ scelti.push(hi); assegnati.add(hi.nome); }
+      // Bilanciamento rank: cerca un allievo alto e uno basso
+      const liberi=()=>pool.filter(a=>!usati.has(a.nome));
 
-      // Poi un allievo con rank basso
-      const lo=poolDisp.find(a=>a.rank<=2 && !assegnati.has(a.nome));
-      if(lo){ scelti.push(lo); assegnati.add(lo.nome); }
+      const hi=liberi().find(a=>a.rank>=4);
+      if(hi){ scelti.push(hi); usati.add(hi.nome); }
+      const lo=liberi().find(a=>a.rank<=2);
+      if(lo && scelti.length<quota){ scelti.push(lo); usati.add(lo.nome); }
 
-      // Riempi i posti rimanenti
-      while(scelti.length<nPosti){
-        const cand=pool.find(a=>!assegnati.has(a.nome));
-        if(!cand) break;
-        scelti.push(cand); assegnati.add(cand.nome);
+      // Riempie i posti restanti
+      while(scelti.length<quota){
+        const c=liberi()[0]; if(!c) break;
+        scelti.push(c); usati.add(c.nome);
       }
 
-      // Regola genere: almeno 1 M se ci sono uomini disponibili
-      const hasMaschio=scelti.some(a=>a.genere==='M');
-      if(!hasMaschio && scelti.length>0){
-        const mDisp=pool.find(a=>a.genere==='M' && !assegnati.has(a.nome));
-        if(mDisp){
-          // Sostituisci l'ultima F con questo M
+      // Regola genere: almeno 1 M se disponibile
+      if(scelti.length>0 && !scelti.some(a=>a.genere==='M')){
+        const mLib=pool.find(a=>a.genere==='M'&&!usati.has(a.nome));
+        if(mLib){
           const fIdx=scelti.findLastIndex(a=>a.genere==='F');
-          if(fIdx>=0){
-            assegnati.delete(scelti[fIdx].nome);
-            scelti[fIdx]=mDisp;
-            assegnati.add(mDisp.nome);
-          }
+          if(fIdx>=0){ usati.delete(scelti[fIdx].nome); scelti[fIdx]=mLib; usati.add(mLib.nome); }
         }
       }
 
-      // Se capo turno è su questa barca, traccia allievi visti
-      const capoBarca=scelti.find(a=>a.isCapo);
-      if(capoBarca){
-        scelti.forEach(a=>{ if(!a.isCapo) vistiCapo.add(a.nome); });
-      }
-
-      // Se capo turno non ha ancora visto qualcuno, prova a metterlo su questa barca
-      // ogni ~2 slot cambia barca per massimizzare copertura
-      slotBarca.allievi=scelti.map(a=>a.nome);
+      slotB.allievi=scelti.map(a=>a.nome);
 
       // Aggiorna incontri
-      for(let x=0;x<scelti.length;x++){
+      for(let x=0;x<scelti.length;x++)
         for(let y=x+1;y<scelti.length;y++){
-          incontri[scelti[x].nome][scelti[y].nome]=(incontri[scelti[x].nome][scelti[y].nome]||0)+1;
-          incontri[scelti[y].nome][scelti[x].nome]=(incontri[scelti[y].nome][scelti[x].nome]||0)+1;
+          inc[scelti[x].nome][scelti[y].nome]++;
+          inc[scelti[y].nome][scelti[x].nome]++;
         }
-      }
     });
 
-    // ── Assegna comandata ─────────────────────────────────────────────
-    // Scegli gli allievi con meno comandate assegnate
-    const tuttiAssegnati=[];
-    piano[slot].forEach(b=>b.allievi.forEach(n=>tuttiAssegnati.push(n)));
-
-    const cmdCandidati=als
-      .filter(a=>tuttiAssegnati.includes(a.nome))
-      .map(a=>({nome:a.nome,cnt:comandateAssegnate[als.indexOf(a)]}))
-      .sort((a,b)=>a.cnt-b.cnt)
+    // Comandata: chi ha meno assegnazioni
+    const tuttiInSlot=piano[s].flatMap(b=>b.allievi);
+    const cmdCand=[...tuttiInSlot]
+      .sort((a,b)=>cmdCnt[a]-cmdCnt[b])
       .slice(0,nCmd);
+    cmdCand.forEach(n=>cmdCnt[n]++);
 
-    const nomiCmd=cmdCandidati.map(c=>c.nome);
-    cmdCandidati.forEach(c=>{ comandateAssegnate[als.indexOf(als.find(a=>a.nome===c.nome))]++; });
-
-    // Marca la comandata: preferibilmente sulla stessa barca
-    // Trova la barca con più allievi in comandata
-    let bestBarca=-1, bestCount=0;
-    piano[slot].forEach((b,bi)=>{
-      const cnt=b.allievi.filter(n=>nomiCmd.includes(n)).length;
-      if(cnt>bestCount){ bestCount=cnt; bestBarca=bi; }
+    // Trova la barca con più allievi in comandata e assegna lì
+    let bestBi=0,bestN=0;
+    piano[s].forEach((b,bi)=>{
+      const n=b.allievi.filter(n=>cmdCand.includes(n)).length;
+      if(n>bestN){bestN=n;bestBi=bi;}
     });
-    if(bestBarca>=0) piano[slot][bestBarca].comandata=nomiCmd;
+    piano[s][bestBi].cmd=cmdCand;
   }
 
-  // ── Render output ──────────────────────────────────────────────────────
   document.getElementById('output').style.display='block';
-  renderStats(als,nBarche,nSlot);
-  renderPiano(barche,als);
-  renderMatrice(als,incontri);
-  renderCopertura(als,istrs,capo);
+  renderStats(alsOk,barche);
+  renderPiano(alsOk,capo);
+  renderMatrice(alsOk,inc);
+  renderCopertura(alsOk,istrOk,capo);
   document.getElementById('output').scrollIntoView({behavior:'smooth'});
 }
 
-// ── Render statistiche ────────────────────────────────────────────────────
-function renderStats(als,nBarche,nSlot){
-  const n2=parseInt(document.getElementById('n-barche2').value)||0;
-  const n5=parseInt(document.getElementById('n-barche5').value)||0;
-  document.getElementById('stats-row').innerHTML=`
-    <div class="stat-box"><div class="n">${als.length}</div><div class="l">Allievi</div></div>
-    <div class="stat-box"><div class="n">${n2}</div><div class="l">Barche ×2</div></div>
-    <div class="stat-box"><div class="n">${n5}</div><div class="l">Barche ×5</div></div>
-    <div class="stat-box"><div class="n">${nSlot}</div><div class="l">Slot (10)</div></div>
-    <div class="stat-box"><div class="n">${GIORNI.length}g</div><div class="l">Giorni</div></div>`;
+// ── Render stats ──────────────────────────────────────────────────────────
+function renderStats(alsOk,barche){
+  const n2=barche.filter(b=>b.cap===2).length;
+  const n5=barche.filter(b=>b.cap===5).length;
+  document.getElementById('stats-row').innerHTML=
+    `<div class="stat-box"><div class="n">${alsOk.length}</div><div class="l">Allievi</div></div>
+     <div class="stat-box"><div class="n">${n2}</div><div class="l">Barche ×2</div></div>
+     <div class="stat-box"><div class="n">${n5}</div><div class="l">Barche ×5</div></div>
+     <div class="stat-box"><div class="n">10</div><div class="l">Slot totali</div></div>
+     <div class="stat-box"><div class="n">5</div><div class="l">Giorni</div></div>`;
 }
 
 // ── Render pianificazione ─────────────────────────────────────────────────
-function renderPiano(barche,als){
-  const table=document.getElementById('piano-table');
-  const capo=als.find(a=>a.isCapo);
-  const istrNomi=istruttori.filter(i=>i.nome.trim()).map(i=>i.nome);
+function renderPiano(alsOk,capo){
+  const n2=parseInt(document.getElementById('n-b2').value)||0;
+  const n5=parseInt(document.getElementById('n-b5').value)||0;
+  const barche=[];
+  for(let i=0;i<n2;i++) barche.push({nome:`Barca ${i+1}`,cap:2});
+  for(let i=0;i<n5;i++) barche.push({nome:`Barca ${n2+i+1} (5p)`,cap:5});
 
   let html=`<thead><tr><th>Giorno</th><th>Turno</th>`;
   barche.forEach(b=>html+=`<th>${b.nome}</th>`);
   html+=`</tr></thead><tbody>`;
 
-  for(let slot=0;slot<10;slot++){
-    const giorno=Math.floor(slot/2);
-    const turno=slot%2;
-    const cls=turno===0?'slot-mat':'slot-pom';
-    const slotData=piano[slot];
-
+  for(let s=0;s<10;s++){
+    const g=Math.floor(s/2), t=s%2;
+    const cls=t===0?'mat':'pom';
     html+=`<tr>`;
-    if(turno===0) html+=`<td rowspan="2" class="slot-label" style="text-align:center;vertical-align:middle;font-weight:bold;">${GIORNI[giorno]}</td>`;
-    html+=`<td class="slot-label ${cls}">${TURNI[turno]}</td>`;
+    if(t===0) html+=`<td rowspan="2" class="slot-lbl" style="text-align:center;vertical-align:middle;">${GIORNI[g]}</td>`;
+    html+=`<td class="slot-lbl ${cls}" style="white-space:nowrap;">${t===0?'☀️ Mattina':'🌤️ Pomeriggio'}</td>`;
 
-    barche.forEach((b,bi)=>{
-      const cell=slotData[bi];
+    piano[s].forEach((cell,bi)=>{
       html+=`<td class="${cls}"><div class="barca-cell">`;
-
-      // Istruttore
-      if(cell.istruttore){
-        const isCapoIstr=false;
-        html+=`<span class="allievo-tag istr" title="Istruttore">👨‍✈️ ${cell.istruttore}</span>`;
-      }
-
-      // Allievi
+      if(cell.istr) html+=`<span class="tag tag-istr">👨‍✈️ ${cell.istr}</span>`;
       cell.allievi.forEach(nome=>{
-        const isCmd=cell.comandata&&cell.comandata.includes(nome);
-        const isCapoA=capo&&capo.nome===nome;
-        const isAss=assenze[`${nome}_${slot}`];
-        let cls2='allievo-tag';
-        if(isAss) cls2+=' assente';
-        else if(isCapoA) cls2+=' capo';
-        else if(isCmd) cls2+=' cmd';
-
-        const lbl=isCapoA?`⭐ ${nome}`:isCmd?`📣 ${nome}`:nome;
-        html+=`<span class="${cls2}" onclick="toggleAssenza('${nome}',${slot},this)" title="${isAss?'Presente':'Segna assente'}">${lbl}</span>`;
+        const isCapo=capo&&capo.nome===nome;
+        const isCmd=cell.cmd&&cell.cmd.includes(nome);
+        const isAss=assenze[`${nome}_${s}`];
+        let tc='tag ';
+        if(isAss) tc+='tag-assente';
+        else if(isCapo) tc+='tag-capo';
+        else if(isCmd) tc+='tag-cmd';
+        else tc+='tag-normal';
+        const lbl=isCapo?`⭐${nome}`:isCmd?`📣${nome}`:nome;
+        html+=`<span class="${tc}" onclick="toggleAss('${nome}',${s},this)" title="Click = segna assente/presente">${lbl}</span>`;
       });
-
-      if(cell.allievi.length===0) html+=`<span style="color:#ccc;font-size:.7rem;">—</span>`;
+      if(!cell.allievi.length) html+=`<span style="color:#ccc;font-size:.68rem;">—</span>`;
       html+=`</div></td>`;
     });
     html+=`</tr>`;
   }
   html+=`</tbody>`;
-  table.innerHTML=html;
+  document.getElementById('piano-table').innerHTML=html;
 }
 
-// ── Toggle assenza ────────────────────────────────────────────────────────
-function toggleAssenza(nome,slot,el){
-  const key=`${nome}_${slot}`;
-  if(assenze[key]){ delete assenze[key]; el.classList.remove('assente'); el.title='Segna assente'; }
-  else { assenze[key]=true; el.classList.add('assente'); el.title='Presente'; }
+function toggleAss(nome,s,el){
+  const k=`${nome}_${s}`;
+  if(assenze[k]){delete assenze[k];el.className=el.className.replace('tag-assente','tag-normal').replace('⭐','');el.title='Click = segna assente';}
+  else{assenze[k]=true;el.className=el.className.replace(/tag-(normal|capo|cmd)/,'tag-assente');el.title='Click = segna presente';}
 }
 
-// ── Render matrice incontri ───────────────────────────────────────────────
-function renderMatrice(als,incontri){
-  const table=document.getElementById('matrice-table');
-  let html=`<thead><tr><th></th>${als.map(a=>`<th title="${a.nome}">${a.nome.slice(0,4)}</th>`).join('')}</tr></thead><tbody>`;
-  als.forEach(a=>{
-    html+=`<tr><th style="text-align:left;padding:3px 5px;">${a.nome}</th>`;
-    als.forEach(b=>{
-      if(a.nome===b.nome){ html+=`<td style="background:#f0f0f0;">—</td>`; return; }
-      const v=(incontri[a.nome]&&incontri[a.nome][b.nome])||0;
-      const cls=v===0?'m0':v===1?'m1':v===2?'m2':v===3?'m3':'m4p';
-      html+=`<td class="${cls}">${v||''}</td>`;
+// ── Matrice incontri ──────────────────────────────────────────────────────
+function renderMatrice(alsOk,inc){
+  let html=`<thead><tr><th></th>${alsOk.map(a=>`<th title="${a.nome}">${a.nome.slice(0,5)}</th>`).join('')}</tr></thead><tbody>`;
+  alsOk.forEach(a=>{
+    html+=`<tr><th style="text-align:left;padding:2px 5px;font-weight:normal;">${a.nome}</th>`;
+    alsOk.forEach(b=>{
+      if(a.nome===b.nome){html+=`<td style="background:#f0f0f0;">—</td>`;return;}
+      const v=(inc[a.nome]&&inc[a.nome][b.nome])||0;
+      const c=v===0?'m0':v===1?'m1':v===2?'m2':v===3?'m3':'m4';
+      html+=`<td class="${c}">${v||''}</td>`;
     });
     html+=`</tr>`;
   });
-  html+=`</tbody>`;
-  table.innerHTML=html;
+  document.getElementById('mat-table').innerHTML=html+'</tbody>';
 }
 
-// ── Render copertura istruttori ───────────────────────────────────────────
-function renderCopertura(als,istrs,capo){
-  const table=document.getElementById('cov-table');
-  if(!istrs.length){ table.innerHTML='<tr><td>Nessun istruttore configurato.</td></tr>'; return; }
+// ── Copertura istruttori ──────────────────────────────────────────────────
+function renderCopertura(alsOk,istrOk,capo){
+  const t=document.getElementById('cov-table');
+  if(!istrOk.length){t.innerHTML='<tr><td colspan="2">Nessun istruttore.</td></tr>';return;}
 
-  // Calcola chi ha visto chi
   const cov={};
-  istrs.forEach(ist=>{ cov[ist.nome]={}; als.forEach(a=>{ cov[ist.nome][a.nome]=0; }); });
-
-  for(let slot=0;slot<10;slot++){
-    piano[slot].forEach(cell=>{
-      if(!cell.istruttore) return;
-      cell.allievi.forEach(nome=>{ if(cov[cell.istruttore]) cov[cell.istruttore][nome]=(cov[cell.istruttore][nome]||0)+1; });
+  istrOk.forEach(i=>{ cov[i.nome]={}; alsOk.forEach(a=>cov[i.nome][a.nome]=0); });
+  for(let s=0;s<10;s++)
+    piano[s].forEach(cell=>{
+      if(!cell.istr||!cov[cell.istr]) return;
+      cell.allievi.forEach(n=>cov[cell.istr][n]=(cov[cell.istr][n]||0)+1);
     });
-  }
 
-  let html=`<thead><tr><th>Istruttore</th>${als.map(a=>`<th title="${a.nome}">${a.nome.slice(0,5)}</th>`).join('')}<th>Non ancora visti</th></tr></thead><tbody>`;
-  istrs.forEach(ist=>{
-    const isCapoRow=capo&&ist.nome===capo.nome;
-    const nonVisti=als.filter(a=>(cov[ist.nome][a.nome]||0)===0).map(a=>a.nome);
-    html+=`<tr class="${isCapoRow?'cov-capo':''}">`;
-    html+=`<td style="font-weight:bold;white-space:nowrap;">${isCapoRow?'⭐ ':''} ${ist.nome}</td>`;
-    als.forEach(a=>{
+  let html=`<thead><tr><th>Istruttore</th>${alsOk.map(a=>`<th title="${a.nome}">${a.nome.slice(0,5)}</th>`).join('')}<th>Non visti</th></tr></thead><tbody>`;
+  istrOk.forEach(ist=>{
+    const isC=capo&&ist.nome===capo.nome;
+    const nv=alsOk.filter(a=>!cov[ist.nome][a.nome]).map(a=>a.nome);
+    html+=`<tr class="${isC?'cov-capo':''}"><td style="font-weight:bold;white-space:nowrap;">${isC?'⭐':''} ${ist.nome}</td>`;
+    alsOk.forEach(a=>{
       const v=cov[ist.nome][a.nome]||0;
-      const cls=v===0?'cov0':v===1?'cov1':'cov2p';
-      html+=`<td class="${cls}">${v||'—'}</td>`;
+      html+=`<td class="${v===0?'c0':v===1?'c1':'c2'}">${v||'—'}</td>`;
     });
-    html+=`<td style="font-size:.72rem;color:var(--rosso);">${nonVisti.join(', ')||'✅ Tutti'}</td>`;
-    html+=`</tr>`;
+    html+=`<td style="font-size:.72rem;color:var(--rosso);">${nv.join(', ')||'✅'}</td></tr>`;
   });
-  html+=`</tbody>`;
-  table.innerHTML=html;
+  t.innerHTML=html+'</tbody>';
 }
 
-// ── Tab navigation ────────────────────────────────────────────────────────
+// ── Tabs ──────────────────────────────────────────────────────────────────
 function showTab(name,btn){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
 }
-
-// ── Default: aggiungi qualche allievo di esempio ──────────────────────────
-['Marco','Sara','Luca','Elena','Andrea','Giulia'].forEach((n,i)=>
-  aggiungiAllievo(n, [3,4,2,5,1,3][i], i%2===0?'M':'F', i===0)
-);
-aggiungiIstruttore('Paolo');
-aggiungiIstruttore('Maria');
 </script>
 </body>
 </html>
