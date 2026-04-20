@@ -208,6 +208,10 @@ def check_turno_auth(turno_num, token):
 def index():
     return send_from_directory('static','index.html')
 
+@app.route('/equipaggi')
+def equipaggi():
+    return send_from_directory('static','equipaggi.html')
+
 @app.route('/api/login', methods=['POST'])
 def login():
     d=request.json or {}
