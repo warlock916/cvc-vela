@@ -151,7 +151,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
   <button class="active" onclick="showPage('scheda',this)">📋 Scheda</button>
   <button onclick="showPage('report',this)">🏆 Report</button>
   <button onclick="showPage('admin',this)">🔒 Admin</button>
-  <a href="/equipaggi" target="_blank" style="margin-left:auto;color:rgba(255,255,255,.75);padding:10px 16px;text-decoration:none;font-size:.85rem;border-bottom:3px solid transparent;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.75)'">⛵ Equipaggi</a>
+  <a id="link-equipaggi" href="/equipaggi" target="_blank" style="margin-left:auto;color:rgba(255,255,255,.75);padding:10px 16px;text-decoration:none;font-size:.85rem;border-bottom:3px solid transparent;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,.75)'">⛵ Equipaggi</a>
   <button onclick="doLogout()">↩ Esci</button>
 </nav>
 
@@ -371,6 +371,9 @@ function enterApp(){
   document.getElementById('main-nav').style.display='flex';
   document.getElementById('hdr-info').innerHTML=
     `T<strong>${session.turno}</strong> &nbsp;${session.istruttore} &nbsp;<span class="tag">${session.corso}</span>`;
+  // Imposta link equipaggi con i parametri del turno corrente
+  const linkEq=document.getElementById('link-equipaggi');
+  if(linkEq) linkEq.href=`/equipaggi?turno=${session.turno}&corso=${encodeURIComponent(session.corso)}&tok=${encodeURIComponent(session.token)}`;
   buildTableHeader();
   showPage('scheda');
   caricaTurno();
