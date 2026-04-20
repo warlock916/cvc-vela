@@ -568,6 +568,8 @@ function importaExcel(input){
         let alertMsg = `✅ Importati ${aggiunti} allievi`;
         if(vuoti>0) alertMsg += `\nℹ️ ${vuoti} righe vuote ignorate`;
         alert(alertMsg);
+        // Salva automaticamente dopo l'import
+        if(aggiunti>0) salvaScheda();
       }, 400);
     } catch(err){
       if(toast) toast.classList.remove('show');
