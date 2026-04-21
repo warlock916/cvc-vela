@@ -934,56 +934,6 @@ def set_turno_foto():
         conn.commit()
     return jsonify({'ok': True, 'enabled': bool(enabled)})
 
-@app.route('/api/admin/foto-enabled', methods=['GET'])
-@check_admin
-def get_foto_enabled():
-    with get_db() as conn:
-        cur = conn.cursor()
-        cur.execute(f"SELECT value FROM settings WHERE key={PH}", ('foto_enabled',))
-        row = cur.fetchone()
-        val = row[0] if row else '1'
-    return jsonify({'enabled': val == '1'})
-
-
-@app.route('/api/admin/turno-foto', methods=['POST'])
-@check_admin
-def set_turno_foto():
-    d = request.json or {}
-    numero = d.get('numero')
-    corso  = d.get('corso','')
-    enabled = 1 if d.get('enabled') else 0
-    if not numero or not corso:
-        return jsonify({'error':'numero e corso obbligatori'}),400
-    with get_db() as conn:
-        cur = conn.cursor()
-        cur.execute(
-            f'UPDATE turni SET foto_enabled={PH} WHERE numero={PH} AND corso={PH}',
-            (enabled, numero, corso)
-        )
-        conn.commit()
-    return jsonify({'ok': True, 'enabled': bool(enabled)})
-
-@app.route('/api/admin/foto-enabled', methods=['POST'])
-@check_admin
-def set_foto_enabled():
-    d = request.json or {}
-    enabled = '1' if d.get('enabled') else '0'
-    with get_db() as conn:
-        cur = conn.cursor()
-        if USE_PG:
-            cur.execute(
-                f"INSERT INTO settings(key,value) VALUES({PH},{PH}) "
-                f"ON CONFLICT(key) DO UPDATE SET value={PH}",
-                ('foto_enabled', enabled, enabled)
-            )
-        else:
-            cur.execute(
-                f"INSERT OR REPLACE INTO settings(key,value) VALUES({PH},{PH})",
-                ('foto_enabled', enabled)
-            )
-        conn.commit()
-    return jsonify({'ok': True, 'enabled': enabled == '1'})
-
 @app.route('/api/check-libs', methods=['GET'])
 def check_libs():
     results = {}
