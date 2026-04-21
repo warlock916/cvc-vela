@@ -78,6 +78,7 @@ def init_db():
             pwd_plain  TEXT NOT NULL,
             istruttore TEXT NOT NULL,
             email      TEXT,
+            foto_enabled INTEGER DEFAULT 0,
             created_at {TS},
             UNIQUE(numero, corso)
         )''')
@@ -126,6 +127,14 @@ def migrate_db():
                 if not cur.fetchone():
                     cur.execute('ALTER TABLE turni ADD COLUMN email TEXT')
                     conn.commit()
+                # foto_enabled in turni
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='turni' AND column_name='foto_enabled'"
+                )
+                if not cur.fetchone():
+                    cur.execute('ALTER TABLE turni ADD COLUMN foto_enabled INTEGER DEFAULT 0')
+                    conn.commit()
                 # foto_ok in sessions
                 cur.execute(
                     "SELECT column_name FROM information_schema.columns "
@@ -145,6 +154,9 @@ def migrate_db():
                 if 'email' not in cols2:
                     cur.execute('ALTER TABLE turni ADD COLUMN email TEXT')
                     conn.commit()
+                if 'foto_enabled' not in cols2:
+                    cur.execute('ALTER TABLE turni ADD COLUMN foto_enabled INTEGER DEFAULT 0')
+                    conn.commit()
                 # foto_ok in sessions
                 cur.execute("PRAGMA table_info(sessions)")
                 cols3 = [r[1] for r in cur.fetchall()]
@@ -153,6 +165,28 @@ def migrate_db():
                     conn.commit()
     except Exception as e:
         print(f"Migration warning: {e}")
+
+    # Crea tabella settings se non esiste
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            if USE_PG:
+                cur.execute(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_name='settings'"
+                )
+                if not cur.fetchone():
+                    cur.execute("CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT)")
+                    cur.execute(f"INSERT INTO settings(key,value) VALUES({PH},{PH})", ('foto_enabled','1'))
+                    conn.commit()
+            else:
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'")
+                if not cur.fetchone():
+                    cur.execute("CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT)")
+                    cur.execute(f"INSERT INTO settings(key,value) VALUES({PH},{PH})", ('foto_enabled','1'))
+                    conn.commit()
+    except Exception as e:
+        print(f"Settings migration warning: {e}")
 
 migrate_db()
 
@@ -383,13 +417,18 @@ def upload_foto(turno):
         allievo=request.args.get('allievo','').strip()
         if not allievo: return jsonify({'error':'Nome allievo mancante'}),400
         if not check_turno_auth(turno, token): return jsonify({'error':'Non autorizzato'}),401
-        # Verifica permesso foto
+        # Verifica permesso foto: sessione foto_ok + foto_enabled del turno
         with get_db() as conn2:
             cur2=conn2.cursor()
             cur2.execute(f'SELECT foto_ok FROM sessions WHERE token={PH}',(token,))
             sr=cur2.fetchone()
             fok=sr[0] if USE_PG else (sr['foto_ok'] if sr else 0)
             if not fok: return jsonify({'error':'Caricamento foto non abilitato per questo accesso'}),403
+            cur2.execute(f'SELECT foto_enabled FROM turni WHERE numero={PH}', (turno,))
+            sr2=cur2.fetchone()
+            turno_foto = (sr2[0] if sr2 else 0)
+            if not turno_foto:
+                return jsonify({'error':"Caricamento foto disabilitato per questo turno dall'amministratore"}),403
         if 'foto' not in request.files: return jsonify({'error':'Nessun file'}),400
         file=request.files['foto']
         if not file or not file.filename: return jsonify({'error':'File vuoto'}),400
@@ -558,7 +597,7 @@ def stats():
         cur.execute('SELECT AVG(punteggio_finale) FROM valutazioni WHERE punteggio_finale IS NOT NULL'); med=cur.fetchone()[0]
         cur.execute('SELECT corso,COUNT(*) n,AVG(punteggio_finale) media FROM valutazioni GROUP BY corso ORDER BY corso')
         perc=rows_to_dicts(cur.fetchall(),cur)
-        cur.execute('SELECT numero,istruttore,email,corso,pwd_plain FROM turni ORDER BY numero,corso')
+        cur.execute('SELECT numero,istruttore,email,corso,pwd_plain,foto_enabled FROM turni ORDER BY numero,corso')
         turni=rows_to_dicts(cur.fetchall(),cur)
     return jsonify({'totale':tot,'istruttori':istr,'corsi_attivi':cors,
                     'media_generale':round(float(med),1) if med else None,
@@ -874,6 +913,76 @@ def export_pdf_turno(turno):
         return jsonify({'error':str(ex),'detail':traceback.format_exc()}),500
 
 # ── Reset DB ──────────────────────────────────────────────────────────────
+
+
+
+@app.route('/api/admin/turno-foto', methods=['POST'])
+@check_admin
+def set_turno_foto():
+    d = request.json or {}
+    numero = d.get('numero')
+    corso  = d.get('corso','')
+    enabled = 1 if d.get('enabled') else 0
+    if not numero or not corso:
+        return jsonify({'error':'numero e corso obbligatori'}),400
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            f'UPDATE turni SET foto_enabled={PH} WHERE numero={PH} AND corso={PH}',
+            (enabled, numero, corso)
+        )
+        conn.commit()
+    return jsonify({'ok': True, 'enabled': bool(enabled)})
+
+@app.route('/api/admin/foto-enabled', methods=['GET'])
+@check_admin
+def get_foto_enabled():
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(f"SELECT value FROM settings WHERE key={PH}", ('foto_enabled',))
+        row = cur.fetchone()
+        val = row[0] if row else '1'
+    return jsonify({'enabled': val == '1'})
+
+
+@app.route('/api/admin/turno-foto', methods=['POST'])
+@check_admin
+def set_turno_foto():
+    d = request.json or {}
+    numero = d.get('numero')
+    corso  = d.get('corso','')
+    enabled = 1 if d.get('enabled') else 0
+    if not numero or not corso:
+        return jsonify({'error':'numero e corso obbligatori'}),400
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            f'UPDATE turni SET foto_enabled={PH} WHERE numero={PH} AND corso={PH}',
+            (enabled, numero, corso)
+        )
+        conn.commit()
+    return jsonify({'ok': True, 'enabled': bool(enabled)})
+
+@app.route('/api/admin/foto-enabled', methods=['POST'])
+@check_admin
+def set_foto_enabled():
+    d = request.json or {}
+    enabled = '1' if d.get('enabled') else '0'
+    with get_db() as conn:
+        cur = conn.cursor()
+        if USE_PG:
+            cur.execute(
+                f"INSERT INTO settings(key,value) VALUES({PH},{PH}) "
+                f"ON CONFLICT(key) DO UPDATE SET value={PH}",
+                ('foto_enabled', enabled, enabled)
+            )
+        else:
+            cur.execute(
+                f"INSERT OR REPLACE INTO settings(key,value) VALUES({PH},{PH})",
+                ('foto_enabled', enabled)
+            )
+        conn.commit()
+    return jsonify({'ok': True, 'enabled': enabled == '1'})
 
 @app.route('/api/check-libs', methods=['GET'])
 def check_libs():
