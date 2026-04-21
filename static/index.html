@@ -318,6 +318,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
         <button class="btn btn-warning" onclick="cancellaFoto()" style="padding:8px 18px;font-size:.86rem;">🖼️ Cancella Foto</button>
         <button class="btn btn-danger" onclick="resetDB()" style="padding:8px 18px;font-size:.86rem;">🗑️ Reset DB</button>
       </div>
+
       <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreDB(this)">
       <p style="margin-top:10px;font-size:.8rem;color:#888;">⚠️ Reset DB cancella tutti i dati. Esporta il Backup prima di fare Reset o Restore.</p>
     </div>
@@ -581,6 +582,33 @@ function importaExcel(input){
   reader.readAsArrayBuffer(file);
 }
 
+function modificaNome(nomeVecchio, id){
+  const nuovoNome = prompt('Rinomina allievo:', nomeVecchio);
+  if(!nuovoNome || nuovoNome.trim()==='' || nuovoNome.trim()===nomeVecchio) return;
+  const nome = nuovoNome.trim();
+  if(allievi.includes(nome)){ alert('Nome già presente.'); return; }
+
+  // Aggiorna array allievi
+  const idx = allievi.indexOf(nomeVecchio);
+  if(idx>=0) allievi[idx]=nome;
+
+  // Aggiorna label visibile (desktop e mobile)
+  document.querySelectorAll(`#nome_lbl_${id}`).forEach(el=>el.textContent=nome);
+  // Aggiorna pulsante rimuovi
+  document.querySelectorAll(`[onclick="rimuoviAllievo('${nomeVecchio}')"]`)
+    .forEach(el=>el.setAttribute('onclick',`rimuoviAllievo('${nome}')`));
+  // Aggiorna onclick del nome
+  document.querySelectorAll(`[onclick="modificaNome('${nomeVecchio}','${id}')"]`)
+    .forEach(el=>el.setAttribute('onclick',`modificaNome('${nome}','${id}')`));
+  // Aggiorna foto cell
+  document.querySelectorAll(`[onclick*="apriUploadFoto('${nomeVecchio}'"]`)
+    .forEach(el=>el.setAttribute('onclick',`apriUploadFoto('${nome}','${id}')`));
+  // Aggiorna ricalcola nelle celle input
+  document.querySelectorAll(`[oninput*="ricalcolaAllievo('${nomeVecchio}')"]`)
+    .forEach(el=>el.setAttribute('oninput',
+      el.getAttribute('oninput').replace(`ricalcolaAllievo('${nomeVecchio}')`,`ricalcolaAllievo('${nome}')`)));
+}
+
 function aggiungiAllievo(){
   const inp=document.getElementById('nuovo-allievo');
   const nome=inp.value.trim(); if(!nome)return;
@@ -606,7 +634,10 @@ function renderRigaDesktop(nome,id){
         <span class="foto-placeholder">👤</span>
         <span style="position:absolute;bottom:-2px;right:-2px;background:var(--blu2);color:white;border-radius:50%;width:14px;height:14px;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1;">+</span>
       </div>
-      <span>${nome}</span>
+      <span id="nome_lbl_${id}">${nome}</span>
+      <span onclick="modificaNome('${nome}','${id}')" title="Rinomina allievo"
+        style="cursor:pointer;color:var(--blu2);font-size:.75rem;margin-left:4px;opacity:.7;"
+        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">✏️</span>
     </div>
   </td>`;
   DAY_KEYS.forEach((dk,di)=>{
@@ -632,7 +663,9 @@ function renderRigaMobile(nome,id){
       <span class="foto-placeholder">👤</span>
       <span style="position:absolute;bottom:-2px;right:-2px;background:var(--blu2);color:white;border-radius:50%;width:14px;height:14px;font-size:10px;display:flex;align-items:center;justify-content:center;">+</span>
     </div>
-    <span style="flex:1">${nome}</span>
+    <span id="nome_lbl_${id}" style="flex:1;">${nome}</span>
+    <span onclick="modificaNome('${nome}','${id}')" title="Rinomina"
+      style="cursor:pointer;font-size:.75rem;margin-right:4px;opacity:.8;">✏️</span>
     <button class="btn btn-danger btn-sm" onclick="rimuoviAllievo('${nome}')">✕</button>
   </div>`;
 
@@ -810,7 +843,7 @@ async function loadStats(){
       <div class="stat"><div class="n">${d.media_generale??'—'}</div><div class="l">Media generale</div></div>
       ${(d.per_corso||[]).map(c=>`<div class="stat"><div class="n">${c.media?Number(c.media).toFixed(1):'—'}</div><div class="l">${c.corso} (${c.n})</div></div>`).join('')}`;
     document.getElementById('turni-body').innerHTML=(d.turni||[]).map(t=>
-      `<tr><td><strong>T${t.numero}</strong></td><td>${t.istruttore}</td><td>${t.email||'—'}</td><td><span class="tag">${t.corso}</span></td><td><span class="pwd-cell">${t.pwd_plain}</span></td><td><button class="btn btn-danger" onclick="cancellaTurno(${t.numero},'${t.corso}')">🗑️</button></td></tr>`
+      `<tr><td><strong>T${t.numero}</strong></td><td>${t.istruttore}</td><td>${t.email||'—'}</td><td><span class="tag">${t.corso}</span></td><td><span class="pwd-cell">${t.pwd_plain}</span></td><td><label style="cursor:pointer;display:flex;align-items:center;gap:4px;justify-content:center;"><input type="checkbox" ${t.foto_enabled?'checked':''} onchange="toggleFotoTurno(${t.numero},'${t.corso}',this.checked)" style="width:15px;height:15px;"> <span style="font-size:.75rem;">${t.foto_enabled?'✅':'🚫'}</span></label></td><td><button class="btn btn-danger" onclick="cancellaTurno(${t.numero},'${t.corso}')">🗑️</button></td></tr>`
     ).join('')||'<tr><td colspan="4" class="empty">Nessun turno.</td></tr>';
   }catch(e){}
 }
@@ -1065,6 +1098,20 @@ async function cancellaTurno(numero, corso){
     if(!res.ok) throw new Error(d.error||'Errore');
     alert(`✅ Turno ${numero} ${corso} eliminato (${d.valutazioni} valutazioni rimosse).`);
     loadStats(); loadRiepilogo();
+  }catch(e){ alert('Errore: '+e.message); }
+}
+
+async function toggleFotoTurno(numero, corso, abilitato){
+  if(!adminToken){ alert('Accedi come admin.'); return; }
+  try{
+    const res=await fetch(`${API}/api/admin/turno-foto`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Admin-Token':adminToken},
+      body:JSON.stringify({numero,corso,enabled:abilitato})
+    });
+    const d=await res.json();
+    if(!res.ok) throw new Error(d.error||'Errore');
+    loadStats(); // ricarica per aggiornare la tabella
   }catch(e){ alert('Errore: '+e.message); }
 }
 
