@@ -329,6 +329,15 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
 <script>
 const API='';
 const CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I'];
+const CRITERI_DESC=[
+  'È in grado di condurre con buona sicurezza e autonomia sia una deriva che un cabinato. È in grado di valutare e navigare nelle zone più sicure, rispettando i perimetri di navigazione.',
+  'È in grado di eseguire le manovre fondamentali (gavitello, ancoraggio, regolazione e cambio velatura) prevedendo il comportamento della barca e dell\'equipaggio per garantirne la sufficiente sicurezza.',
+  'È in grado di eseguire le manovre fondamentali (accosto ai mezzi, prende gavitelli, quickstop, ancoraggi, adegua velatura) con metodo e consapevolezza, avendo in chiaro l\'obiettivo dell\'esercizio.',
+  'È in grado di preparare i mezzi di sicurezza sotto tutti i punti di vista (sgotto, rabbocco, dotazioni), accendere e spegnere il motore e usare l\'invertitore nel rispetto delle norme ambientali.',
+  'È in grado di collaborare con l\'istruttore durante le manovre di sicurezza (lancio cima e uso capra), essendo consapevole della manovra e dei rischi. Il governo dei mezzi di sicurezza rimane in carico solo all\'istruttore.',
+  'Si comporta coerentemente alle procedure di sicurezza, utilizzando attrezzature e comportamenti atti a prevenire l\'emergenza, in mare e a terra.',
+  'È in grado di comprendere le indicazioni didattiche del CT e fare da facilitatore agli allievi. Supporta il gruppo istruttori sia a terra che in mare per il raggiungimento degli obiettivi.',
+];
 const CRITERI_KEYS=['tec','sen','aff','pro','imp','dis','com'];
 const DAY_COLORS=['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
 const DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7'];
@@ -480,7 +489,7 @@ function buildTableHeader(){
   DAY_LABELS.forEach((_,di)=>{
     const bg=DAY_COLORS[di];
     CRITERI_NOMI.forEach((crit,ci)=>{
-      r2+=`<th ${ci===0&&di>0?'class="sep-th"':''} style="background:${bg};color:white;opacity:.88;font-size:.66rem;min-width:28px;">${crit.split(' ')[0]}</th>`;
+      r2+=`<th ${ci===0&&di>0?'class="sep-th"':''} style="background:${bg};color:white;opacity:.88;font-size:.66rem;min-width:28px;cursor:help;" title="${CRITERI_DESC[ci]||crit}">${crit.split(' ')[0]}</th>`;
     });
     r2+=`<th style="background:${bg};color:var(--oro);font-size:.7rem;min-width:28px;">Pts</th>`;
   });
@@ -683,7 +692,7 @@ function renderRigaMobile(nome,id){
 
   // Una riga per ogni criterio
   CRITERI_KEYS.forEach((key,ci)=>{
-    html+=`<tr><td style="padding:3px 4px;font-size:.7rem;font-weight:bold;color:#555;background:#fafafa;">${CRITERI_NOMI[ci]}</td>`;
+    html+=`<tr><td style="padding:3px 4px;font-size:.7rem;font-weight:bold;color:#555;background:#fafafa;cursor:help;" title="${CRITERI_DESC[ci]||CRITERI_NOMI[ci]}">${CRITERI_NOMI[ci]}</td>`;
     DAY_KEYS.forEach((dk,di)=>{
       const bg=DAY_COLORS[di]+'22';
       html+=`<td style="padding:2px;background:${bg};text-align:center;">
@@ -926,7 +935,7 @@ async function apriModal(id){
       return `<div class="modal-day" style="border-top:3px solid ${bg}">
         <h4 style="color:${bg}">${lbl}</h4>
         ${CRITERI_NOMI.map((crit,ci)=>`
-          <div><label>${crit}</label>
+          <div><label title="${CRITERI_DESC[ci]||''}" style="cursor:help;">${crit} ℹ️</label>
           <input type="number" id="mod_${dk}_${CRITERI_KEYS[ci]}" min="1" max="10"
             value="${r[CRITERI_KEYS[ci]+'_'+dk]??''}" placeholder="—"
             oninput="validateVoto(this);aggiornaModalPts()"></div>`).join('')}
