@@ -702,7 +702,7 @@ def export_excel_turno(turno):
         DAY_C=['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']
         thin=Side(style='thin',color='CCCCCC')
         BRD=Border(left=thin,right=thin,top=thin,bottom=thin)
-        CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I']
+        CRITERI_NOMI=['Tecnica','Sen. Naut.','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I']
         DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
 
         ws.merge_cells('A1:D1')
