@@ -411,6 +411,7 @@ function genera(){
   // Regola: AdV, AT, I → max uno per barca, in ordine di priorità I > AdV > AT
   const referenti=[...istr,...adv,...at];
   const barche=Array.from({length:nB},(_,i)=>({id:i+1, pers:[]}));
+  const warns=[];
 
   // Assegna referenti: prima pianoManuale, poi automatico per le barche libere
   const barceConRef=new Set();
@@ -443,33 +444,34 @@ function genera(){
   });
 
   // Distribuisci allievi nelle barche fino a nE posti ciascuna
-  // NOTA: nE = posti TOTALI per barca (incluso eventuale referente)
+  // nE = capienza MASSIMA per barca (referente incluso nel conteggio)
   const usati=new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
+  const candidati=[...allOrd]; // copia ordinata
 
-  // Continua finché ci sono candidati E barche con posti liberi
-  let progresso=true;
-  while(progresso){
-    progresso=false;
-    barche.forEach(barca=>{
-      if(barca.pers.length>=nE) return;
-      const cand=allOrd.filter(p=>!usati.has(p.n));
-      if(!cand.length) return;
-      // Scegli chi ha meno incontri con i membri già in barca
-      // In caso di parità, usa il ranking (rank più alto → più esperienza → bilancia)
-      const best=cand.reduce((best,c)=>{
+  // Per ogni posto libero in ogni barca, assegna il candidato migliore
+  barche.forEach(barca=>{
+    while(barca.pers.length < nE){
+      const liberi=candidati.filter(p=>!usati.has(p.n));
+      if(!liberi.length) break; // nessun allievo rimasto
+      // Scegli chi ha meno incontri con i già presenti in barca
+      const best=liberi.reduce((best,c)=>{
         const sC=barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s,0);
         const sB=barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s,0);
-        return sC<sB?c:best;
-      }, cand[0]);
-      barca.pers.push(best); usati.add(best.n);
-      progresso=true;
-    });
-  }
-
-  // Residui (più allievi dei posti disponibili) → distribuisci in round robin
-  allOrd.filter(p=>!usati.has(p.n)).forEach((p,i)=>{
-    barche[i%nB].pers.push(p); usati.add(p.n);
+        if(sC!==sB) return sC<sB?c:best;
+        // Parità incontri: usa ranking se abilitato
+        if(usaRanking) return (c.rank||3)<(best.rank||3)?c:best;
+        return best;
+      }, liberi[0]);
+      barca.pers.push(best);
+      usati.add(best.n);
+    }
   });
+
+  // Non-imbarcati: allievi rimasti fuori (troppi allievi per i posti disponibili)
+  const nonAssegnati=candidati.filter(p=>!usati.has(p.n));
+  if(nonAssegnati.length){
+    warns.push(`ℹ️ ${nonAssegnati.length} allievi non assegnati (posti esauriti): ${nonAssegnati.map(p=>p.n).join(', ')}`);
+  }
 
   // Aggiorna matrice incontri (solo tra allievi A)
   barche.forEach(b=>{
@@ -499,8 +501,7 @@ function genera(){
   });
   salvaStorage();
 
-  // Warnings
-  const warns=[];
+  // Warning referenti in eccesso
   if(referenti.length>nB)
     warns.push(`⚠️ ${referenti.length-nB} referenti (I/AdV/AT) in eccesso rispetto alle barche — distribuiti come allievi.`);
 
