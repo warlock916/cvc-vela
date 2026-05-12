@@ -97,13 +97,13 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   </div>
   <div style="overflow:auto;max-height:320px;">
     <table class="tbl">
-      <thead><tr><th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th><th>Rank</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th><th title="1-5 (dal voto Tecnica del giorno precedente; Giorno 1 = 3)">Rank ⓘ</th><th></th></tr></thead>
       <tbody id="p-tbody"></tbody>
     </table>
   </div>
   <p style="font-size:.72rem;color:#888;margin-top:8px;">
-    Ruoli: <strong>A</strong>=Allievo &nbsp;<strong>AdV</strong>=Assistente Vela &nbsp;<strong>AT</strong>=Assistente Terra &nbsp;<strong>I</strong>=Istruttore<br>
-    ⚠️ <strong>AdV, AT e I non possono essere sulla stessa imbarcazione.</strong>
+    Ruoli: <strong>A</strong>=Allievo &nbsp;<strong>IS</strong>=Istruttore &nbsp;<strong>CT</strong>=Capo Turno &nbsp;<strong>AT</strong>=Assistente di Terra<br>
+    ⚠️ <strong>IS, CT e AT non possono essere sulla stessa imbarcazione.</strong>
   </p>
 </div>
 
@@ -197,9 +197,9 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 
 </div>
 <script>
-const RUOLI  = ['A','AdV','AT','I'];
-const RBADGE = {A:'rA', AdV:'rAdV', AT:'rAT', I:'rI'};
-const RCOLOR  = {I:'#065f46', AdV:'#9d174d', AT:'#92400e', A:'#1F4E79'};
+const RUOLI  = ['A','IS','CT','AT'];
+const RBADGE = {A:'rA', IS:'rAdV', CT:'rI', AT:'rAT'};
+const RCOLOR  = {CT:'#065f46', IS:'#9d174d', AT:'#92400e', A:'#1F4E79'};
 const KEY = 'cvc_eq_v3';
 
 let P=[], daily={}, storico=[], inc={}, covRef={}, pianoManuale={}; // pianoManuale[barId]=nomePers
@@ -300,10 +300,22 @@ async function caricaDaScheda(turno,corso,tok){
     let k=0;
     (d.allievi||[]).forEach(r=>{
       if(!P.find(p=>p.n===r.allievo)){
-        // Calcola rank da punteggio finale (5→1, 6→2, 7→3, 8→4, 9-10→5)
-        let rank=3;
-        const pf=r.punteggio_finale;
-        if(pf!=null){ if(pf<=5)rank=1; else if(pf<=6)rank=2; else if(pf<=7)rank=3; else if(pf<=8)rank=4; else rank=5; }
+        // Rank dal voto Tecnica del giorno precedente (tec_g1..tec_g6,tec_fin)
+        // Cerca l'ultimo giorno con un voto tecnica disponibile
+        // Se nessun voto → rank=3 (corrisponde a voto base 6)
+        let rank=3; // default giorno 1: tutti a 6 → rank 3
+        const tecKeys=['tec_g1','tec_g2','tec_g3','tec_g4','tec_g5','tec_g6','tec_fin'];
+        let lastTec=null;
+        tecKeys.forEach(k2=>{ if(r[k2]!=null) lastTec=r[k2]; });
+        if(lastTec!=null){
+          // Voto tecnica 1-10 → rank 1-5
+          // 1-2→1, 3-4→2, 5-6→3, 7-8→4, 9-10→5
+          if(lastTec<=2) rank=1;
+          else if(lastTec<=4) rank=2;
+          else if(lastTec<=6) rank=3;
+          else if(lastTec<=8) rank=4;
+          else rank=5;
+        }
         P.push({n:r.allievo, c:'', s:'', r:'A', rank}); k++;
       }
     });
@@ -341,7 +353,7 @@ function setTutti(v){ P.forEach((_,i)=>{ if(daily[i]) daily[i].imb=v; }); render
 function renderPianoIstruttori(){
   const nB=parseInt(document.getElementById('n-barche').value)||4;
   const referenti=P.map((p,i)=>({...p,rOggi:daily[i]?.r||p.r,imb:daily[i]?.imb!==false}))
-    .filter(p=>p.imb && p.n.trim() && ['I','AdV','AT'].includes(p.rOggi));
+    .filter(p=>p.imb && p.n.trim() && ['CT','IS','AT'].includes(p.rOggi));
 
   const card=document.getElementById('piano-card');
   if(!referenti.length){ card.style.display='none'; return; }
@@ -404,9 +416,9 @@ function genera(){
   if(!imb.length){ w.textContent='⚠️ Nessuno è imbarcato.'; w.style.display='block'; return; }
 
   const allievi=imb.filter(p=>p.rOggi==='A');
-  const adv    =imb.filter(p=>p.rOggi==='AdV');
+  const adv    =imb.filter(p=>p.rOggi==='IS');   // IS = Istruttore
   const at     =imb.filter(p=>p.rOggi==='AT');
-  const istr   =imb.filter(p=>p.rOggi==='I');
+  const istr   =imb.filter(p=>p.rOggi==='CT');   // CT = Capo Turno
 
   // Regola: AdV, AT, I → max uno per barca, in ordine di priorità I > AdV > AT
   const referenti=[...istr,...adv,...at];
@@ -483,7 +495,7 @@ function genera(){
       inc[nn[y]][nn[x]]=(inc[nn[y]][nn[x]]||0)+1;
     }
     // Aggiorna copertura referenti → allievi
-    const refs=b.pers.filter(p=>['I','AdV','AT'].includes(p.rOggi));
+    const refs=b.pers.filter(p=>['CT','IS','AT'].includes(p.rOggi));
     const als2=b.pers.filter(p=>p.rOggi==='A');
     refs.forEach(r=>{
       if(!covRef[r.n]) covRef[r.n]={};
@@ -552,7 +564,7 @@ function renderEq(barche,data,mpt,warns){
 
 // ── Copertura referenti ──────────────────────────────────────────────────
 function renderCopertura(){
-  const refs=P.filter(p=>['I','AdV','AT'].includes(p.r));
+  const refs=P.filter(p=>['CT','IS','AT'].includes(p.r));
   const als=P.filter(p=>p.r==='A');
   const t=document.getElementById('cov-tbl');
   if(!refs.length||!als.length){ t.innerHTML='<tr><td style="padding:8px;color:#aaa;">Nessun dato.</td></tr>'; return; }
