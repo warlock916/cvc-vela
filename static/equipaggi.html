@@ -58,6 +58,12 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
 .tab.active{color:var(--blu);border-bottom:3px solid var(--blu);font-weight:bold;}
 .tc{display:none;}.tc.active{display:block;}
 .alert-w{background:#fff3cd;border-left:4px solid var(--arancio);padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:10px;}
+.piano-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px;}
+.piano-box{border:2px solid #ddd;border-radius:7px;overflow:hidden;font-size:.78rem;}
+.piano-box-hdr{padding:4px 8px;font-weight:bold;color:white;display:flex;justify-content:space-between;}
+.piano-box-body{padding:5px 8px;min-height:36px;}
+.piano-slot{display:flex;align-items:center;gap:4px;margin:2px 0;}
+.rank-star{color:var(--oro);font-size:.7rem;}
 .badge{background:var(--blu2);color:white;border-radius:10px;padding:1px 7px;font-size:.7rem;margin-left:4px;}
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
@@ -91,7 +97,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   </div>
   <div style="overflow:auto;max-height:320px;">
     <table class="tbl">
-      <thead><tr><th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th><th>Rank</th><th></th></tr></thead>
       <tbody id="p-tbody"></tbody>
     </table>
   </div>
@@ -113,7 +119,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
         <option value="T">🌞 Tutto il giorno (T)</option>
       </select>
     </div>
-    <div><label>N° Barche disponibili</label><input type="number" id="n-barche" value="4" min="1" max="20"></div>
+    <div><label>N° Barche disponibili</label><input type="number" id="n-barche" value="4" min="1" max="20" oninput="renderPianoIstruttori()"></div>
     <div><label>N° Persone per equipaggio</label><input type="number" id="n-eq" value="2" min="2" max="6"></div>
   </div>
   <div id="d-warn" class="alert-w" style="display:none;"></div>
@@ -131,7 +137,23 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
     <button class="btn btn-success" style="padding:9px 24px;font-size:.88rem;" onclick="genera()">⚡ Genera Equipaggi</button>
     <button class="btn btn-outline btn-sm" onclick="setTutti(true)">✅ Tutti imbarcati</button>
     <button class="btn btn-outline btn-sm" onclick="setTutti(false)">🚫 Nessuno imbarcato</button>
+    <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;font-weight:bold;cursor:pointer;margin:0;">
+      <input type="checkbox" id="usa-ranking" style="width:14px;height:14px;">
+      Usa ranking voti
+    </label>
   </div>
+</div>
+
+<!-- PIANO ISTRUTTORI -->
+<div class="card" id="piano-card" style="display:none;">
+  <h2>📋 Piano Istruttori / AdV / AT
+    <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="resetPianoManuale()">↩ Rigenera auto</button>
+  </h2>
+  <p style="font-size:.78rem;color:#666;margin-bottom:8px;">
+    Assegna manualmente ogni referente a una barca. Il sistema rispetta questi vincoli nella generazione.
+    <br>⚠️ Max un referente per barca — AdV, AT e I non possono stare insieme.
+  </p>
+  <div id="piano-istr-grid" class="piano-grid"></div>
 </div>
 
 <!-- OUTPUT -->
@@ -139,6 +161,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   <div class="card">
     <div class="tabs">
       <button class="tab active" onclick="showTab('eq',this)">⛵ Equipaggi</button>
+      <button class="tab" onclick="showTab('piano',this)">📋 Copertura Ref.</button>
       <button class="tab" onclick="showTab('mat',this)">🔗 Matrice Incontri</button>
       <button class="tab" onclick="showTab('stor',this)">📋 Storico</button>
     </div>
@@ -146,6 +169,10 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
       <div id="eq-info" style="font-size:.82rem;color:#555;margin-bottom:8px;"></div>
       <div id="eq-warn" class="alert-w" style="display:none;"></div>
       <div class="eq-grid" id="eq-grid"></div>
+    </div>
+    <div id="tc-piano" class="tc">
+      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Quante volte ogni referente (I/AdV/AT) ha navigato con ogni allievo.</p>
+      <div style="overflow-x:auto;"><table class="mat-tbl" id="cov-tbl"></table></div>
     </div>
     <div id="tc-mat" class="tc">
       <p style="font-size:.78rem;color:#666;margin-bottom:8px;">
@@ -175,7 +202,7 @@ const RBADGE = {A:'rA', AdV:'rAdV', AT:'rAT', I:'rI'};
 const RCOLOR  = {I:'#065f46', AdV:'#9d174d', AT:'#92400e', A:'#1F4E79'};
 const KEY = 'cvc_eq_v3';
 
-let P=[], daily={}, storico=[], inc={};
+let P=[], daily={}, storico=[], inc={}, covRef={}, pianoManuale={}; // pianoManuale[barId]=nomePers
 
 // ── Init ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
@@ -197,7 +224,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 function salvaStorage(){
   try{
     localStorage.setItem(KEY, JSON.stringify({
-      P, storico, inc,
+      P, storico, inc, covRef, pianoManuale,
       anno:document.getElementById('anno').value,
       corso:document.getElementById('corso-i').value,
       turno:document.getElementById('turno-i').value,
@@ -208,7 +235,7 @@ function caricaStorage(){
   try{
     const d=JSON.parse(localStorage.getItem(KEY)||'null');
     if(!d) return;
-    P=d.P||[]; storico=d.storico||[]; inc=d.inc||{};
+    P=d.P||[]; storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{}; pianoManuale=d.pianoManuale||{};
     if(d.anno)  document.getElementById('anno').value=d.anno;
     if(d.corso) document.getElementById('corso-i').value=d.corso;
     if(d.turno) document.getElementById('turno-i').value=d.turno;
@@ -221,8 +248,8 @@ function salva(){
 }
 
 // ── Anagrafica ────────────────────────────────────────────────────────────
-function addP(n='',c='',s='',r='A'){
-  P.push({n,c,s,r}); renderP(); renderD();
+function addP(n='',c='',s='',r='A',rank=3){
+  P.push({n,c,s,r,rank}); renderP(); renderD();
 }
 
 function renderP(){
@@ -236,6 +263,9 @@ function renderP(){
         oninput="P[${i}].s=this.value.trim()"></td>
       <td><select onchange="P[${i}].r=this.value;renderP();syncD()" style="width:65px;">
         ${RUOLI.map(r=>`<option value="${r}" ${p.r===r?'selected':''}>${r}</option>`).join('')}
+      </select></td>
+      <td><select onchange="P[${i}].rank=parseInt(this.value)" style="width:55px;padding:2px 4px;font-size:.78rem;">
+        ${[1,2,3,4,5].map(v=>`<option value="${v}" ${(p.rank||3)==v?'selected':''}>${v}</option>`).join('')}
       </select></td>
       <td><button class="btn btn-danger" onclick="P.splice(${i},1);renderP();renderD()">✕</button></td>
     </tr>`).join('');
@@ -270,7 +300,11 @@ async function caricaDaScheda(turno,corso,tok){
     let k=0;
     (d.allievi||[]).forEach(r=>{
       if(!P.find(p=>p.n===r.allievo)){
-        P.push({n:r.allievo, c:'', s:'', r:'A'}); k++;
+        // Calcola rank da punteggio finale (5→1, 6→2, 7→3, 8→4, 9-10→5)
+        let rank=3;
+        const pf=r.punteggio_finale;
+        if(pf!=null){ if(pf<=5)rank=1; else if(pf<=6)rank=2; else if(pf<=7)rank=3; else if(pf<=8)rank=4; else rank=5; }
+        P.push({n:r.allievo, c:'', s:'', r:'A', rank}); k++;
       }
     });
     if(k){ renderP(); renderD(); alert(`✅ ${k} allievi importati dalla scheda.`); }
@@ -280,7 +314,7 @@ async function caricaDaScheda(turno,corso,tok){
 // ── Daily state ───────────────────────────────────────────────────────────
 function syncD(){
   P.forEach((_,i)=>{ if(!daily[i]) daily[i]={r:P[i].r, imb:true}; });
-  renderD();
+  renderD(); renderPianoIstruttori();
 }
 
 function renderD(){
@@ -303,6 +337,50 @@ function renderD(){
 }
 
 function setTutti(v){ P.forEach((_,i)=>{ if(daily[i]) daily[i].imb=v; }); renderD(); }
+
+function renderPianoIstruttori(){
+  const nB=parseInt(document.getElementById('n-barche').value)||4;
+  const referenti=P.map((p,i)=>({...p,rOggi:daily[i]?.r||p.r,imb:daily[i]?.imb!==false}))
+    .filter(p=>p.imb && p.n.trim() && ['I','AdV','AT'].includes(p.rOggi));
+
+  const card=document.getElementById('piano-card');
+  if(!referenti.length){ card.style.display='none'; return; }
+  card.style.display='block';
+
+  const grid=document.getElementById('piano-istr-grid');
+  const barche=Array.from({length:nB},(_,i)=>i+1);
+
+  grid.innerHTML=barche.map(bid=>{
+    const assegnato=pianoManuale[bid];
+    const bgCol=assegnato?(assegnato.rOggi==='I'?'#065f46':assegnato.rOggi==='AdV'?'#9d174d':'#92400e'):'#888';
+    return `<div class="piano-box">
+      <div class="piano-box-hdr" style="background:${bgCol};">
+        <span>Barca ${bid}</span>
+        ${assegnato?`<span class="${RBADGE[assegnato.rOggi]||'rA'}" style="background:rgba(255,255,255,.25);color:white;">${assegnato.rOggi}</span>`:''}
+      </div>
+      <div class="piano-box-body">
+        <select onchange="setPianoManuale(${bid},this.value)" style="width:100%;font-size:.75rem;padding:3px;">
+          <option value="">— Auto —</option>
+          ${referenti.map(r=>`<option value="${r.n}" ${assegnato?.n===r.n?'selected':''}>${r.n}${r.c?' '+r.c:''} [${r.rOggi}]</option>`).join('')}
+        </select>
+        ${assegnato?`<div class="piano-slot" style="margin-top:4px;">
+          <span class="${RBADGE[assegnato.rOggi]}">${assegnato.rOggi}</span>
+          <span>${assegnato.n}</span>
+        </div>`:'<span style="color:#ccc;font-size:.7rem;">Nessun referente</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setPianoManuale(barId, nomePers){
+  if(!nomePers){ delete pianoManuale[barId]; renderPianoIstruttori(); salvaStorage(); return; }
+  const p=P.find(p=>p.n===nomePers);
+  const rOggi=daily[P.indexOf(p)]?.r||p?.r||'I';
+  pianoManuale[barId]={n:nomePers,c:p?.c||'',s:p?.s||'',rOggi};
+  renderPianoIstruttori(); salvaStorage();
+}
+
+function resetPianoManuale(){ pianoManuale={}; renderPianoIstruttori(); salvaStorage(); }
 
 // ── Algoritmo genera ──────────────────────────────────────────────────────
 function genera(){
@@ -334,39 +412,61 @@ function genera(){
   const referenti=[...istr,...adv,...at];
   const barche=Array.from({length:nB},(_,i)=>({id:i+1, pers:[]}));
 
-  // Assegna referenti alle barche (uno per barca)
-  referenti.forEach((ref,i)=>{
-    if(i<nB) barche[i].pers.push(ref);
-    // Se ci sono più referenti delle barche: i sovrannumerari vanno come allievi aggiuntivi
-    else allievi.push({...ref}); // trattali come se fossero allievi per la distribuzione
+  // Assegna referenti: prima pianoManuale, poi automatico per le barche libere
+  const barceConRef=new Set();
+  // Piano manuale ha priorità
+  Object.entries(pianoManuale).forEach(([barId,ref])=>{
+    const bi=parseInt(barId)-1;
+    if(bi>=0 && bi<nB && ref){
+      const fullRef=imb.find(p=>p.n===ref.n);
+      if(fullRef){ barche[bi].pers.push(fullRef); barceConRef.add(bi); }
+    }
+  });
+  // Assegna i restanti referenti automaticamente alle barche libere
+  const refLiberi=referenti.filter(r=>!barche.some(b=>b.pers.some(p=>p.n===r.n)));
+  let barLibera=0;
+  refLiberi.forEach(ref=>{
+    while(barLibera<nB && barceConRef.has(barLibera)) barLibera++;
+    if(barLibera<nB){ barche[barLibera].pers.push(ref); barceConRef.add(barLibera); barLibera++; }
+    else allievi.push({...ref}); // eccesso: tratta come allievo
   });
 
-  // Ordina allievi: chi ha meno incontri totali va prima → massimizza diversità
+  // Ordina allievi: meno incontri totali + ranking
+  const usaRanking=document.getElementById('usa-ranking')?.checked;
   const allOrd=[...allievi].sort((a,b)=>{
     const sA=allievi.reduce((s,x)=>s+(inc[a.n]?.[x.n]||0),0);
     const sB=allievi.reduce((s,x)=>s+(inc[b.n]?.[x.n]||0),0);
-    return sA-sB;
+    if(sA!==sB) return sA-sB;
+    // A parità di incontri, ordina per ranking (alto prima per bilanciare)
+    if(usaRanking) return (b.rank||3)-(a.rank||3);
+    return 0;
   });
 
   // Distribuisci allievi nelle barche fino a nE posti ciascuna
+  // NOTA: nE = posti TOTALI per barca (incluso eventuale referente)
   const usati=new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
 
-  for(let round=0;round<nE;round++){
+  // Continua finché ci sono candidati E barche con posti liberi
+  let progresso=true;
+  while(progresso){
+    progresso=false;
     barche.forEach(barca=>{
       if(barca.pers.length>=nE) return;
       const cand=allOrd.filter(p=>!usati.has(p.n));
       if(!cand.length) return;
       // Scegli chi ha meno incontri con i membri già in barca
+      // In caso di parità, usa il ranking (rank più alto → più esperienza → bilancia)
       const best=cand.reduce((best,c)=>{
         const sC=barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s,0);
         const sB=barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s,0);
         return sC<sB?c:best;
       }, cand[0]);
       barca.pers.push(best); usati.add(best.n);
+      progresso=true;
     });
   }
 
-  // Residui (se ci sono più allievi dei posti) → aggiungi alle barche in ordine
+  // Residui (più allievi dei posti disponibili) → distribuisci in round robin
   allOrd.filter(p=>!usati.has(p.n)).forEach((p,i)=>{
     barche[i%nB].pers.push(p); usati.add(p.n);
   });
@@ -380,6 +480,13 @@ function genera(){
       inc[nn[x]][nn[y]]=(inc[nn[x]][nn[y]]||0)+1;
       inc[nn[y]][nn[x]]=(inc[nn[y]][nn[x]]||0)+1;
     }
+    // Aggiorna copertura referenti → allievi
+    const refs=b.pers.filter(p=>['I','AdV','AT'].includes(p.rOggi));
+    const als2=b.pers.filter(p=>p.rOggi==='A');
+    refs.forEach(r=>{
+      if(!covRef[r.n]) covRef[r.n]={};
+      als2.forEach(a=>{ covRef[r.n][a.n]=(covRef[r.n][a.n]||0)+1; });
+    });
   });
 
   // Salva nello storico
@@ -401,6 +508,7 @@ function genera(){
   document.getElementById('output').style.display='block';
   renderEq(barche,data,mpt,warns);
   renderMatrice();
+  renderCopertura();
   renderStorico();
   document.getElementById('output').scrollIntoView({behavior:'smooth'});
 }
@@ -439,6 +547,30 @@ function renderEq(barche,data,mpt,warns){
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Copertura referenti ──────────────────────────────────────────────────
+function renderCopertura(){
+  const refs=P.filter(p=>['I','AdV','AT'].includes(p.r));
+  const als=P.filter(p=>p.r==='A');
+  const t=document.getElementById('cov-tbl');
+  if(!refs.length||!als.length){ t.innerHTML='<tr><td style="padding:8px;color:#aaa;">Nessun dato.</td></tr>'; return; }
+  let html=`<thead><tr><th>Referente</th>${als.map(a=>`<th title="${a.n}${a.c?' '+a.c:''}">${(a.s||a.n).slice(0,5)}</th>`).join('')}<th>Non ancora visti</th></tr></thead><tbody>`;
+  refs.forEach(r=>{
+    const nonVisti=als.filter(a=>!(covRef[r.n]?.[a.n])).map(a=>a.n);
+    html+=`<tr>
+      <td style="white-space:nowrap;font-weight:bold;padding:3px 6px;">
+        <span class="${RBADGE[r.r]||'rA'}">${r.r}</span> ${r.n}${r.c?' '+r.c:''}
+      </td>`;
+    als.forEach(a=>{
+      const v=(covRef[r.n]?.[a.n])||0;
+      const cl=v===0?'m0':v===1?'m1':v===2?'m2':'m3';
+      html+=`<td class="${cl}">${v||''}</td>`;
+    });
+    html+=`<td style="font-size:.7rem;color:var(--rosso);padding:3px 6px;">${nonVisti.join(', ')||'✅ Tutti'}</td>`;
+    html+=`</tr>`;
+  });
+  t.innerHTML=html+'</tbody>';
 }
 
 // ── Matrice incontri ──────────────────────────────────────────────────────
@@ -495,8 +627,8 @@ function delSlot(i){
 }
 
 function resetStorico(){
-  storico=[]; inc={};
-  salvaStorage(); renderStorico(); renderMatrice();
+  storico=[]; inc={}; covRef={};
+  salvaStorage(); renderStorico(); renderMatrice(); renderCopertura();
 }
 
 // ── Tab navigation ────────────────────────────────────────────────────────
@@ -506,6 +638,7 @@ function showTab(name,btn){
   document.getElementById('tc-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='mat')  renderMatrice();
+  if(name==='piano') renderCopertura();
   if(name==='stor') renderStorico();
 }
 </script>
