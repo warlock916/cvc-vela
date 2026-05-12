@@ -57,6 +57,14 @@ input:focus,select:focus{outline:none;border-color:var(--blu2);}
 .tab{padding:7px 14px;cursor:pointer;font-size:.83rem;border:none;background:none;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;}
 .tab.active{color:var(--blu);border-bottom:3px solid var(--blu);font-weight:bold;}
 .tc{display:none;}.tc.active{display:block;}
+
+.eq-box.editing{border-color:var(--arancio);border-width:3px;}
+.eq-drop{min-height:40px;border:2px dashed #ccc;border-radius:5px;padding:4px;margin:2px 0;transition:background .2s;}
+.eq-drop.over{background:#e8f5e9;border-color:var(--verde);}
+.eq-persona-drag{cursor:grab;user-select:none;}
+.eq-persona-drag:active{cursor:grabbing;opacity:.6;}
+.btn-mantieni{background:#7030A0;color:white;font-weight:bold;}
+.btn-mantieni:hover{filter:brightness(.9);}
 .alert-w{background:#fff3cd;border-left:4px solid var(--arancio);padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:10px;}
 .piano-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px;}
 .piano-box{border:2px solid #ddd;border-radius:7px;overflow:hidden;font-size:.78rem;}
@@ -89,8 +97,11 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
     <label style="margin:0;">Partecipanti <span class="badge" id="badge-n">0</span></label>
     <div class="btn-row" style="margin:0;">
-      <button class="btn btn-outline btn-sm" onclick="addP()">+ Aggiungi</button>
-      <button class="btn btn-outline btn-sm" onclick="importa()">📥 Importa nomi</button>
+      <button class="btn btn-outline btn-sm" onclick="addP()">+ Allievo</button>
+      <button class="btn btn-outline btn-sm" onclick="addP('','','','IS')" style="border-color:#9d174d;color:#9d174d;">+ IS</button>
+      <button class="btn btn-outline btn-sm" onclick="addP('','','','CT')" style="border-color:#065f46;color:#065f46;">+ CT</button>
+      <button class="btn btn-outline btn-sm" onclick="addP('','','','AT')" style="border-color:#92400e;color:#92400e;">+ AT</button>
+      <button class="btn btn-outline btn-sm" onclick="importa()">📥 Importa</button>
       <button class="btn btn-primary btn-sm" onclick="salva()">💾 Salva</button>
       <span id="saved-lbl" style="font-size:.75rem;color:var(--verde);display:none;">✅</span>
     </div>
@@ -166,7 +177,15 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
       <button class="tab" onclick="showTab('stor',this)">📋 Storico</button>
     </div>
     <div id="tc-eq" class="tc active">
-      <div id="eq-info" style="font-size:.82rem;color:#555;margin-bottom:8px;"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <div id="eq-info" style="font-size:.82rem;color:#555;flex:1;"></div>
+        <button id="btn-mantieni" class="btn btn-mantieni btn-sm" onclick="mantieniMattina()" style="display:none;" title="Usa gli equipaggi mattutini come base per il pomeriggio">
+          🔒 Mantieni equipaggi mattina
+        </button>
+        <button id="btn-modifica" class="btn btn-outline btn-sm" onclick="toggleModifica()" title="Trascina le persone tra le barche per modificare">
+          ✏️ Modifica manuale
+        </button>
+      </div>
       <div id="eq-warn" class="alert-w" style="display:none;"></div>
       <div class="eq-grid" id="eq-grid"></div>
     </div>
@@ -202,7 +221,7 @@ const RBADGE = {A:'rA', IS:'rAdV', CT:'rI', AT:'rAT'};
 const RCOLOR  = {CT:'#065f46', IS:'#9d174d', AT:'#92400e', A:'#1F4E79'};
 const KEY = 'cvc_eq_v3';
 
-let P=[], daily={}, storico=[], inc={}, covRef={}, pianoManuale={}; // pianoManuale[barId]=nomePers
+let P=[], daily={}, storico=[], inc={}, covRef={}, pianoManuale={}, ultimiBarche=null, modalitaModifica=false;
 
 // ── Init ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
@@ -519,7 +538,8 @@ function genera(){
 
   // Render
   document.getElementById('output').style.display='block';
-  renderEq(barche,data,mpt,warns);
+  modalitaModifica=false;
+  renderEq(barche,data,mpt,warns,false);
   renderMatrice();
   renderCopertura();
   renderStorico();
@@ -527,7 +547,13 @@ function genera(){
 }
 
 // ── Render equipaggi ──────────────────────────────────────────────────────
-function renderEq(barche,data,mpt,warns){
+function renderEq(barche,data,mpt,warns,editMode=false){
+  // Salva riferimento agli ultimi equipaggi
+  ultimiBarche=barche;
+  // Mostra pulsante "mantieni mattina" solo per sessione mattutina
+  const btnM=document.getElementById('btn-mantieni');
+  if(btnM) btnM.style.display=(mpt==='M')?'inline-block':'none';
+
   const lbl={M:'☀️ Mattino',P:'🌤️ Pomeriggio',T:'🌞 Tutto il giorno'}[mpt]||mpt;
   document.getElementById('eq-info').innerHTML=
     `<strong>${data}</strong> — ${lbl} — ${barche.length} barche`;
@@ -547,11 +573,16 @@ function renderEq(barche,data,mpt,warns){
         <span>Barca ${b.id}</span>
         <span style="opacity:.75;font-size:.7rem;">${b.pers.length}p</span>
       </div>
-      <div class="eq-body">
+      <div class="eq-body ${editMode?'eq-drop':''}"
+        ${editMode?`ondragover="ev.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="dropPersona(ev,${b.id})"`:''}>
         ${b.pers.length===0
           ? '<span style="color:#ccc;font-size:.75rem;">— vuota —</span>'
           : b.pers.map(p=>`
-            <div class="eq-row">
+            <div class="eq-row ${editMode?'eq-persona-drag':''}"
+              ${editMode?`draggable="true" ondragstart="dragPersona(ev,'${p.n}',${b.id})"`:''}
+              title="${editMode?'Trascina per spostare':''}">
               <span class="${RBADGE[p.rOggi]||'rA'}">${p.rOggi}</span>
               <span>${p.n}${p.c?' '+p.c:''}</span>
               ${p.s?`<span style="color:#aaa;font-size:.68rem;">(${p.s})</span>`:''}
@@ -584,6 +615,58 @@ function renderCopertura(){
     html+=`</tr>`;
   });
   t.innerHTML=html+'</tbody>';
+}
+
+
+// ── Mantieni equipaggi mattina per pomeriggio ─────────────────────────────
+function mantieniMattina(){
+  if(!ultimiBarche){ alert('Nessun equipaggio mattutino salvato.'); return; }
+  if(!confirm('Usare gli equipaggi del mattino come base per il pomeriggio?\nPotrai modificarli trascinando le persone.')) return;
+  document.getElementById('mpt').value='P';
+  modalitaModifica=false;
+  renderEq(ultimiBarche, document.getElementById('data').value, 'P', []);
+  toggleModifica(); // attiva subito la modifica
+}
+
+function toggleModifica(){
+  modalitaModifica=!modalitaModifica;
+  const btn=document.getElementById('btn-modifica');
+  if(btn){
+    btn.textContent=modalitaModifica?'✅ Fine modifica':'✏️ Modifica manuale';
+    btn.style.background=modalitaModifica?'var(--verde)':'';
+    btn.style.color=modalitaModifica?'white':'';
+  }
+  if(ultimiBarche) renderEq(ultimiBarche,
+    document.getElementById('data').value,
+    document.getElementById('mpt').value, [], modalitaModifica);
+}
+
+// ── Drag & Drop equipaggi ────────────────────────────────────────────────
+let dragNome=null, dragDaBarca=null;
+
+function dragPersona(ev,nome,barId){
+  dragNome=nome; dragDaBarca=barId;
+  ev.dataTransfer.effectAllowed='move';
+}
+
+function dropPersona(ev,barId){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('over');
+  if(!dragNome||dragDaBarca===barId) return;
+  if(!ultimiBarche) return;
+
+  const srcBarca=ultimiBarche.find(b=>b.id===dragDaBarca);
+  const dstBarca=ultimiBarche.find(b=>b.id===barId);
+  if(!srcBarca||!dstBarca) return;
+
+  const personaIdx=srcBarca.pers.findIndex(p=>p.n===dragNome);
+  if(personaIdx<0) return;
+  const persona=srcBarca.pers.splice(personaIdx,1)[0];
+  dstBarca.pers.push(persona);
+
+  dragNome=null; dragDaBarca=null;
+  renderEq(ultimiBarche, document.getElementById('data').value,
+    document.getElementById('mpt').value, [], modalitaModifica);
 }
 
 // ── Matrice incontri ──────────────────────────────────────────────────────
