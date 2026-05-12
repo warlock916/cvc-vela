@@ -131,8 +131,34 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
       </select>
     </div>
     <div><label>N° Barche disponibili</label><input type="number" id="n-barche" value="4" min="1" max="20" oninput="renderPianoIstruttori()"></div>
-    <div><label>N° Persone per equipaggio</label><input type="number" id="n-eq" value="2" min="2" max="6"></div>
+    <div>
+      <label>Tipo barche</label>
+      <select id="tipo-barche" onchange="aggiornaTipoBarche()">
+        <option value="omogenee">Tutte uguali</option>
+        <option value="miste">Miste (2 e 5+)</option>
+      </select>
+    </div>
   </div>
+  <!-- Configurazione barche -->
+  <div id="conf-omogenee" style="margin-bottom:10px;">
+    <label style="font-size:.78rem;font-weight:bold;color:#555;">N° persone per barca <span style="color:#888;font-weight:normal;">(istruttore escluso)</span></label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="number" id="n-eq" value="2" min="1" max="6" style="width:70px;">
+      <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;margin:0;cursor:pointer;">
+        <input type="checkbox" id="ha-istr-omog" style="width:14px;height:14px;" onchange="renderPianoIstruttori()">
+        Barche con istruttore (IS/CT)
+      </label>
+    </div>
+  </div>
+  <div id="conf-miste" style="display:none;margin-bottom:10px;">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <div><label style="font-size:.78rem;font-weight:bold;color:#555;">N° barche da 2</label>
+        <input type="number" id="n-b2" value="2" min="0" max="10" style="width:65px;"></div>
+      <div><label style="font-size:.78rem;font-weight:bold;color:#555;">N° barche da 5 <span style="font-weight:normal;color:#888;">(+istruttore)</span></label>
+        <input type="number" id="n-b5" value="2" min="0" max="10" style="width:65px;" oninput="syncBarche5()"></div>
+    </div>
+  </div>
+
   <div id="d-warn" class="alert-w" style="display:none;"></div>
   <div style="overflow:auto;max-height:340px;">
     <table class="tbl">
@@ -217,6 +243,39 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 </div>
 <script>
 const RUOLI  = ['A','IS','CT','AT'];
+
+function aggiornaTipoBarche(){
+  const tipo=document.getElementById('tipo-barche').value;
+  document.getElementById('conf-omogenee').style.display=tipo==='omogenee'?'block':'none';
+  document.getElementById('conf-miste').style.display=tipo==='miste'?'block':'none';
+  renderPianoIstruttori();
+}
+
+function syncBarche5(){
+  const n5=parseInt(document.getElementById('n-b5').value)||0;
+  // Aggiorna n-barche (totale)
+  const n2=parseInt(document.getElementById('n-b2').value)||0;
+  document.getElementById('n-barche').value=n2+n5;
+  renderPianoIstruttori();
+}
+
+// Calcola la struttura barche in base alla configurazione
+function getStruttura(){
+  const tipo=document.getElementById('tipo-barche').value;
+  const nB=parseInt(document.getElementById('n-barche').value)||4;
+  if(tipo==='miste'){
+    const n2=parseInt(document.getElementById('n-b2').value)||0;
+    const n5=parseInt(document.getElementById('n-b5').value)||0;
+    const barche=[];
+    for(let i=0;i<n2;i++) barche.push({id:i+1, cap:2, haIstr:false});
+    for(let i=0;i<n5;i++) barche.push({id:n2+i+1, cap:5, haIstr:true});
+    return barche;
+  } else {
+    const nE=parseInt(document.getElementById('n-eq').value)||2;
+    const haIstr=document.getElementById('ha-istr-omog')?.checked||false;
+    return Array.from({length:nB},(_,i)=>({id:i+1, cap:nE, haIstr}));
+  }
+}
 const RBADGE = {A:'rA', IS:'rAdV', CT:'rI', AT:'rAT'};
 const RCOLOR  = {CT:'#065f46', IS:'#9d174d', AT:'#92400e', A:'#1F4E79'};
 const KEY = 'cvc_eq_v3';
@@ -370,34 +429,35 @@ function renderD(){
 function setTutti(v){ P.forEach((_,i)=>{ if(daily[i]) daily[i].imb=v; }); renderD(); }
 
 function renderPianoIstruttori(){
-  const nB=parseInt(document.getElementById('n-barche').value)||4;
+  const struttura=getStruttura();
   const referenti=P.map((p,i)=>({...p,rOggi:daily[i]?.r||p.r,imb:daily[i]?.imb!==false}))
     .filter(p=>p.imb && p.n.trim() && ['CT','IS','AT'].includes(p.rOggi));
 
   const card=document.getElementById('piano-card');
-  if(!referenti.length){ card.style.display='none'; return; }
+  if(!referenti.length && !struttura.some(b=>b.haIstr)){ card.style.display='none'; return; }
   card.style.display='block';
 
   const grid=document.getElementById('piano-istr-grid');
-  const barche=Array.from({length:nB},(_,i)=>i+1);
-
-  grid.innerHTML=barche.map(bid=>{
-    const assegnato=pianoManuale[bid];
-    const bgCol=assegnato?(assegnato.rOggi==='I'?'#065f46':assegnato.rOggi==='AdV'?'#9d174d':'#92400e'):'#888';
-    return `<div class="piano-box">
+  grid.innerHTML=struttura.map(b=>{
+    const assegnato=pianoManuale[b.id];
+    const bgCol=assegnato?(RCOLOR[assegnato.rOggi]||'#888'):(b.haIstr?'#555':'#aaa');
+    const barInfo=b.haIstr?` <span style="font-size:.65rem;opacity:.7;">(${b.cap}p+IS)</span>`
+                          :` <span style="font-size:.65rem;opacity:.7;">(${b.cap}p)</span>`;
+    return `<div class="piano-box" style="${!b.haIstr?'opacity:.6;':''}">
       <div class="piano-box-hdr" style="background:${bgCol};">
-        <span>Barca ${bid}</span>
+        <span>Barca ${b.id}${barInfo}</span>
         ${assegnato?`<span class="${RBADGE[assegnato.rOggi]||'rA'}" style="background:rgba(255,255,255,.25);color:white;">${assegnato.rOggi}</span>`:''}
       </div>
       <div class="piano-box-body">
-        <select onchange="setPianoManuale(${bid},this.value)" style="width:100%;font-size:.75rem;padding:3px;">
+        ${b.haIstr?`<select onchange="setPianoManuale(${b.id},this.value)" style="width:100%;font-size:.75rem;padding:3px;">
           <option value="">— Auto —</option>
           ${referenti.map(r=>`<option value="${r.n}" ${assegnato?.n===r.n?'selected':''}>${r.n}${r.c?' '+r.c:''} [${r.rOggi}]</option>`).join('')}
         </select>
         ${assegnato?`<div class="piano-slot" style="margin-top:4px;">
           <span class="${RBADGE[assegnato.rOggi]}">${assegnato.rOggi}</span>
           <span>${assegnato.n}</span>
-        </div>`:'<span style="color:#ccc;font-size:.7rem;">Nessun referente</span>'}
+        </div>`:'<span style="color:#888;font-size:.7rem;">Auto</span>'}`
+        :'<span style="color:#ccc;font-size:.7rem;">Solo allievi</span>'}
       </div>
     </div>`;
   }).join('');
@@ -441,26 +501,39 @@ function genera(){
 
   // Regola: AdV, AT, I → max uno per barca, in ordine di priorità I > AdV > AT
   const referenti=[...istr,...adv,...at];
-  const barche=Array.from({length:nB},(_,i)=>({id:i+1, pers:[]}));
+  const struttura=getStruttura();
+  const nBeff=struttura.length;
+  const barche=struttura.map(b=>({...b, pers:[]}));
   const warns=[];
 
-  // Assegna referenti: prima pianoManuale, poi automatico per le barche libere
+  // Assegna referenti alle barche che ne prevedono uno (haIstr=true)
+  // Prima il piano manuale, poi automatico per copertura ottimale allievi non ancora visti
   const barceConRef=new Set();
+
   // Piano manuale ha priorità
   Object.entries(pianoManuale).forEach(([barId,ref])=>{
-    const bi=parseInt(barId)-1;
-    if(bi>=0 && bi<nB && ref){
+    const barca=barche.find(b=>b.id===parseInt(barId));
+    if(barca && barca.haIstr && ref){
       const fullRef=imb.find(p=>p.n===ref.n);
-      if(fullRef){ barche[bi].pers.push(fullRef); barceConRef.add(bi); }
+      if(fullRef){ barca.pers.push(fullRef); barceConRef.add(barca.id); }
     }
   });
-  // Assegna i restanti referenti automaticamente alle barche libere
+
+  // Assegna automaticamente i referenti rimanenti alle barche con haIstr libere
+  // Priorità: referente che ha visto MENO allievi va sulla barca con MENO copertura
   const refLiberi=referenti.filter(r=>!barche.some(b=>b.pers.some(p=>p.n===r.n)));
-  let barLibera=0;
-  refLiberi.forEach(ref=>{
-    while(barLibera<nB && barceConRef.has(barLibera)) barLibera++;
-    if(barLibera<nB){ barche[barLibera].pers.push(ref); barceConRef.add(barLibera); barLibera++; }
-    else allievi.push({...ref}); // eccesso: tratta come allievo
+  const barcheConIstrLibere=barche.filter(b=>b.haIstr && !barceConRef.has(b.id));
+
+  // Ordina referenti per copertura crescente (chi ha visto meno va prima)
+  const refOrd=[...refLiberi].sort((a,b)=>{
+    const covA=Object.values(covRef[a.n]||{}).reduce((s,v)=>s+v,0);
+    const covB=Object.values(covRef[b.n]||{}).reduce((s,v)=>s+v,0);
+    return covA-covB;
+  });
+  refOrd.forEach(ref=>{
+    const barca=barcheConIstrLibere.find(b=>!barceConRef.has(b.id));
+    if(barca){ barca.pers.push(ref); barceConRef.add(barca.id); }
+    else allievi.push({...ref});
   });
 
   // Ordina allievi: meno incontri totali + ranking
@@ -474,22 +547,34 @@ function genera(){
     return 0;
   });
 
-  // Distribuisci allievi nelle barche fino a nE posti ciascuna
-  // nE = capienza MASSIMA per barca (referente incluso nel conteggio)
+  // Distribuisci allievi nelle barche fino alla capienza di ciascuna
+  // Capienza = barca.cap (allievi) + 1 se ha istruttore
   const usati=new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
   const candidati=[...allOrd]; // copia ordinata
 
   // Per ogni posto libero in ogni barca, assegna il candidato migliore
+  // Ottimizza: chi ha meno copertura dall'istruttore va sulla barca con quell'istruttore
   barche.forEach(barca=>{
-    while(barca.pers.length < nE){
+    const limiteAllievi=barca.cap; // cap = n° allievi, l'istruttore è extra
+    const nAttuali=barca.pers.filter(p=>!['CT','IS','AT'].includes(p.rOggi)).length;
+    const istrBarca=barca.pers.find(p=>['CT','IS'].includes(p.rOggi));
+
+    while(barca.pers.filter(p=>!['CT','IS','AT'].includes(p.rOggi)).length < limiteAllievi){
       const liberi=candidati.filter(p=>!usati.has(p.n));
       if(!liberi.length) break; // nessun allievo rimasto
       // Scegli chi ha meno incontri con i già presenti in barca
+      const istrNome=barca.pers.find(p=>['CT','IS'].includes(p.rOggi))?.n;
       const best=liberi.reduce((best,c)=>{
         const sC=barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s,0);
         const sB=barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s,0);
         if(sC!==sB) return sC<sB?c:best;
-        // Parità incontri: usa ranking se abilitato
+        // Parità incontri: preferisci chi non è ancora stato con questo istruttore
+        if(istrNome){
+          const covC=covRef[istrNome]?.[c.n]||0;
+          const covB=covRef[istrNome]?.[best.n]||0;
+          if(covC!==covB) return covC<covB?c:best;
+        }
+        // Poi usa ranking se abilitato
         if(usaRanking) return (c.rank||3)<(best.rank||3)?c:best;
         return best;
       }, liberi[0]);
@@ -524,7 +609,7 @@ function genera(){
 
   // Salva nello storico
   storico.push({
-    data, mpt, nB, nE,
+    data, mpt, nB:struttura.length, nE:struttura.map(b=>b.cap).join('/'), struttura,
     barche:barche.map(b=>({
       id:b.id,
       pers:b.pers.map(p=>({n:p.n, c:p.c, s:p.s, r:p.rOggi}))
