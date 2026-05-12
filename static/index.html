@@ -242,7 +242,10 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
       <input type="text" id="nuovo-allievo" placeholder="Nome allievo…" onkeydown="if(event.key==='Enter')aggiungiAllievo()">
       <small style="color:#888;font-size:.75rem;display:block;margin-top:3px;">&#128100; Allievo (Solo Nome) — es: Marco</small>
       <small style="color:#888;font-size:.75rem;display:block;margin-top:3px;">Inserire solo il Nome (es. Marco) · Usa il menù <strong>A/IS/CT/AT</strong> per il ruolo</small>
-      <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Aggiungi</button>
+      <button class="btn btn-outline btn-sm" onclick="aggiungiAllievo()">+ Allievo</button>
+      <button class="btn btn-outline btn-sm" onclick="aggiungiConRuolo('IS')" style="border-color:#9d174d;color:#9d174d;" title="Aggiungi Istruttore">+ IS</button>
+      <button class="btn btn-outline btn-sm" onclick="aggiungiConRuolo('CT')" style="border-color:#065f46;color:#065f46;" title="Aggiungi Capo Turno">+ CT</button>
+      <button class="btn btn-outline btn-sm" onclick="aggiungiConRuolo('AT')" style="border-color:#92400e;color:#92400e;" title="Aggiungi Assistente di Terra">+ AT</button>
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('excel-input').click()">📥 Importa da Excel</button>
       <span id="import-status" style="font-size:.78rem;color:var(--blu2);display:none;">⏳ Caricamento in corso…</span>
       <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" onchange="importaExcel(this)">
@@ -607,6 +610,21 @@ function modificaNome(nomeVecchio, id){
   document.querySelectorAll(`[oninput*="ricalcolaAllievo('${nomeVecchio}')"]`)
     .forEach(el=>el.setAttribute('oninput',
       el.getAttribute('oninput').replace(`ricalcolaAllievo('${nomeVecchio}')`,`ricalcolaAllievo('${nome}')`)));
+}
+
+function aggiungiConRuolo(ruolo){
+  const inp=document.getElementById('nuovo-allievo');
+  const nome=inp.value.trim();
+  if(!nome){ inp.focus(); inp.placeholder='Inserisci nome prima…'; return; }
+  if(allievi.includes(nome)){alert('Nome già presente.');return;}
+  allievi.push(nome); inp.value='';
+  alleviRuoli[nome]=ruolo;
+  renderRiga(nome);
+  // Imposta il ruolo nel selettore appena creato
+  setTimeout(()=>{
+    const sel=document.getElementById(`ruolo_${nomeToId(nome)}`);
+    if(sel) sel.value=ruolo;
+  },50);
 }
 
 function aggiungiAllievo(){
