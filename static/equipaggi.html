@@ -3,742 +3,510 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CVC – Gestione Equipaggi</title>
+<title>CVC – Genera Equipaggi</title>
 <style>
 :root{
-  --blu:#1F4E79;--blu2:#2E75B6;--azzurro:#BDD7EE;
+  --blu:#1F4E79;--blu2:#2E75B6;--az:#BDD7EE;
   --oro:#FFD700;--verde:#70AD47;--rosso:#C00000;
-  --mat:#E3F2FD;--pom:#FFF8E1;
-  --cmd:#FF6B35;--capo:#FFD700;--grigio:#F2F2F2;--bordo:#CCC;
+  --arancio:#E6A817;--grigio:#F2F2F2;--bordo:#CCC;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;background:#e8f0f7;color:#1a1a1a;}
+body{font-family:Arial,sans-serif;background:#e8f0f7;color:#1a1a1a;min-height:100vh;}
 header{background:var(--blu);color:white;padding:10px 16px;display:flex;align-items:center;gap:12px;}
 header h1{font-size:.95rem;}
 header a{color:rgba(255,255,255,.7);font-size:.8rem;text-decoration:none;}
 header a:hover{color:white;}
-.container{max-width:1400px;margin:14px auto;padding:0 10px 60px;}
+header span{margin-left:auto;font-size:.78rem;opacity:.8;}
+.container{max-width:1300px;margin:14px auto;padding:0 10px 60px;}
 .card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:16px 18px;margin-bottom:14px;}
-.card h2{color:var(--blu);font-size:.92rem;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--azzurro);}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.card h2{color:var(--blu);font-size:.92rem;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--az);}
 label{display:block;font-size:.78rem;font-weight:bold;color:#555;margin-bottom:3px;}
 input,select{width:100%;padding:6px 9px;border:1.5px solid var(--bordo);border-radius:5px;font-size:.83rem;}
 input:focus,select:focus{outline:none;border-color:var(--blu2);}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .btn{padding:7px 16px;border:none;border-radius:6px;font-size:.83rem;font-weight:bold;cursor:pointer;transition:.2s;}
-.btn-primary{background:var(--blu2);color:white;}.btn-primary:hover{background:var(--blu);}
 .btn-success{background:var(--verde);color:white;}.btn-success:hover{filter:brightness(.9);}
+.btn-primary{background:var(--blu2);color:white;}.btn-primary:hover{background:var(--blu);}
 .btn-danger{background:var(--rosso);color:white;font-size:.72rem;padding:3px 7px;}
-.btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);}
+.btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);}.btn-outline:hover{background:var(--az);}
+.btn-sm{padding:3px 9px;font-size:.73rem;}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
-.allievi-table{width:100%;border-collapse:collapse;font-size:.8rem;}
-.allievi-table th{background:var(--blu);color:white;padding:6px 8px;text-align:left;}
-.allievi-table td{padding:4px 6px;border-bottom:1px solid #eee;}
-.allievi-table td input[type=text]{width:100%;padding:3px 5px;font-size:.78rem;}
-.allievi-table td select{width:100%;padding:3px 5px;font-size:.78rem;}
-.capo-row{background:#FFFDE7;}
-.tabs{display:flex;gap:0;border-bottom:2px solid var(--blu2);margin-bottom:14px;}
-.tab{padding:7px 16px;cursor:pointer;font-size:.83rem;border:none;background:none;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tbl{width:100%;border-collapse:collapse;font-size:.8rem;}
+.tbl th{background:var(--blu);color:white;padding:6px 8px;text-align:left;}
+.tbl td{padding:4px 6px;border-bottom:1px solid #eee;vertical-align:middle;}
+.tbl td input[type=text]{width:100%;padding:3px 5px;font-size:.78rem;}
+.tbl td select{padding:3px 5px;font-size:.78rem;}
+.rA{background:#dbeafe;color:#1e40af;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.rAdV{background:#fce7f3;color:#9d174d;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.rAT{background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.rI{background:#d1fae5;color:#065f46;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-top:10px;}
+.eq-box{border:2px solid var(--blu2);border-radius:8px;overflow:hidden;}
+.eq-hdr{color:white;padding:5px 10px;font-size:.8rem;font-weight:bold;display:flex;justify-content:space-between;}
+.eq-body{padding:6px 8px;}
+.eq-row{display:flex;align-items:center;gap:4px;padding:2px 0;font-size:.78rem;}
+.slot-box{margin-bottom:8px;border:1px solid #ddd;border-radius:6px;overflow:hidden;}
+.slot-hdr{background:#f0f4f8;padding:5px 10px;font-size:.78rem;font-weight:bold;color:var(--blu);display:flex;justify-content:space-between;align-items:center;}
+.slot-body{padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;}
+.mat-tbl{border-collapse:collapse;font-size:.65rem;}
+.mat-tbl th{padding:3px 4px;background:var(--blu);color:white;font-size:.6rem;white-space:nowrap;}
+.mat-tbl td{padding:2px 4px;border:1px solid #ddd;text-align:center;min-width:22px;}
+.m0{color:#ddd;}.m1{background:#dbeafe;}.m2{background:#93c5fd;}.m3{background:#3b82f6;color:white;}.m4{background:#1e40af;color:white;font-weight:bold;}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--blu2);margin-bottom:12px;}
+.tab{padding:7px 14px;cursor:pointer;font-size:.83rem;border:none;background:none;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;}
 .tab.active{color:var(--blu);border-bottom:3px solid var(--blu);font-weight:bold;}
-.tab-content{display:none;}.tab-content.active{display:block;}
-.piano-wrap{overflow-x:auto;}
-.piano-table{border-collapse:collapse;font-size:.74rem;white-space:nowrap;}
-.piano-table th{padding:5px 7px;background:var(--blu);color:white;text-align:center;border:1px solid rgba(255,255,255,.2);}
-.piano-table td{padding:3px 4px;border:1px solid #ddd;vertical-align:top;}
-.slot-lbl{background:#e0e0e0;font-weight:bold;font-size:.72rem;padding:4px 6px;white-space:nowrap;}
-.mat{background:var(--mat);}.pom{background:var(--pom);}
-.barca-cell{min-height:44px;padding:3px 2px;}
-.tag{display:inline-block;border-radius:3px;padding:1px 5px;margin:1px 1px;font-size:.68rem;cursor:pointer;border:1px solid transparent;}
-.tag-normal{background:#e8f0f7;border-color:#aac4e0;}
-.tag-cmd{background:#FFE0D0;border-color:var(--cmd);color:#a03000;font-weight:bold;}
-.tag-capo{background:var(--capo);border-color:#b8860b;font-weight:bold;}
-.tag-istr{background:#E8F5E9;border-color:var(--verde);font-style:italic;}
-.tag-assente{background:#FFCCCC;border-color:var(--rosso);text-decoration:line-through;opacity:.7;}
-.matrice-wrap{overflow-x:auto;}
-.mat-table{border-collapse:collapse;font-size:.65rem;}
-.mat-table th{padding:3px 4px;background:var(--blu);color:white;font-size:.6rem;white-space:nowrap;}
-.mat-table td{padding:2px 4px;border:1px solid #ddd;text-align:center;min-width:24px;}
-.m0{color:#ccc;}.m1{background:#dbeafe;}.m2{background:#93c5fd;}.m3{background:#3b82f6;color:white;}.m4{background:#1e40af;color:white;font-weight:bold;}
-.cov-table{border-collapse:collapse;font-size:.75rem;width:100%;}
-.cov-table th{background:var(--blu);color:white;padding:5px 7px;white-space:nowrap;}
-.cov-table td{padding:4px 7px;border:1px solid #eee;text-align:center;}
-.cov-capo{background:#FFFDE7;}
-.c0{color:#ccc;}.c1{background:#dbeafe;}.c2{background:#3b82f6;color:white;font-weight:bold;}
-.stat-box{background:var(--grigio);border-radius:6px;padding:8px;text-align:center;}
-.stat-box .n{font-size:1.3rem;font-weight:bold;color:var(--blu);}
-.stat-box .l{font-size:.7rem;color:#666;}
-.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:12px;}
+.tc{display:none;}.tc.active{display:block;}
+.alert-w{background:#fff3cd;border-left:4px solid var(--arancio);padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:10px;}
 .badge{background:var(--blu2);color:white;border-radius:10px;padding:1px 7px;font-size:.7rem;margin-left:4px;}
-.alert-info{background:#e3f2fd;border-left:4px solid var(--blu2);padding:8px 12px;border-radius:4px;font-size:.82rem;color:#1a5276;margin-bottom:10px;}
-.alert-warn{background:#fff3cd;border-left:4px solid #E6A817;padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:10px;}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 </style>
 </head>
 <body>
 <header>
-  <a href="/">← Torna all'App</a>
-  <h1>⛵ CVC – Gestione Equipaggi</h1>
-  <span id="hdr-turno" style="margin-left:auto;font-size:.8rem;opacity:.8;"></span>
+  <a href="/">← App</a>
+  <h1>⛵ CVC – Genera Equipaggi</h1>
+  <span id="hdr-info"></span>
 </header>
 <div class="container">
 
-<!-- STATO CARICAMENTO -->
-<div id="loading-card" class="card alert-info">⏳ Caricamento allievi dal turno in corso…</div>
-
-<!-- CONFIGURAZIONE -->
-<div id="main-content" style="display:none;">
-
+<!-- ANAGRAFICA -->
 <div class="card">
-  <h2>⚙️ Parametri</h2>
-  <div class="grid3" style="margin-bottom:10px;">
-    <div><label>Barche da 2 persone</label><input type="number" id="n-b2" value="3" min="0" max="10" oninput="syncIstr()"></div>
-    <div><label>Barche da 5 (+istruttore = 6)</label><input type="number" id="n-b5" value="2" min="0" max="8" oninput="syncIstr()"></div>
-    <div><label>N° base in comandata</label>
-      <select id="n-cmd-base" onchange="aggiornaCmdGrid()">
-        <option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+  <h2>👥 Anagrafica Corso</h2>
+  <div class="grid3" style="margin-bottom:12px;">
+    <div><label>Anno</label><input type="number" id="anno" value="2025" style="width:90px;"></div>
+    <div><label>Corso</label><input type="text" id="corso-i" placeholder="es. C3"></div>
+    <div><label>Turno</label><input type="number" id="turno-i" placeholder="es. 7" min="1" max="60"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+    <label style="margin:0;">Partecipanti <span class="badge" id="badge-n">0</span></label>
+    <div class="btn-row" style="margin:0;">
+      <button class="btn btn-outline btn-sm" onclick="addP()">+ Aggiungi</button>
+      <button class="btn btn-outline btn-sm" onclick="importa()">📥 Importa nomi</button>
+      <button class="btn btn-primary btn-sm" onclick="salva()">💾 Salva</button>
+      <span id="saved-lbl" style="font-size:.75rem;color:var(--verde);display:none;">✅</span>
+    </div>
+  </div>
+  <div style="overflow:auto;max-height:320px;">
+    <table class="tbl">
+      <thead><tr><th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th><th></th></tr></thead>
+      <tbody id="p-tbody"></tbody>
+    </table>
+  </div>
+  <p style="font-size:.72rem;color:#888;margin-top:8px;">
+    Ruoli: <strong>A</strong>=Allievo &nbsp;<strong>AdV</strong>=Assistente Vela &nbsp;<strong>AT</strong>=Assistente Terra &nbsp;<strong>I</strong>=Istruttore<br>
+    ⚠️ <strong>AdV, AT e I non possono essere sulla stessa imbarcazione.</strong>
+  </p>
+</div>
+
+<!-- DATI GIORNALIERI -->
+<div class="card">
+  <h2>📅 Dati Giornalieri</h2>
+  <div class="grid4" style="margin-bottom:12px;">
+    <div><label>Data</label><input type="date" id="data"></div>
+    <div><label>Sessione</label>
+      <select id="mpt">
+        <option value="M">☀️ Mattino (M)</option>
+        <option value="P">🌤️ Pomeriggio (P)</option>
+        <option value="T">🌞 Tutto il giorno (T)</option>
       </select>
     </div>
+    <div><label>N° Barche disponibili</label><input type="number" id="n-barche" value="4" min="1" max="20"></div>
+    <div><label>N° Persone per equipaggio</label><input type="number" id="n-eq" value="2" min="2" max="6"></div>
   </div>
-  <div style="background:#f8f9fa;border-radius:6px;padding:10px 12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <label style="margin:0;font-size:.8rem;">📣 Allievi in comandata per giorno/turno</label>
-      <button class="btn btn-outline" style="padding:2px 9px;font-size:.73rem;" onclick="resetCmdGrid()">↩ Reimposta default</button>
-    </div>
-    <div style="overflow-x:auto;">
-      <table style="border-collapse:collapse;font-size:.78rem;width:100%;">
-        <thead><tr>
-          <th style="background:var(--blu);color:white;padding:5px 8px;text-align:left;">Turno</th>
-          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Lun</th>
-          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Mar</th>
-          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Mer</th>
-          <th style="background:#2E75B6;color:white;padding:5px 8px;text-align:center;">Gio</th>
-          <th style="background:#C00000;color:white;padding:5px 8px;text-align:center;">Ven ⚡</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td style="padding:4px 8px;font-weight:bold;background:#E3F2FD;">☀️ Mattina</td>
-            <td id="cmd-cell-0" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-0" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td id="cmd-cell-2" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-2" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td id="cmd-cell-4" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-4" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td id="cmd-cell-6" style="padding:3px;text-align:center;background:#E3F2FD;"><input type="number" id="cmd-6" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td id="cmd-cell-8" style="padding:3px;text-align:center;background:#FFE0E0;"><input type="number" id="cmd-8" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;border-color:var(--rosso);" title="Venerdì mattina"></td>
-          </tr>
-          <tr>
-            <td style="padding:4px 8px;font-weight:bold;background:#FFF8E1;">🌤️ Pomeriggio</td>
-            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-1" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-3" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-5" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td style="padding:3px;text-align:center;background:#FFF8E1;"><input type="number" id="cmd-7" min="0" max="20" value="4" style="width:46px;text-align:center;padding:3px;font-size:.83rem;"></td>
-            <td style="padding:3px;text-align:center;background:#FFD0D0;"><input type="number" id="cmd-9" min="0" max="20" value="5" style="width:46px;text-align:center;padding:3px;font-size:.83rem;border-color:var(--rosso);font-weight:bold;" title="Ven pomeriggio: ultima comandata (monta sabato)"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="font-size:.72rem;color:#888;margin-top:6px;">⚠️ Il venerdì pomeriggio è l'ultima comandata della settimana (monta sabato). La comandata di Ven-Pom deve stare sulla stessa barca.</p>
+  <div id="d-warn" class="alert-w" style="display:none;"></div>
+  <div style="overflow:auto;max-height:340px;">
+    <table class="tbl">
+      <thead><tr>
+        <th>Nome</th><th>Cognome</th><th>Soprannome</th>
+        <th>Ruolo oggi</th>
+        <th style="text-align:center;width:80px;">Imbarcato</th>
+      </tr></thead>
+      <tbody id="d-tbody"></tbody>
+    </table>
   </div>
-</div>
-
-<div class="card">
-  <div class="grid2">
-    <!-- Allievi -->
-    <div>
-      <h2>👥 Allievi <span class="badge" id="badge-als">0</span>
-        <button class="btn btn-outline" style="margin-left:auto;padding:2px 9px;font-size:.73rem;" onclick="aggiungiAllievo()">+ Aggiungi</button>
-      </h2>
-      <div id="allievi-warn" class="alert-warn" style="display:none;"></div>
-      <div style="overflow:auto;max-height:300px;">
-        <table class="allievi-table">
-          <thead><tr><th>Nome</th><th>Rank (1–5)</th><th>Genere</th><th>Pref. Comandata</th><th></th></tr></thead>
-          <tbody id="als-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-    <!-- Istruttori -->
-    <div>
-      <h2>🎓 Istruttori <span class="badge" id="badge-istr">0</span>
-        <button class="btn btn-outline" style="margin-left:auto;padding:2px 9px;font-size:.73rem;" onclick="aggiungiIstr()">+ Aggiungi</button>
-      </h2>
-      <p id="istr-note" style="font-size:.75rem;color:#888;margin-bottom:8px;">Servono <strong id="istr-req">2</strong> istruttori (1 per barca da 5).</p>
-      <div id="istr-list" style="max-height:220px;overflow-y:auto;"></div>
-      <div style="margin-top:10px;padding:8px 10px;background:#FFFDE7;border-radius:6px;border:1px solid #f0d060;">
-        <label style="margin-bottom:4px;">⭐ Capo Turno (tra gli istruttori)</label>
-        <select id="capo-select" style="font-weight:bold;">
-          <option value="">— Seleziona Capo Turno —</option>
-        </select>
-      </div>
-    </div>
+  <div class="btn-row">
+    <button class="btn btn-success" style="padding:9px 24px;font-size:.88rem;" onclick="genera()">⚡ Genera Equipaggi</button>
+    <button class="btn btn-outline btn-sm" onclick="setTutti(true)">✅ Tutti imbarcati</button>
+    <button class="btn btn-outline btn-sm" onclick="setTutti(false)">🚫 Nessuno imbarcato</button>
   </div>
-</div>
-
-<!-- GENERA -->
-<div class="card" style="text-align:center;">
-  <div id="gen-warn" style="color:var(--rosso);font-size:.82rem;margin-bottom:8px;display:none;"></div>
-  <button class="btn btn-success" style="padding:10px 28px;font-size:.9rem;" onclick="genera()">⚡ Genera Pianificazione</button>
-  &nbsp;
-  <button class="btn btn-outline" onclick="rigenera()">🔄 Rigenera (mantieni assenze)</button>
 </div>
 
 <!-- OUTPUT -->
 <div id="output" style="display:none;">
-  <div class="stats-row" id="stats-row"></div>
   <div class="card">
     <div class="tabs">
-      <button class="tab active" onclick="showTab('piano',this)">📅 Pianificazione Barche</button>
-      <button class="tab" onclick="showTab('cmd',this)">📣 Comandata</button>
-      <button class="tab" onclick="showTab('matrice',this)">🔗 Matrice Incontri</button>
-      <button class="tab" onclick="showTab('copertura',this)">👁️ Copertura Istruttori</button>
+      <button class="tab active" onclick="showTab('eq',this)">⛵ Equipaggi</button>
+      <button class="tab" onclick="showTab('mat',this)">🔗 Matrice Incontri</button>
+      <button class="tab" onclick="showTab('stor',this)">📋 Storico</button>
     </div>
-    <!-- Legenda -->
-    <div style="font-size:.72rem;color:#555;margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;">
-      <span style="background:var(--mat);padding:2px 7px;border-radius:3px;">☀️ Mattina</span>
-      <span style="background:var(--pom);padding:2px 7px;border-radius:3px;">🌤️ Pomeriggio</span>
-      <span class="tag tag-capo">⭐ Capo Turno (istruttore)</span>
-      <span class="tag tag-istr">👨‍✈️ Istruttore</span>
-      <span class="tag tag-assente">✗ Assente (click per toggle)</span>
+    <div id="tc-eq" class="tc active">
+      <div id="eq-info" style="font-size:.82rem;color:#555;margin-bottom:8px;"></div>
+      <div id="eq-warn" class="alert-w" style="display:none;"></div>
+      <div class="eq-grid" id="eq-grid"></div>
     </div>
-
-    <div id="tab-piano" class="tab-content active">
-      <div class="piano-wrap"><table class="piano-table" id="piano-table"></table></div>
+    <div id="tc-mat" class="tc">
+      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">
+        Incontri tra allievi (A). Il sistema minimizza le ripetizioni: ogni coppia deve incontrarsi una volta prima di ripetersi.
+        <span style="margin-left:8px;">
+          <span class="m1" style="padding:1px 5px;border-radius:2px;">1×</span>
+          <span class="m2" style="padding:1px 5px;border-radius:2px;margin-left:2px;">2×</span>
+          <span class="m3" style="padding:1px 5px;border-radius:2px;margin-left:2px;color:white;">3×</span>
+          <span class="m4" style="padding:1px 5px;border-radius:2px;margin-left:2px;color:white;">4×+</span>
+        </span>
+      </p>
+      <div style="overflow-x:auto;"><table class="mat-tbl" id="mat-tbl"></table></div>
     </div>
-    <div id="tab-cmd" class="tab-content">
-      <p style="font-size:.78rem;color:#666;margin-bottom:10px;">Rotazione comandata: <strong>Cena → Colazione → Pranzo</strong>, a partire dalla Cena di Sabato. Ultimo turno: Venerdì Pranzo ⚡</p>
-      <div style="overflow-x:auto;"><table id="cmd-table" style="border-collapse:collapse;font-size:.78rem;width:100%;"></table></div>
-    </div>
-    <div id="tab-matrice" class="tab-content">
-      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Quante volte due allievi condividono la stessa barca. Obiettivo: massimizzare le celle &gt; 0.</p>
-      <div class="matrice-wrap"><table class="mat-table" id="mat-table"></table></div>
-    </div>
-    <div id="tab-copertura" class="tab-content">
-      <div style="overflow-x:auto;"><table class="cov-table" id="cov-table"></table></div>
+    <div id="tc-stor" class="tc">
+      <div class="btn-row" style="margin-bottom:8px;">
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('Reset completo storico e matrice incontri?'))resetStorico()">🗑 Reset storico e matrice</button>
+      </div>
+      <div style="max-height:400px;overflow-y:auto;" id="stor-list"></div>
     </div>
   </div>
 </div>
 
-</div><!-- /main-content -->
-</div><!-- /container -->
-
+</div>
 <script>
-const GIORNI=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì'];
+const RUOLI  = ['A','AdV','AT','I'];
+const RBADGE = {A:'rA', AdV:'rAdV', AT:'rAT', I:'rI'};
+const RCOLOR  = {I:'#065f46', AdV:'#9d174d', AT:'#92400e', A:'#1F4E79'};
+const KEY = 'cvc_eq_v3';
 
-// Struttura slot comandata: Sab Cena → Dom Col/Pran/Cena → ... → Ven Col/Pran
-const SLOT_CMD=[
-  {g:'Sabato',   t:'Cena',       c:'cena', last:false},
-  {g:'Domenica', t:'Colazione',  c:'col',  last:false},
-  {g:'Domenica', t:'Pranzo',     c:'pran', last:false},
-  {g:'Domenica', t:'Cena',       c:'cena', last:false},
-  {g:'Lunedì',   t:'Colazione',  c:'col',  last:false},
-  {g:'Lunedì',   t:'Pranzo',     c:'pran', last:false},
-  {g:'Lunedì',   t:'Cena',       c:'cena', last:false},
-  {g:'Martedì',  t:'Colazione',  c:'col',  last:false},
-  {g:'Martedì',  t:'Pranzo',     c:'pran', last:false},
-  {g:'Martedì',  t:'Cena',       c:'cena', last:false},
-  {g:'Mercoledì',t:'Colazione',  c:'col',  last:false},
-  {g:'Mercoledì',t:'Pranzo',     c:'pran', last:false},
-  {g:'Mercoledì',t:'Cena',       c:'cena', last:false},
-  {g:'Giovedì',  t:'Colazione',  c:'col',  last:false},
-  {g:'Giovedì',  t:'Pranzo',     c:'pran', last:false},
-  {g:'Giovedì',  t:'Cena',       c:'cena', last:false},
-  {g:'Venerdì',  t:'Colazione',  c:'col',  last:false},
-  {g:'Venerdì',  t:'Pranzo',     c:'pran', last:true},  // ultima comandata
-];
+let P=[], daily={}, storico=[], inc={};
 
-function getCmdPerSlot(){
-  // Legge il numero di allievi in comandata per ogni slot dalla griglia (18 slot)
-  return SLOT_CMD.map((_,s)=>{
-    const el=document.getElementById(`cmd-${s}`);
-    return el?Math.max(0,parseInt(el.value)||0):4;
-  });
-}
-
-function aggiornaCmdGrid(){
-  const base=parseInt(document.getElementById('n-cmd-base').value)||4;
-  SLOT_CMD.forEach((_,s)=>{
-    const el=document.getElementById(`cmd-${s}`);
-    if(!el) return;
-    // Ultima comandata (Ven Pranzo): non diminuisce rispetto al base
-    if(SLOT_CMD[s].last) el.value=Math.max(base, parseInt(el.value)||base);
-    else el.value=base;
-  });
-}
-
-function resetCmdGrid(){
-  const base=parseInt(document.getElementById('n-cmd-base').value)||4;
-  SLOT_CMD.forEach((_,s)=>{
-    const el=document.getElementById(`cmd-${s}`);
-    if(!el) return;
-    el.value=SLOT_CMD[s].last?Math.max(base,base):base;
-  });
-}
-
-let als=[], istr=[], piano=null, assenze={};
-let sessionTurno=null;
-
-// ── Init: leggi params URL e carica allievi dal turno ─────────────────────
-window.addEventListener('DOMContentLoaded', async ()=>{
+// ── Init ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('data').value = new Date().toISOString().slice(0,10);
+  caricaStorage();
+  renderP(); renderD();
+  // Carica da URL params (link da scheda CVC)
   const params=new URLSearchParams(location.search);
-  const turno=params.get('turno');
-  const corso=params.get('corso');
-  const tok=params.get('tok');
-
+  const turno=params.get('turno'), corso=params.get('corso'), tok=params.get('tok');
   if(turno && corso && tok){
-    document.getElementById('hdr-turno').textContent=`Turno ${turno} — ${corso}`;
-    sessionTurno={turno,corso,tok};
-    await caricaAllievi(turno,corso,tok);
-  } else {
-    document.getElementById('loading-card').style.display='none';
-    document.getElementById('main-content').style.display='block';
-    // Modalità standalone: aggiungi qualche allievo di esempio
-    ['Marco','Sara','Luca','Elena','Andrea','Giulia','Davide','Chiara'].forEach((n,i)=>{
-      als.push({nome:n, rank:[3,4,2,5,1,3,4,2][i], genere:nomeFinisceConA(n)?'F':'M', prefCmd:''});
-    });
-    renderAls();
-    aggiungiIstr('Paolo'); aggiungiIstr('Maria');
-    syncIstr();
+    document.getElementById('hdr-info').textContent=`T${turno} — ${corso}`;
+    document.getElementById('turno-i').value=turno;
+    document.getElementById('corso-i').value=corso;
+    caricaDaScheda(turno,corso,tok);
   }
 });
 
-async function caricaAllievi(turno,corso,tok){
+// ── Storage locale ────────────────────────────────────────────────────────
+function salvaStorage(){
   try{
-    const res=await fetch(`/api/turno/${turno}?corso=${encodeURIComponent(corso)}`,{
-      headers:{'X-Auth-Token':tok}
-    });
-    if(!res.ok) throw new Error('Non autorizzato');
-    const d=await res.json();
-
-    als=d.allievi.map((r,i)=>{
-      // Calcola ranking dal punteggio finale (scala 5-10 → 1-5)
-      // Se non c'è ancora punteggio finale, usa media dei punteggi giornalieri disponibili
-      let pf=r.punteggio_finale;
-      if(pf===null||pf===undefined){
-        const pts=['pts_g1','pts_g2','pts_g3','pts_g4','pts_g5','pts_g6','pts_fin']
-          .map(k=>r[k]).filter(v=>v!==null&&v!==undefined);
-        pf=pts.length ? pts.reduce((a,b)=>a+b,0)/pts.length : null;
-      }
-      // Mappa punteggio → rank 1-5
-      // 5→1, 6→2, 7→3, 8→4, 9-10→5
-      let rank=3;
-      if(pf!==null){
-        if(pf<=5) rank=1;
-        else if(pf<=6) rank=2;
-        else if(pf<=7) rank=3;
-        else if(pf<=8) rank=4;
-        else rank=5;
-      }
-      return {nome:r.allievo, rank, genere:nomeFinisceConA(r.allievo)?'F':'M', prefCmd:''};
-    });
-
-    document.getElementById('loading-card').innerHTML=
-      `✅ Caricati <strong>${als.length}</strong> allievi dal Turno ${turno} — ${corso}. Il ranking è calcolato dal punteggio attuale.`;
-    setTimeout(()=>document.getElementById('loading-card').style.display='none',3000);
-    document.getElementById('main-content').style.display='block';
-
-    renderAls();
-    syncIstr();
-
-  } catch(e){
-    document.getElementById('loading-card').className='card alert-warn';
-    document.getElementById('loading-card').innerHTML=
-      `⚠️ Impossibile caricare gli allievi: ${e.message}. Puoi inserirli manualmente.`;
-    document.getElementById('main-content').style.display='block';
-  }
+    localStorage.setItem(KEY, JSON.stringify({
+      P, storico, inc,
+      anno:document.getElementById('anno').value,
+      corso:document.getElementById('corso-i').value,
+      turno:document.getElementById('turno-i').value,
+    }));
+  }catch(e){ console.warn('Storage error',e); }
+}
+function caricaStorage(){
+  try{
+    const d=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(!d) return;
+    P=d.P||[]; storico=d.storico||[]; inc=d.inc||{};
+    if(d.anno)  document.getElementById('anno').value=d.anno;
+    if(d.corso) document.getElementById('corso-i').value=d.corso;
+    if(d.turno) document.getElementById('turno-i').value=d.turno;
+  }catch{}
+}
+function salva(){
+  salvaStorage();
+  const l=document.getElementById('saved-lbl');
+  l.style.display='inline'; setTimeout(()=>l.style.display='none',1800);
 }
 
-// ── Sync istruttori richiesti ──────────────────────────────────────────────
-function syncIstr(){
-  const n5=parseInt(document.getElementById('n-b5').value)||0;
-  document.getElementById('istr-req').textContent=n5;
-  // Assicura che ci siano almeno n5 istruttori
-  while(istr.length<n5) istr.push({nome:''});
-  while(istr.length>n5 && istr.length>0) istr.pop();
-  renderIstr();
-  aggiornaBadge();
+// ── Anagrafica ────────────────────────────────────────────────────────────
+function addP(n='',c='',s='',r='A'){
+  P.push({n,c,s,r}); renderP(); renderD();
 }
 
-// ── Allievi ───────────────────────────────────────────────────────────────
-function nomeFinisceConA(nome){
-  const n=nome.trim().toLowerCase();
-  return n.length>0 && n[n.length-1]==='a';
-}
-
-function aggiungiAllievo(){ als.push({nome:'',rank:3,genere:'M',prefCmd:''}); renderAls(); }
-
-function renderAls(){
-  const giorniPref=['','Sabato','Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì'];
-  document.getElementById('als-tbody').innerHTML=als.map((a,i)=>`
+function renderP(){
+  document.getElementById('p-tbody').innerHTML=P.map((p,i)=>`
     <tr>
-      <td><input type="text" value="${a.nome}" placeholder="Nome"
-        oninput="
-          als[${i}].nome=this.value.trim();
-          const auto=nomeFinisceConA(this.value);
-          als[${i}].genere=auto?'F':'M';
-          this.closest('tr').querySelector('.sel-genere').value=auto?'F':'M';
-          aggiornaBadge()
-        "></td>
-      <td><select onchange="als[${i}].rank=parseInt(this.value)">
-        ${[1,2,3,4,5].map(v=>`<option ${a.rank==v?'selected':''}>${v}</option>`).join('')}
+      <td><input type="text" value="${p.n}" placeholder="Nome"
+        oninput="P[${i}].n=this.value.trim();syncD()"></td>
+      <td><input type="text" value="${p.c}" placeholder="Cognome"
+        oninput="P[${i}].c=this.value.trim()"></td>
+      <td><input type="text" value="${p.s}" placeholder="Soprannome"
+        oninput="P[${i}].s=this.value.trim()"></td>
+      <td><select onchange="P[${i}].r=this.value;renderP();syncD()" style="width:65px;">
+        ${RUOLI.map(r=>`<option value="${r}" ${p.r===r?'selected':''}>${r}</option>`).join('')}
       </select></td>
-      <td><select class="sel-genere" onchange="als[${i}].genere=this.value">
-        <option ${a.genere==='M'?'selected':''}>M</option>
-        <option ${a.genere==='F'?'selected':''}>F</option>
-      </select></td>
-      <td><select onchange="als[${i}].prefCmd=this.value" style="font-size:.75rem;">
-        ${giorniPref.map(g=>`<option value="${g}" ${(a.prefCmd||'')==g?'selected':''}>${g||'— Nessuna pref. —'}</option>`).join('')}
-      </select></td>
-      <td><button class="btn btn-danger" onclick="als.splice(${i},1);renderAls()">✕</button></td>
+      <td><button class="btn btn-danger" onclick="P.splice(${i},1);renderP();renderD()">✕</button></td>
     </tr>`).join('');
-  aggiornaBadge();
+  document.getElementById('badge-n').textContent=P.length;
 }
 
-// ── Istruttori ────────────────────────────────────────────────────────────
-function aggiungiIstr(nome=''){
-  istr.push({nome});
-  const n5=parseInt(document.getElementById('n-b5').value)||0;
-  if(istr.length>n5) document.getElementById('n-b5').value=istr.length;
-  renderIstr(); aggiornaBadge();
+function importa(){
+  const t=prompt(
+    'Incolla i nomi (una persona per riga).\n'+
+    'Formato: Nome Cognome [Soprannome] [Ruolo]\n'+
+    'Ruolo: A, AdV, AT, I (default = A)\n\n'+
+    'Esempio:\nMarco Rossi A\nPaolo Istruttore I\nSara Verdi AdV','');
+  if(!t) return;
+  let k=0;
+  t.split('\n').map(r=>r.trim()).filter(Boolean).forEach(riga=>{
+    const w=riga.split(/\s+/);
+    const r=RUOLI.includes(w[w.length-1])?w.pop():'A';
+    const n=w[0]||'', c=w[1]||'', s=w[2]||'';
+    if(n && !P.find(p=>p.n===n&&p.c===c)){ P.push({n,c,s,r}); k++; }
+  });
+  renderP(); renderD();
+  if(k) alert(`✅ ${k} persone aggiunte.`);
 }
 
-function renderIstr(){
-  document.getElementById('istr-list').innerHTML=istr.map((ist,i)=>`
-    <div style="display:flex;gap:6px;margin-bottom:5px;align-items:center;">
-      <input type="text" value="${ist.nome}" placeholder="Nome istruttore"
-        oninput="istr[${i}].nome=this.value.trim();aggiornaCapoSelect()" style="flex:1;">
-      <button class="btn btn-danger" onclick="istr.splice(${i},1);renderIstr()">✕</button>
-    </div>`).join('');
-  aggiornaCapoSelect();
-  aggiornaBadge();
-}
-
-function aggiornaCapoSelect(){
-  const sel=document.getElementById('capo-select');
-  if(!sel) return;
-  const cur=sel.value;
-  const nomi=istr.filter(i=>i.nome).map(i=>i.nome);
-  sel.innerHTML='<option value="">— Seleziona Capo Turno —</option>'+
-    nomi.map(n=>`<option value="${n}" ${n===cur?'selected':''}>${n}</option>`).join('');
-}
-
-function getCapoTurno(){
-  const sel=document.getElementById('capo-select');
-  return sel?sel.value:'';
-}
-
-function aggiornaBadge(){
-  document.getElementById('badge-als').textContent=als.filter(a=>a.nome).length;
-  document.getElementById('badge-istr').textContent=istr.filter(i=>i.nome).length;
-}
-
-// ── Validazione ───────────────────────────────────────────────────────────
-function valida(){
-  const n2=parseInt(document.getElementById('n-b2').value)||0;
-  const n5=parseInt(document.getElementById('n-b5').value)||0;
-  const alsOk=als.filter(a=>a.nome);
-  const istrOk=istr.filter(i=>i.nome);
-  const cap=n2*2+n5*5;
-  const errs=[];
-  if(alsOk.length<2) errs.push('Almeno 2 allievi.');
-  if(n2+n5===0) errs.push('Almeno una barca.');
-  if(alsOk.length>cap) errs.push(`Capienza (${cap}) < allievi (${alsOk.length}).`);
-  if(istrOk.length<n5) errs.push(`Servono ${n5} istruttori.`);
-  const w=document.getElementById('gen-warn');
-  w.textContent=errs.join(' | '); w.style.display=errs.length?'block':'none';
-  return errs.length===0;
-}
-
-// ── Genera ────────────────────────────────────────────────────────────────
-function genera(){ if(!valida()) return; assenze={}; _genera(); }
-function rigenera(){ if(!valida()) return; _genera(); }
-
-function _genera(){
-  const n2=parseInt(document.getElementById('n-b2').value)||0;
-  const n5=parseInt(document.getElementById('n-b5').value)||0;
-  const cmdPerSlot=getCmdPerSlot(); // array 18 elementi (SLOT_CMD)
-  const alsOk=als.filter(a=>a.nome);
-  const istrOk=istr.filter(i=>i.nome);
-  const capoNome=getCapoTurno();
-  const capo=capoNome?{nome:capoNome}:null;
-
-  // Struttura barche
-  const barche=[];
-  for(let i=0;i<n2;i++) barche.push({id:i,cap:2,nome:`B${i+1}`});
-  for(let i=0;i<n5;i++) barche.push({id:n2+i,cap:5,nome:`B${n2+i+1}(5p)`});
-  const nB=barche.length;
-
-  piano=[];
-  for(let s=0;s<10;s++){
-    piano.push(barche.map(b=>({nome:b.nome,cap:b.cap,allievi:[],istr:null,cmd:[]})));
-  }
-  // Piano comandata separato: 18 slot × lista allievi in cmd
-  const pianoCMD=SLOT_CMD.map((_,s)=>({slot:s,allievi:[],nCmd:cmdPerSlot[s]}));
-
-  // Tracker incontri
-  const inc={};
-  alsOk.forEach(a=>{ inc[a.nome]={}; alsOk.forEach(b=>inc[a.nome][b.nome]=0); });
-
-  // Tracker comandata (18 slot)
-  const cmdCnt=Object.fromEntries(alsOk.map(a=>[a.nome,0]));
-  // Assegna la comandata sui 18 slot, rispettando le preferenze di giorno
-  for(let sc=0;sc<SLOT_CMD.length;sc++){
-    const nC=cmdPerSlot[sc];
-    if(nC<=0) continue;
-    const giornoSlot=SLOT_CMD[sc].g;
-
-    // Ordina: prima chi ha preferenza per questo giorno (e meno comande),
-    // poi chi non ha preferenza (ordinato per meno comande),
-    // infine chi ha preferenza per un altro giorno
-    const ordinati=[...alsOk].sort((a,b)=>{
-      const aPref=a.prefCmd===giornoSlot?-1:(a.prefCmd?1:0);
-      const bPref=b.prefCmd===giornoSlot?-1:(b.prefCmd?1:0);
-      if(aPref!==bPref) return aPref-bPref;
-      return cmdCnt[a.nome]-cmdCnt[b.nome];
-    });
-
-    const cand=ordinati.slice(0,nC);
-    pianoCMD[sc].allievi=cand.map(a=>a.nome);
-    cand.forEach(a=>cmdCnt[a.nome]++);
-  }
-
-  for(let s=0;s<10;s++){
-    // Istruttori ruotano ogni slot
-    const istrRot=[...istrOk];
-    for(let r=0;r<(s%Math.max(istrOk.length,1));r++) istrRot.push(istrRot.shift());
-    barche.forEach((b,bi)=>{
-      if(b.cap===5 && bi-n2 < istrRot.length)
-        piano[s][bi].istr=istrRot[bi-n2].nome;
-    });
-
-    // Allievi disponibili per questo slot
-    const disp=alsOk.filter(a=>!assenze[`${a.nome}_${s}`]);
-    if(!disp.length) continue;
-
-    const capTot=barche.reduce((t,b)=>t+b.cap,0);
-    const nAss=Math.min(disp.length,capTot);
-
-    // Ordina per massimizzare nuovi incontri:
-    // chi ha meno incontri totali va prima
-    const pool=[...disp].sort((a,b)=>{
-      const tA=Object.values(inc[a.nome]).reduce((s,v)=>s+v,0);
-      const tB=Object.values(inc[b.nome]).reduce((s,v)=>s+v,0);
-      return tA-tB;
-    });
-
-    const usati=new Set();
-
-    barche.forEach((b,bi)=>{
-      const slotB=piano[s][bi];
-      const quota=Math.min(b.cap, Math.ceil(nAss/nB));
-      const scelti=[];
-
-      // Bilanciamento rank: cerca un allievo alto e uno basso
-      const liberi=()=>pool.filter(a=>!usati.has(a.nome));
-
-      const hi=liberi().find(a=>a.rank>=4);
-      if(hi){ scelti.push(hi); usati.add(hi.nome); }
-      const lo=liberi().find(a=>a.rank<=2);
-      if(lo && scelti.length<quota){ scelti.push(lo); usati.add(lo.nome); }
-
-      // Riempie i posti restanti
-      while(scelti.length<quota){
-        const c=liberi()[0]; if(!c) break;
-        scelti.push(c); usati.add(c.nome);
+// ── Carica allievi dalla scheda CVC ──────────────────────────────────────
+async function caricaDaScheda(turno,corso,tok){
+  try{
+    const res=await fetch(`/api/turno/${turno}?corso=${encodeURIComponent(corso)}`,
+      {headers:{'X-Auth-Token':tok}});
+    if(!res.ok) return;
+    const d=await res.json();
+    let k=0;
+    (d.allievi||[]).forEach(r=>{
+      if(!P.find(p=>p.n===r.allievo)){
+        P.push({n:r.allievo, c:'', s:'', r:'A'}); k++;
       }
-
-      // Regola genere: almeno 1 M se disponibile
-      if(scelti.length>0 && !scelti.some(a=>a.genere==='M')){
-        const mLib=pool.find(a=>a.genere==='M'&&!usati.has(a.nome));
-        if(mLib){
-          const fIdx=scelti.findLastIndex(a=>a.genere==='F');
-          if(fIdx>=0){ usati.delete(scelti[fIdx].nome); scelti[fIdx]=mLib; usati.add(mLib.nome); }
-        }
-      }
-
-      slotB.allievi=scelti.map(a=>a.nome);
-
-      // Aggiorna incontri
-      for(let x=0;x<scelti.length;x++)
-        for(let y=x+1;y<scelti.length;y++){
-          inc[scelti[x].nome][scelti[y].nome]++;
-          inc[scelti[y].nome][scelti[x].nome]++;
-        }
     });
+    if(k){ renderP(); renderD(); alert(`✅ ${k} allievi importati dalla scheda.`); }
+  }catch(e){ console.warn('Import scheda:',e); }
+}
 
+// ── Daily state ───────────────────────────────────────────────────────────
+function syncD(){
+  P.forEach((_,i)=>{ if(!daily[i]) daily[i]={r:P[i].r, imb:true}; });
+  renderD();
+}
 
+function renderD(){
+  P.forEach((_,i)=>{ if(!daily[i]) daily[i]={r:P[i].r, imb:true}; });
+  document.getElementById('d-tbody').innerHTML=P.map((p,i)=>{
+    const ds=daily[i];
+    return `<tr>
+      <td><strong>${p.n}</strong></td>
+      <td>${p.c}</td>
+      <td style="color:#888;font-size:.75rem;">${p.s||'—'}</td>
+      <td><select onchange="daily[${i}].r=this.value" style="width:65px;padding:2px 4px;font-size:.78rem;">
+        ${RUOLI.map(r=>`<option value="${r}" ${ds.r===r?'selected':''}>${r}</option>`).join('')}
+      </select></td>
+      <td style="text-align:center;">
+        <input type="checkbox" ${ds.imb?'checked':''} style="width:16px;height:16px;cursor:pointer;"
+          onchange="daily[${i}].imb=this.checked">
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function setTutti(v){ P.forEach((_,i)=>{ if(daily[i]) daily[i].imb=v; }); renderD(); }
+
+// ── Algoritmo genera ──────────────────────────────────────────────────────
+function genera(){
+  const nB=parseInt(document.getElementById('n-barche').value)||4;
+  const nE=parseInt(document.getElementById('n-eq').value)||2;
+  const data=document.getElementById('data').value;
+  const mpt=document.getElementById('mpt').value;
+  const w=document.getElementById('d-warn');
+  w.style.display='none';
+
+  if(!data){ w.textContent='⚠️ Inserisci la data.'; w.style.display='block'; return; }
+  if(!P.length){ w.textContent='⚠️ Nessun partecipante in anagrafica.'; w.style.display='block'; return; }
+
+  // Persone imbarcate oggi
+  const imb=P.map((p,i)=>({
+    ...p,
+    rOggi: daily[i]?.r||p.r,
+    imb:   daily[i]?.imb!==false
+  })).filter(p=>p.imb && p.n.trim());
+
+  if(!imb.length){ w.textContent='⚠️ Nessuno è imbarcato.'; w.style.display='block'; return; }
+
+  const allievi=imb.filter(p=>p.rOggi==='A');
+  const adv    =imb.filter(p=>p.rOggi==='AdV');
+  const at     =imb.filter(p=>p.rOggi==='AT');
+  const istr   =imb.filter(p=>p.rOggi==='I');
+
+  // Regola: AdV, AT, I → max uno per barca, in ordine di priorità I > AdV > AT
+  const referenti=[...istr,...adv,...at];
+  const barche=Array.from({length:nB},(_,i)=>({id:i+1, pers:[]}));
+
+  // Assegna referenti alle barche (uno per barca)
+  referenti.forEach((ref,i)=>{
+    if(i<nB) barche[i].pers.push(ref);
+    // Se ci sono più referenti delle barche: i sovrannumerari vanno come allievi aggiuntivi
+    else allievi.push({...ref}); // trattali come se fossero allievi per la distribuzione
+  });
+
+  // Ordina allievi: chi ha meno incontri totali va prima → massimizza diversità
+  const allOrd=[...allievi].sort((a,b)=>{
+    const sA=allievi.reduce((s,x)=>s+(inc[a.n]?.[x.n]||0),0);
+    const sB=allievi.reduce((s,x)=>s+(inc[b.n]?.[x.n]||0),0);
+    return sA-sB;
+  });
+
+  // Distribuisci allievi nelle barche fino a nE posti ciascuna
+  const usati=new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
+
+  for(let round=0;round<nE;round++){
+    barche.forEach(barca=>{
+      if(barca.pers.length>=nE) return;
+      const cand=allOrd.filter(p=>!usati.has(p.n));
+      if(!cand.length) return;
+      // Scegli chi ha meno incontri con i membri già in barca
+      const best=cand.reduce((best,c)=>{
+        const sC=barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s,0);
+        const sB=barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s,0);
+        return sC<sB?c:best;
+      }, cand[0]);
+      barca.pers.push(best); usati.add(best.n);
+    });
   }
 
+  // Residui (se ci sono più allievi dei posti) → aggiungi alle barche in ordine
+  allOrd.filter(p=>!usati.has(p.n)).forEach((p,i)=>{
+    barche[i%nB].pers.push(p); usati.add(p.n);
+  });
+
+  // Aggiorna matrice incontri (solo tra allievi A)
+  barche.forEach(b=>{
+    const nn=b.pers.filter(p=>p.rOggi==='A').map(p=>p.n);
+    for(let x=0;x<nn.length;x++) for(let y=x+1;y<nn.length;y++){
+      if(!inc[nn[x]]) inc[nn[x]]={};
+      if(!inc[nn[y]]) inc[nn[y]]={};
+      inc[nn[x]][nn[y]]=(inc[nn[x]][nn[y]]||0)+1;
+      inc[nn[y]][nn[x]]=(inc[nn[y]][nn[x]]||0)+1;
+    }
+  });
+
+  // Salva nello storico
+  storico.push({
+    data, mpt, nB, nE,
+    barche:barche.map(b=>({
+      id:b.id,
+      pers:b.pers.map(p=>({n:p.n, c:p.c, s:p.s, r:p.rOggi}))
+    }))
+  });
+  salvaStorage();
+
+  // Warnings
+  const warns=[];
+  if(referenti.length>nB)
+    warns.push(`⚠️ ${referenti.length-nB} referenti (I/AdV/AT) in eccesso rispetto alle barche — distribuiti come allievi.`);
+
+  // Render
   document.getElementById('output').style.display='block';
-  renderStats(alsOk,barche);
-  renderPiano(alsOk,capo);
-  renderComandata(alsOk,capo);
-  renderMatrice(alsOk,inc);
-  renderCopertura(alsOk,istrOk,capo);
+  renderEq(barche,data,mpt,warns);
+  renderMatrice();
+  renderStorico();
   document.getElementById('output').scrollIntoView({behavior:'smooth'});
 }
 
-// ── Render stats ──────────────────────────────────────────────────────────
-function renderStats(alsOk,barche){
-  const n2=barche.filter(b=>b.cap===2).length;
-  const n5=barche.filter(b=>b.cap===5).length;
-  document.getElementById('stats-row').innerHTML=
-    `<div class="stat-box"><div class="n">${alsOk.length}</div><div class="l">Allievi</div></div>
-     <div class="stat-box"><div class="n">${n2}</div><div class="l">Barche ×2</div></div>
-     <div class="stat-box"><div class="n">${n5}</div><div class="l">Barche ×5</div></div>
-     <div class="stat-box"><div class="n">10</div><div class="l">Slot totali</div></div>
-     <div class="stat-box"><div class="n">5</div><div class="l">Giorni</div></div>`;
-}
+// ── Render equipaggi ──────────────────────────────────────────────────────
+function renderEq(barche,data,mpt,warns){
+  const lbl={M:'☀️ Mattino',P:'🌤️ Pomeriggio',T:'🌞 Tutto il giorno'}[mpt]||mpt;
+  document.getElementById('eq-info').innerHTML=
+    `<strong>${data}</strong> — ${lbl} — ${barche.length} barche`;
 
-// ── Render pianificazione ─────────────────────────────────────────────────
-function renderPiano(alsOk,capo){
-  const n2=parseInt(document.getElementById('n-b2').value)||0;
-  const n5=parseInt(document.getElementById('n-b5').value)||0;
-  const barche=[];
-  for(let i=0;i<n2;i++) barche.push({nome:`Barca ${i+1}`,cap:2});
-  for(let i=0;i<n5;i++) barche.push({nome:`Barca ${n2+i+1} (5p)`,cap:5});
+  const ew=document.getElementById('eq-warn');
+  if(warns?.length){ ew.innerHTML=warns.join('<br>'); ew.style.display='block'; }
+  else ew.style.display='none';
 
-  let html=`<thead><tr><th>Giorno</th><th>Turno</th>`;
-  barche.forEach(b=>html+=`<th>${b.nome}</th>`);
-  html+=`</tr></thead><tbody>`;
-
-  for(let s=0;s<10;s++){
-    const g=Math.floor(s/2), t=s%2;
-    const cls=t===0?'mat':'pom';
-    html+=`<tr>`;
-    if(t===0) html+=`<td rowspan="2" class="slot-lbl" style="text-align:center;vertical-align:middle;">${GIORNI[g]}</td>`;
-    html+=`<td class="slot-lbl ${cls}" style="white-space:nowrap;">${t===0?'☀️ Mattina':'🌤️ Pomeriggio'}</td>`;
-
-    piano[s].forEach((cell,bi)=>{
-      html+=`<td class="${cls}"><div class="barca-cell">`;
-      if(cell.istr){
-        const isCap=capo&&cell.istr===capo.nome;
-        html+=`<span class="tag ${isCap?'tag-capo':'tag-istr'}">${isCap?'⭐':'👨‍✈️'} ${cell.istr}</span>`;
-      }
-      cell.allievi.forEach(nome=>{
-        const isCapo=capo&&capo.nome===nome;
-        const isCmd=cell.cmd&&cell.cmd.includes(nome);
-        const isAss=assenze[`${nome}_${s}`];
-        let tc='tag ';
-        if(isAss) tc+='tag-assente';
-        else if(isCapo) tc+='tag-capo';
-        else if(isCmd) tc+='tag-cmd';
-        else tc+='tag-normal';
-        const lbl=isCapo?`⭐${nome}`:isCmd?`📣${nome}`:nome;
-        html+=`<span class="${tc}" onclick="toggleAss('${nome}',${s},this)" title="Click = segna assente/presente">${lbl}</span>`;
-      });
-      if(!cell.allievi.length) html+=`<span style="color:#ccc;font-size:.68rem;">—</span>`;
-      html+=`</div></td>`;
-    });
-    html+=`</tr>`;
-  }
-  html+=`</tbody>`;
-  document.getElementById('piano-table').innerHTML=html;
-}
-
-function toggleAss(nome,s,el){
-  const k=`${nome}_${s}`;
-  if(assenze[k]){delete assenze[k];el.className=el.className.replace('tag-assente','tag-normal').replace('⭐','');el.title='Click = segna assente';}
-  else{assenze[k]=true;el.className=el.className.replace(/tag-(normal|capo|cmd)/,'tag-assente');el.title='Click = segna presente';}
-}
-
-
-// ── Render tab Comandata ──────────────────────────────────────────────────
-function renderComandata(alsOk,capo){
-  const table=document.getElementById('cmd-table');
-  if(!table) return;
-
-  // Raggruppa slot per giorno
-  const giorni={};
-  SLOT_CMD.forEach((sc,i)=>{
-    if(!giorni[sc.g]) giorni[sc.g]=[];
-    giorni[sc.g].push({...sc, idx:i, allievi:pianoCMD[i].allievi});
-  });
-
-  // Header: una colonna per giorno
-  let html='<thead><tr><th style="background:var(--blu);color:white;padding:5px 8px;">Turno</th>';
-  Object.keys(giorni).forEach(g=>{
-    const n=giorni[g].length;
-    html+=`<th colspan="${n}" style="background:var(--blu);color:white;padding:5px 8px;text-align:center;border-left:2px solid rgba(255,255,255,.3);">${g}</th>`;
-  });
-  html+='</tr><tr><th style="background:var(--blu2);color:white;padding:4px 8px;font-size:.72rem;">Pasto</th>';
-  SLOT_CMD.forEach((sc,i)=>{
-    const isLast=sc.last;
-    const bg=isLast?'#C00000':'var(--blu2)';
-    html+=`<th style="background:${bg};color:white;padding:4px 6px;font-size:.7rem;border-left:1px solid rgba(255,255,255,.2);">${sc.t}${isLast?' ⚡':''}</th>`;
-  });
-  html+='</tr></thead><tbody>';
-
-  // Una riga per ogni allievo
-  alsOk.forEach(a=>{
-    const pref=a.prefCmd?` <span style='font-size:.65rem;color:#888;'>(pref:${a.prefCmd})</span>`:''; html+=`<tr><td style="padding:4px 8px;font-weight:bold;border-bottom:1px solid #eee;white-space:nowrap;">${a.nome}${pref}</td>`;
-    SLOT_CMD.forEach((sc,i)=>{
-      const inCmd=pianoCMD[i].allievi.includes(a.nome);
-      const isLast=sc.last;
-      const colBg=sc.c==='cena'?'var(--cena)':sc.c==='col'?'var(--col)':'var(--pran)';
-      if(inCmd){
-        const bg=isLast?'#C00000':isLast?'var(--cmd)':'var(--cmd)';
-        html+=`<td style="text-align:center;background:${isLast?'#C00000':'var(--cmd)'};color:white;font-weight:bold;border:1px solid #ddd;">📣</td>`;
-      } else {
-        html+=`<td style="background:${colBg};border:1px solid #eee;"></td>`;
-      }
-    });
-    html+='</tr>';
-  });
-
-  // Riga riepilogo: quanti in ogni slot
-  html+='<tr style="border-top:2px solid var(--blu);"><td style="padding:4px 8px;font-weight:bold;font-size:.72rem;color:var(--blu);">N° in cmd</td>';
-  SLOT_CMD.forEach((sc,i)=>{
-    const n=pianoCMD[i].allievi.length;
-    html+=`<td style="text-align:center;font-weight:bold;font-size:.78rem;background:${sc.last?'#FFD0D0':'#f5f5f5'};border:1px solid #ddd;">${n}</td>`;
-  });
-  html+='</tr></tbody>';
-  table.innerHTML=html;
+  document.getElementById('eq-grid').innerHTML=barche.map(b=>{
+    // Colore header in base al referente presente
+    const topR = b.pers.find(p=>p.rOggi==='I')?.rOggi
+               ||b.pers.find(p=>p.rOggi==='AdV')?.rOggi
+               ||b.pers.find(p=>p.rOggi==='AT')?.rOggi||'A';
+    const bg=RCOLOR[topR]||'var(--blu)';
+    return `<div class="eq-box">
+      <div class="eq-hdr" style="background:${bg};">
+        <span>Barca ${b.id}</span>
+        <span style="opacity:.75;font-size:.7rem;">${b.pers.length}p</span>
+      </div>
+      <div class="eq-body">
+        ${b.pers.length===0
+          ? '<span style="color:#ccc;font-size:.75rem;">— vuota —</span>'
+          : b.pers.map(p=>`
+            <div class="eq-row">
+              <span class="${RBADGE[p.rOggi]||'rA'}">${p.rOggi}</span>
+              <span>${p.n}${p.c?' '+p.c:''}</span>
+              ${p.s?`<span style="color:#aaa;font-size:.68rem;">(${p.s})</span>`:''}
+            </div>`).join('')
+        }
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── Matrice incontri ──────────────────────────────────────────────────────
-function renderMatrice(alsOk,inc){
-  let html=`<thead><tr><th></th>${alsOk.map(a=>`<th title="${a.nome}">${a.nome.slice(0,5)}</th>`).join('')}</tr></thead><tbody>`;
-  alsOk.forEach(a=>{
-    html+=`<tr><th style="text-align:left;padding:2px 5px;font-weight:normal;">${a.nome}</th>`;
-    alsOk.forEach(b=>{
-      if(a.nome===b.nome){html+=`<td style="background:#f0f0f0;">—</td>`;return;}
-      const v=(inc[a.nome]&&inc[a.nome][b.nome])||0;
-      const c=v===0?'m0':v===1?'m1':v===2?'m2':v===3?'m3':'m4';
-      html+=`<td class="${c}">${v||''}</td>`;
+function renderMatrice(){
+  const als=P.filter(p=>p.r==='A');
+  const t=document.getElementById('mat-tbl');
+  if(!als.length){
+    t.innerHTML='<tr><td style="padding:10px;color:#888;">Nessun allievo (A) in anagrafica.</td></tr>';
+    return;
+  }
+  let html=`<thead><tr><th></th>${als.map(a=>`<th title="${a.n}${a.c?' '+a.c:''}">${(a.s||a.n).slice(0,5)}</th>`).join('')}</tr></thead><tbody>`;
+  als.forEach(a=>{
+    html+=`<tr><th style="text-align:left;padding:2px 5px;font-weight:normal;white-space:nowrap;background:#f8f9fa;">${a.n}${a.c?' '+a.c[0]+'.':''}</th>`;
+    als.forEach(b=>{
+      if(a.n===b.n&&a.c===b.c){html+=`<td style="background:#f0f0f0;">—</td>`;return;}
+      const v=(inc[a.n]?.[b.n])||0;
+      const cl=v===0?'m0':v===1?'m1':v===2?'m2':v===3?'m3':'m4';
+      html+=`<td class="${cl}" title="${a.n} ↔ ${b.n}: ${v} incontri">${v||''}</td>`;
     });
     html+=`</tr>`;
-  });
-  document.getElementById('mat-table').innerHTML=html+'</tbody>';
-}
-
-// ── Copertura istruttori ──────────────────────────────────────────────────
-function renderCopertura(alsOk,istrOk,capo){
-  const t=document.getElementById('cov-table');
-  if(!istrOk.length){t.innerHTML='<tr><td colspan="2">Nessun istruttore.</td></tr>';return;}
-
-  const cov={};
-  istrOk.forEach(i=>{ cov[i.nome]={}; alsOk.forEach(a=>cov[i.nome][a.nome]=0); });
-  for(let s=0;s<10;s++)
-    piano[s].forEach(cell=>{
-      if(!cell.istr||!cov[cell.istr]) return;
-      cell.allievi.forEach(n=>cov[cell.istr][n]=(cov[cell.istr][n]||0)+1);
-    });
-
-  let html=`<thead><tr><th>Istruttore</th>${alsOk.map(a=>`<th title="${a.nome}">${a.nome.slice(0,5)}</th>`).join('')}<th>Non visti</th></tr></thead><tbody>`;
-  istrOk.forEach(ist=>{
-    const isC=capo&&ist.nome===capo.nome;
-    const nv=alsOk.filter(a=>!cov[ist.nome][a.nome]).map(a=>a.nome);
-    html+=`<tr class="${isC?'cov-capo':''}"><td style="font-weight:bold;white-space:nowrap;">${isC?'⭐':''} ${ist.nome}</td>`;
-    alsOk.forEach(a=>{
-      const v=cov[ist.nome][a.nome]||0;
-      html+=`<td class="${v===0?'c0':v===1?'c1':'c2'}">${v||'—'}</td>`;
-    });
-    html+=`<td style="font-size:.72rem;color:var(--rosso);">${nv.join(', ')||'✅'}</td></tr>`;
   });
   t.innerHTML=html+'</tbody>';
 }
 
-// ── Tabs ──────────────────────────────────────────────────────────────────
+// ── Storico ───────────────────────────────────────────────────────────────
+function renderStorico(){
+  const el=document.getElementById('stor-list');
+  if(!storico.length){
+    el.innerHTML='<p style="color:#aaa;font-size:.82rem;">Nessuna sessione generata.</p>';
+    return;
+  }
+  el.innerHTML=[...storico].reverse().map((s,ri)=>{
+    const i=storico.length-1-ri;
+    const lbl={M:'☀️ Mat',P:'🌤️ Pom',T:'🌞 Tutto'}[s.mpt]||s.mpt;
+    return `<div class="slot-box">
+      <div class="slot-hdr">
+        <span>${s.data} — ${lbl} — ${s.nB} barche × ${s.nE}p</span>
+        <button class="btn btn-danger btn-sm" onclick="delSlot(${i})">✕</button>
+      </div>
+      <div class="slot-body">
+        ${s.barche.map(b=>`
+          <div style="background:#f5f5f5;border-radius:4px;padding:3px 8px;font-size:.72rem;min-width:130px;">
+            <strong>B${b.id}:</strong>
+            ${b.pers.map(p=>`<span class="${RBADGE[p.r]||'rA'}" style="margin-right:2px;">${p.r}</span>${p.n}${p.s?` (${p.s})`:''}`).join(', ')||'—'}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function delSlot(i){
+  if(!confirm('Eliminare questa sessione dallo storico?')) return;
+  storico.splice(i,1); salvaStorage(); renderStorico();
+}
+
+function resetStorico(){
+  storico=[]; inc={};
+  salvaStorage(); renderStorico(); renderMatrice();
+}
+
+// ── Tab navigation ────────────────────────────────────────────────────────
 function showTab(name,btn){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('tc-'+name).classList.add('active');
   btn.classList.add('active');
+  if(name==='mat')  renderMatrice();
+  if(name==='stor') renderStorico();
 }
 </script>
 </body>
