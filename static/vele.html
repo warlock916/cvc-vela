@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schede Regolazioni Vela</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a1628;
+    --ocean: #0d3b6e;
+    --sea: #1565a8;
+    --sky: #2196c4;
+    --foam: #e8f4f8;
+    --sand: #f5f0e8;
+    --gold: #d4a017;
+    --coral: #e05c3a;
+    --green: #2e7d4f;
+    --amber: #c47a1a;
+    --text: #1a2332;
+    --muted: #5a6a7e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HERO HEADER */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--ocean) 60%, var(--sea) 100%);
+    padding: 36px 32px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.02) 40px,
+      rgba(255,255,255,0.02) 41px
+    );
+  }
+  .hero-icon { font-size: 2.8rem; margin-bottom: 8px; }
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .hero p {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* NAV TABS */
+  .nav {
+    background: var(--ocean);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: rgba(255,255,255,0.85); }
+  .nav-tab.active {
+    color: white;
+    border-bottom-color: var(--gold);
+    background: rgba(255,255,255,0.06);
+  }
+  .nav-tab .tab-icon { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+
+  /* CONTENT */
+  .content {
+    background: var(--sand);
+    min-height: calc(100vh - 180px);
+    padding: 24px 20px 40px;
+  }
+
+  .sail-page { display: none; }
+  .sail-page.active { display: block; }
+
+  /* SAIL HEADER */
+  .sail-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .sail-header.randa   { background: linear-gradient(135deg, #0d3b6e, #1565a8); }
+  .sail-header.fiocco  { background: linear-gradient(135deg, #1a4a2e, #2e7d4f); }
+  .sail-header.genova  { background: linear-gradient(135deg, #4a2000, #8b4500); }
+  .sail-header.gennaker{ background: linear-gradient(135deg, #5a0a2e, #a01850); }
+
+  .sail-header-icon { font-size: 2.5rem; }
+  .sail-header-text h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .sail-header-text p {
+    font-size: 0.78rem;
+    opacity: 0.75;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+  .sail-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* WIND CONDITION TABS */
+  .wind-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .wind-tab {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .wind-tab.leggero { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+  .wind-tab.medio   { background: #fff3cd; color: #856404; border-color: #ffeeba; }
+  .wind-tab.forte   { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+  .wind-tab.active.leggero { background: #155724; color: white; }
+  .wind-tab.active.medio   { background: #856404; color: white; }
+  .wind-tab.active.forte   { background: #721c24; color: white; }
+  .wind-tab .knots { font-size: 0.68rem; font-weight: 400; display: block; }
+
+  /* ANDATURA TOGGLE */
+  .andatura-toggle {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .and-btn {
+    flex: 1;
+    padding: 7px;
+    border-radius: 8px;
+    border: 2px solid var(--sea);
+    background: white;
+    color: var(--sea);
+    cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .and-btn.active {
+    background: var(--sea);
+    color: white;
+  }
+
+  /* SECTION GRID */
+  .sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 600px) {
+    .sections-grid { grid-template-columns: 1fr; }
+  }
+
+  .section-card {
+    background: white;
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-top: 3px solid var(--sea);
+  }
+  .section-card.full-width {
+    grid-column: 1 / -1;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* REGULATION ROWS */
+  .reg-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 8px;
+  }
+  .reg-row:last-child { border-bottom: none; }
+  .reg-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text);
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+  .reg-value {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.4;
+  }
+  .reg-value strong { color: var(--text); font-weight: 600; }
+
+  /* DIAGNOSTICA */
+  .diag-card {
+    background: white;
+    border-radius: 10px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-top: 3px solid var(--coral);
+    grid-column: 1 / -1;
+  }
+  .diag-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--coral);
+    margin-bottom: 10px;
+  }
+  .diag-row {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.78rem;
+    align-items: flex-start;
+  }
+  .diag-row:last-child { border-bottom: none; }
+  .diag-symptom {
+    min-width: 130px;
+    flex-shrink: 0;
+    color: var(--coral);
+    font-weight: 600;
+  }
+  .diag-fix { color: var(--muted); line-height: 1.4; }
+  .diag-fix strong { color: var(--text); }
+
+  /* TIP BOX */
+  .tip-box {
+    background: linear-gradient(135deg, #e8f4f8, #d0eaf5);
+    border-left: 4px solid var(--sky);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    color: var(--ocean);
+    line-height: 1.5;
+    grid-column: 1 / -1;
+  }
+  .tip-box strong { font-weight: 700; }
+
+  /* HIDDEN PANELS */
+  .wind-panel { display: none; }
+  .wind-panel.active { display: contents; }
+  .and-panel { display: none; }
+  .and-panel.active { display: contents; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-icon">⛵</div>
+  <h1>Schede Regolazioni Vela</h1>
+  <p>Sloop · Randa · Fiocco · Genova · Gennaker · Avanzato</p>
+</div>
+
+<div class="nav">
+  <div class="nav-tab active" onclick="showSail('randa', this)">
+    <span class="tab-icon">🔺</span>RANDA
+  </div>
+  <div class="nav-tab" onclick="showSail('fiocco', this)">
+    <span class="tab-icon">🔷</span>FIOCCO
+  </div>
+  <div class="nav-tab" onclick="showSail('genova', this)">
+    <span class="tab-icon">🔶</span>GENOVA
+  </div>
+  <div class="nav-tab" onclick="showSail('gennaker', this)">
+    <span class="tab-icon">🎈</span>GENNAKER
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ===================== RANDA ===================== -->
+<div id="randa" class="sail-page active">
+  <div class="sail-header randa">
+    <div class="sail-header-icon">🔺</div>
+    <div class="sail-header-text">
+      <h2>Randa</h2>
+      <p>Vela principale · Bordo d'attacco sull'albero · Bordo di fuga libero</p>
+    </div>
+    <div class="sail-badge">Principale</div>
+  </div>
+
+  <div class="wind-tabs">
+    <div class="wind-tab leggero active" onclick="setWind('randa','leggero',this)">🟢 LEGGERO<span class="knots">3–10 nodi</span></div>
+    <div class="wind-tab medio" onclick="setWind('randa','medio',this)">🟡 MEDIO<span class="knots">11–20 nodi</span></div>
+    <div class="wind-tab forte" onclick="setWind('randa','forte',this)">🔴 FORTE<span class="knots">21–35+ nodi</span></div>
+  </div>
+
+  <div class="andatura-toggle">
+    <div class="and-btn active" onclick="setAnd('randa','bolina',this)">🎯 Bolina</div>
+    <div class="and-btn" onclick="setAnd('randa','lasco',this)">🌬 Lasco / Poppa</div>
+  </div>
+
+  <!-- BOLINA -->
+  <div id="randa-bolina" class="and-panel active">
+
+    <div id="randa-bolina-leggero" class="wind-panel active">
+      <div class="sections-grid">
+        <div class="section-card">
+          <div class="section-title">⚙️ Regolazioni Principali</div>
+          <div class="reg-row"><span class="reg-name">Scotta randa</span><span class="reg-value">Lasca — bordo fuga morbido</span></div>
+          <div class="reg-row"><span class="reg-name">Varea/Carrello</span><span class="reg-value">Sopravvento — centro o oltre</span></div>
+          <div class="reg-row"><span class="reg-name">Outhaul</span><span class="reg-value">Lasco +4–5 cm · pancia profonda</span></div>
+          <div class="reg-row"><span class="reg-name">Cunningham</span><span class="reg-value">Completamente lasco</span></div>
+          <div class="reg-row"><span class="reg-name">Kicker (vang)</span><span class="reg-value">Lasco — non interferire</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">🔧 Regolazioni Fini</div>
+          <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Molto aperto — balumina lasca</span></div>
+          <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Lasco — freccia albero ridotta</span></div>
+          <div class="reg-row"><span class="reg-name">Gratile di piede</span><span class="reg-value">Lasca — forma naturale</span></div>
+          <div class="reg-row"><span class="reg-name">Sbandamento</span><span class="reg-value">Ammesso 10–15°</span></div>
+          <div class="reg-row"><span class="reg-name">Velatura</span><span class="reg-value">Piena — nessun terzarolo</span></div>
+        </div>
+        <div class="tip-box">💡 <strong>Obiettivo:</strong> massimizzare la profondità del profilo. In aria leggera la portanza si genera con la curvatura — evita tensioni inutili che appiattirebbero la vela.</div>
+        <div class="diag-card">
+          <div class="diag-title">🔍 Diagnostica Visiva</div>
+          <div class="diag-row"><span class="diag-symptom">Grinze orizzontali dal punto di mura</span><span class="diag-fix"><strong>Cunningham troppo teso</strong> — allentalo</span></div>
+          <div class="diag-row"><span class="diag-symptom">Balumina che sbatte</span><span class="diag-fix"><strong>Scotta troppo lasca</strong> — abborda leggermente</span></div>
+          <div class="diag-row"><span class="diag-symptom">Vela piatta, no potenza</span><span class="diag-fix"><strong>Outhaul troppo teso</strong> — allenta il piede</span></div>
+          <div class="diag-row"><span class="diag-symptom">Boma che sale eccessivamente</span><span class="diag-fix"><strong>Kicker insufficiente</strong> — tendi leggermente</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="randa-bolina-medio" class="wind-panel">
+      <div class="sections-grid">
+        <div class="section-card">
+          <div class="section-title">⚙️ Regolazioni Principali</div>
+          <div class="reg-row"><span class="reg-name">Scotta randa</span><span class="reg-value">Tirata — bordeggio preciso</span></div>
+          <div class="reg-row"><span class="reg-name">Varea/Carrello</span><span class="reg-value">Posizione neutra / centro</span></div>
+          <div class="reg-row"><span class="reg-name">Outhaul</span><span class="reg-value">Quasi piatto — pancia ridotta</span></div>
+          <div class="reg-row"><span class="reg-name">Cunningham</span><span class="reg-value">Leggera tensione</span></div>
+          <div class="reg-row"><span class="reg-name">Kicker (vang)</span><span class="reg-value">Moderato</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">🔧 Regolazioni Fini</div>
+          <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Moderato — bilanciato</span></div>
+          <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Media tensione</span></div>
+          <div class="reg-row"><span class="reg-name">Sbandamento</span><span class="reg-value">Max 20–25°</span></div>
+          <div class="reg-row"><span class="reg-name">Velatura</span><span class="reg-value">Piena — valutare fiocco ridotto</span></div>
+          <div class="reg-row"><span class="reg-name">Depowering</span><span class="reg-value">Varea leggermente sottovento</span></div>
+        </div>
+        <div class="tip-box">💡 <strong>Obiettivo:</strong> equilibrio potenza/controllo. Con raffiche usa il carrello sottovento invece di filare scotta — mantieni il profilo stabile.</div>
+        <div class="diag-card">
+          <div class="diag-title">🔍 Diagnostica Visiva</div>
+          <div class="diag-row"><span class="diag-symptom">Sbandamento eccessivo alle raffiche</span><span class="diag-fix"><strong>Carrello troppo sopravvento</strong> — porta sottovento</span></div>
+          <div class="diag-row"><span class="diag-symptom">Grinze diagonali (pancia)</span><span class="diag-fix"><strong>Cunningham insufficiente</strong> — tendi</span></div>
+          <div class="diag-row"><span class="diag-symptom">Balumina troppo chiusa</span><span class="diag-fix"><strong>Scotta troppo tirata</strong> — fila leggermente</span></div>
+          <div class="diag-row"><span class="diag-symptom">Barca che orza involontariamente</span><span class="diag-fix"><strong>Profilo troppo carico</strong> — depowera con carrello</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="randa-bolina-forte" class="wind-panel">
+      <div class="sections-grid">
+        <div class="section-card">
+          <div class="section-title">⚙️ Regolazioni Principali</div>
+          <div class="reg-row"><span class="reg-name">Scotta randa</span><span class="reg-value">Molto tirata o travaglia attiva</span></div>
+          <div class="reg-row"><span class="reg-name">Varea/Carrello</span><span class="reg-value">Sottovento — scarica la testa</span></div>
+          <div class="reg-row"><span class="reg-name">Outhaul</span><span class="reg-value">Piatto / teso al massimo</span></div>
+          <div class="reg-row"><span class="reg-name">Cunningham</span><span class="reg-value">Molto teso — punto max avanti</span></div>
+          <div class="reg-row"><span class="reg-name">Kicker (vang)</span><span class="reg-value">Teso — controlla twist</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">🔧 Regolazioni Fini</div>
+          <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Controllato — non chiuso</span></div>
+          <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Alta tensione</span></div>
+          <div class="reg-row"><span class="reg-name">Sbandamento</span><span class="reg-value">Ridurre sotto 20° — terzarolo</span></div>
+          <div class="reg-row"><span class="reg-name">Terzaroli</span><span class="reg-value">1° terzarolo &gt;20nd, 2° &gt;28nd</span></div>
+          <div class="reg-row"><span class="reg-name">Brancarella terzarolo</span><span class="reg-value">Abbassata e abbordatissima</span></div>
+        </div>
+        <div class="tip-box">💡 <strong>Obiettivo:</strong> depowerare senza perdere controllo. Con terzarolo, ricontrolla mura e brancarella — sono i punti critici per mantenere efficienza residua.</div>
+        <div class="diag-card">
+          <div class="diag-title">🔍 Diagnostica Visiva</div>
+          <div class="diag-row"><span class="diag-symptom">Grinze orizzontali dal punto di mura terzarolo</span><span class="diag-fix"><strong>Amantiglio di mura lasco</strong> — tendi subito</span></div>
+          <div class="diag-row"><span class="diag-symptom">Brancarella balla, vela gonfia in basso</span><span class="diag-fix"><strong>Scotta brancarella lasca</strong> — abborda bene</span></div>
+          <div class="diag-row"><span class="diag-symptom">Boma che sale con terzarolo</span><span class="diag-fix"><strong>Kicker insufficiente</strong> — tendi molto</span></div>
+          <div class="diag-row"><span class="diag-symptom">Orza violenta alle raffiche</span><span class="diag-fix"><strong>Testa troppo carica</strong> — trava la varea o prendi 2° terzarolo</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end bolina -->
+
+  <!-- LASCO -->
+  <div id="randa-lasco" class="and-panel">
+    <div id="randa-lasco-leggero" class="wind-panel active">
+      <div class="sections-grid">
+        <div class="section-card">
+          <div class="section-title">⚙️ Regolazioni Principali</div>
+          <div class="reg-row"><span class="reg-name">Scotta randa</span><span class="reg-value">Molto lasca — fino quasi a sbattere</span></div>
+          <div class="reg-row"><span class="reg-name">Kicker (vang)</span><span class="reg-value">Quasi assente</span></div>
+          <div class="reg-row"><span class="reg-name">Outhaul</span><span class="reg-value">Lasco +5 cm — max pancia</span></div>
+          <div class="reg-row"><span class="reg-name">Cunningham</span><span class="reg-value">Completamente lasco</span></div>
+          <div class="reg-row"><span class="reg-name">Varea/Carrello</span><span class="reg-value">Sopravvento o centro</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">🔧 Regolazioni Fini</div>
+          <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Molto aperto — naturale</span></div>
+          <div class="reg-row"><span class="reg-name">Sbandamento</span><span class="reg-value">Accettabile oscillazione</span></div>
+          <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Lasco</span></div>
+          <div class="reg-row"><span class="reg-name">Velatura</span><span class="reg-value">Piena</span></div>
+        </div>
+        <div class="tip-box">💡 In aria leggera al lasco, lascia respirare la randa. Massimizza la superficie e la pancia. Usa il gennaker come vela principale di spinta.</div>
+        <div class="diag-card">
+          <div class="diag-title">🔍 Diagnostica Visiva</div>
+          <div class="diag-row"><span class="diag-symptom">Vela che sbatte continuamente</span><span class="diag-fix"><strong>Angolo troppo in poppa o vento oscillante</strong> — abborda leggermente</span></div>
+          <div class="diag-row"><span class="diag-symptom">Boma che sale troppo</span><span class="diag-fix"><strong>Kicker zero</strong> — metti leggera tensione</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="randa-lasco-medio" class="wind-panel">
+      <div class="sections-grid">
+        <div class="section-card">
+          <div class="section-title">⚙️ Regolazioni Principali</div>
+          <div class="reg-row"><span class="reg-name">Scotta randa</span><span class="reg-value">Lasca controllata</span></div>
+          <div class="reg-row"><span class="reg-name">Kicker (vang)</span><span class="reg-value">Tensione moderata</span></div>
+          <div class="reg-row"><span class="reg-name">Outhaul</span><span class="reg-value">Lasco +2–3 cm</span></div>
+          <div class="reg-row"><span class="reg-name">Cunningham</span><span class="reg-value">Lasco</span></div>
+          <div class="reg-row"><span class="reg-name">Varea/Carrello</span><span class="reg-value">Centro</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">🔧 Regolazioni Fini</div>
+          <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Moderatamente aperto</span></div>
+          <div class="reg-row"><span class="reg-name">Rollio</span><span class="reg-value">Controllare — kicker aiuta</span></div>
+          <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Media tensione</span></div>
+        </div>
+        <div class="tip-box">💡 Attenzione al rollio oscillante (rolling): kicker moderato e leggera tensione scotta stabilizzano il boma e smorzano il movimento.</div>
+        <div class="diag-card">
+          <div class="diag-title">🔍 Diagnostica Visiva</div>
+          <div class="diag-row"><span class="diag-symptom">Rollio a dondolo</span><span class="diag-fix"><strong>Kicker lasco + scotta troppo lasca</strong> — tendi entrambi moderatamente</span></div>
+          <div class="diag-row"><span class="diag-symptom">Boma che pesca in acqua in rollio</span><span class="diag-fix"><strong>Scotta troppo lasca</strong> — abborda</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="randa-lasco-forte" class="wind-panel">
+      <div class="sections-grid">
+        <div class="section-card">
+          <div class="section-title">⚙️ Regolazioni Principali</div>
+          <div class="reg-row"><span class="reg-name">Scotta randa</span><span class="reg-value">Moderata + kicker molto teso</span></div>
+          <div class="reg-row"><span class="reg-name">Kicker (vang)</span><span class="reg-value">Molto teso — antistraorzata</span></div>
+          <div class="reg-row"><span class="reg-name">Outhaul</span><span class="reg-value">Quasi neutro</span></div>
+          <div class="reg-row"><span class="reg-name">Cunningham</span><span class="reg-value">Leggera tensione</span></div>
+          <div class="reg-row"><span class="reg-name">Terzarolo</span><span class="reg-value">Considerare da 25+ nodi</span></div>
+        </div>
+        <div class="section-card">
+          <div class="section-title">🔧 Regolazioni Fini</div>
+          <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Controllato con kicker</span></div>
+          <div class="reg-row"><span class="reg-name">Angolo di poppa</span><span class="reg-value">Evitare poppa piena — rischio straorzata</span></div>
+          <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Alta tensione</span></div>
+        </div>
+        <div class="tip-box">💡 <strong>Il kicker è la tua priorità.</strong> Un kicker lasco con vento forte al lasco è la causa principale delle straorzate violente. Tienilo teso anche a costo di perdere qualche grado di VMG.</div>
+        <div class="diag-card">
+          <div class="diag-title">🔍 Diagnostica Visiva</div>
+          <div class="diag-row"><span class="diag-symptom">Boma che sale alla raffica</span><span class="diag-fix"><strong>Kicker lasco</strong> — tendi immediatamente</span></div>
+          <div class="diag-row"><span class="diag-symptom">Straorzata improvvisa</span><span class="diag-fix"><strong>Kicker + scotta laschi</strong> — abborda entrambi, evita poppa piena</span></div>
+          <div class="diag-row"><span class="diag-symptom">Rollio incontrollabile</span><span class="diag-fix"><strong>Terzarolo necessario</strong> — riduci velatura</span></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end lasco -->
+</div>
+
+<!-- ===================== FIOCCO ===================== -->
+<div id="fiocco" class="sail-page">
+  <div class="sail-header fiocco">
+    <div class="sail-header-icon">🔷</div>
+    <div class="sail-header-text">
+      <h2>Fiocco</h2>
+      <p>Vela di prua non sovrapposta · Solap &lt;100% · Vento medio-forte</p>
+    </div>
+    <div class="sail-badge">Prua</div>
+  </div>
+
+  <div class="wind-tabs">
+    <div class="wind-tab leggero active" onclick="setWind('fiocco','leggero',this)">🟢 LEGGERO<span class="knots">3–10 nodi</span></div>
+    <div class="wind-tab medio" onclick="setWind('fiocco','medio',this)">🟡 MEDIO<span class="knots">11–20 nodi</span></div>
+    <div class="wind-tab forte" onclick="setWind('fiocco','forte',this)">🔴 FORTE<span class="knots">21–35+ nodi</span></div>
+  </div>
+
+  <div id="fiocco-leggero" class="wind-panel active">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta fiocco</span><span class="reg-value">Lasca — forma ampia</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead (avanti/indietro)</span><span class="reg-value">Arretrato — apre balumina</span></div>
+        <div class="reg-row"><span class="reg-name">Sag strallo</span><span class="reg-value">Molto lasco — profilo profondo</span></div>
+        <div class="reg-row"><span class="reg-name">Tensione strallo di prua</span><span class="reg-value">Bassa</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Twist fiocco</span><span class="reg-value">Aperto — balumina non chiusa</span></div>
+        <div class="reg-row"><span class="reg-name">Angolo attacco</span><span class="reg-value">Più lasca del normale</span></div>
+        <div class="reg-row"><span class="reg-name">Slot randa/fiocco</span><span class="reg-value">Ampio — non strozzare</span></div>
+        <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Lasco (più sag = più profilo)</span></div>
+      </div>
+      <div class="tip-box">💡 In leggero il fiocco soffre più della randa — cerca di non strozzare lo slot tra randa e fiocco. Un fairlead troppo avanzato chiude la balumina del fiocco e blocca il flusso sulla randa.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Grinze verticali (pancia)</span><span class="diag-fix"><strong>Scotta troppo tirata</strong> — allenta</span></div>
+        <div class="diag-row"><span class="diag-symptom">Balumina che sbatte</span><span class="diag-fix"><strong>Scotta troppo lasca</strong> — abborda leggermente</span></div>
+        <div class="diag-row"><span class="diag-symptom">Fiocco piatto, nessuna spinta</span><span class="diag-fix"><strong>Sag insufficiente</strong> — allenta paterazzo</span></div>
+        <div class="diag-row"><span class="diag-symptom">Slot chiuso, randa soffoca</span><span class="diag-fix"><strong>Fairlead troppo avanzato</strong> — arretra</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fiocco-medio" class="wind-panel">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta fiocco</span><span class="reg-value">Neutra — tensione precisa</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead</span><span class="reg-value">Posizione centrale standard</span></div>
+        <div class="reg-row"><span class="reg-name">Sag strallo</span><span class="reg-value">Moderato</span></div>
+        <div class="reg-row"><span class="reg-name">Tensione strallo di prua</span><span class="reg-value">Media</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Twist fiocco</span><span class="reg-value">Moderato — bilanciato</span></div>
+        <div class="reg-row"><span class="reg-name">Slot randa/fiocco</span><span class="reg-value">Controllato — non troppo stretto</span></div>
+        <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Media tensione</span></div>
+      </div>
+      <div class="tip-box">💡 Controlla l'allineamento dei filetti di lana su entrambi i lati del fiocco: devono sventolare orizzontalmente. Se quello sopravvento cade, stai orzando troppo. Se quello sottovento cade, poggia.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Filetto sopravvento cade</span><span class="diag-fix"><strong>Troppo in orza</strong> — poggia o allenta scotta</span></div>
+        <div class="diag-row"><span class="diag-symptom">Filetto sottovento cade</span><span class="diag-fix"><strong>Troppo in poppa</strong> — orza o abborda scotta</span></div>
+        <div class="diag-row"><span class="diag-symptom">Grinze diagonali</span><span class="diag-fix"><strong>Fairlead fuori posizione</strong> — regola avanti/indietro</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fiocco-forte" class="wind-panel">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta fiocco</span><span class="reg-value">Tirata — profilo piatto</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead</span><span class="reg-value">Avanzato — chiude balumina</span></div>
+        <div class="reg-row"><span class="reg-name">Sag strallo</span><span class="reg-value">Teso — profilo piatto</span></div>
+        <div class="reg-row"><span class="reg-name">Tensione strallo di prua</span><span class="reg-value">Alta</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Twist fiocco</span><span class="reg-value">Controllato — non troppo chiuso</span></div>
+        <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Alta tensione — strallo teso</span></div>
+        <div class="reg-row"><span class="reg-name">Opzione riduzione</span><span class="reg-value">Arrotolare / sostituire con fiocco tempesta</span></div>
+      </div>
+      <div class="tip-box">💡 Con vento forte, un fiocco piatto e uno strallo teso riducono la deriva e migliorano la capacità di stringere il vento. Preferisci il fiocco piccolo alla genova ridotta.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Strallo che "sega" — curva eccessiva</span><span class="diag-fix"><strong>Paterazzo lasco</strong> — tendi, usa cazzatoio paterazzo</span></div>
+        <div class="diag-row"><span class="diag-symptom">Vela troppo gonfia nonostante scotta tirata</span><span class="diag-fix"><strong>Sag eccessivo</strong> — tendi paterazzo</span></div>
+        <div class="diag-row"><span class="diag-symptom">Sbandamento eccessivo dalla prua</span><span class="diag-fix"><strong>Ridurre fiocco</strong> — arrotolare parzialmente</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== GENOVA ===================== -->
+<div id="genova" class="sail-page">
+  <div class="sail-header genova">
+    <div class="sail-header-icon">🔶</div>
+    <div class="sail-header-text">
+      <h2>Genova</h2>
+      <p>Vela di prua sovrapposta · Solap 130–155% · Vento leggero-medio</p>
+    </div>
+    <div class="sail-badge">Prua Larga</div>
+  </div>
+
+  <div class="wind-tabs">
+    <div class="wind-tab leggero active" onclick="setWind('genova','leggero',this)">🟢 LEGGERO<span class="knots">3–10 nodi</span></div>
+    <div class="wind-tab medio" onclick="setWind('genova','medio',this)">🟡 MEDIO<span class="knots">11–20 nodi</span></div>
+    <div class="wind-tab forte" onclick="setWind('genova','forte',this)">🔴 FORTE<span class="knots">21–35+ nodi</span></div>
+  </div>
+
+  <div id="genova-leggero" class="wind-panel active">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta genova</span><span class="reg-value">Lasca — ampia borsa</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead laterale</span><span class="reg-value">Arretrato e all'esterno</span></div>
+        <div class="reg-row"><span class="reg-name">Sag strallo</span><span class="reg-value">Molto lasco — profilo massimo</span></div>
+        <div class="reg-row"><span class="reg-name">Tensione luff</span><span class="reg-value">Minima — gratile morbida</span></div>
+        <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Completamente lasco</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Slot randa/genova</span><span class="reg-value">Controllare — non troppo stretto</span></div>
+        <div class="reg-row"><span class="reg-name">Twist genova</span><span class="reg-value">Aperto — balumina libera</span></div>
+        <div class="reg-row"><span class="reg-name">Angolo di attacco</span><span class="reg-value">Più lasca del solito</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead (alto/basso)</span><span class="reg-value">Medio — bilanciato</span></div>
+      </div>
+      <div class="tip-box">💡 La genova in leggero è la vela più potente a bordo. Attenzione allo slot: la sovrapposizione crea un "ugello" con la randa — se lo chiudi troppo, soffochi entrambe le vele. Il fairlead arretrato apre la balumina e allarga lo slot.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Randa che sbatte / filetti sopravvento cadono</span><span class="diag-fix"><strong>Slot troppo stretto</strong> — allenta scotta genova o arretra fairlead</span></div>
+        <div class="diag-row"><span class="diag-symptom">Genova piatta, nessuna spinta</span><span class="diag-fix"><strong>Scotta troppo tirata</strong> — allenta, cerca la forma</span></div>
+        <div class="diag-row"><span class="diag-symptom">Bordo d'attacco che fa grinze orizzontali</span><span class="diag-fix"><strong>Luff tension troppo alta</strong> — allenta</span></div>
+        <div class="diag-row"><span class="diag-symptom">Tocca le sartie</span><span class="diag-fix"><strong>Fairlead troppo all'interno o scotta troppo tirata</strong></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="genova-medio" class="wind-panel">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta genova</span><span class="reg-value">Tirata — bordeggio preciso</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead laterale</span><span class="reg-value">Posizione standard</span></div>
+        <div class="reg-row"><span class="reg-name">Sag strallo</span><span class="reg-value">Moderato</span></div>
+        <div class="reg-row"><span class="reg-name">Tensione luff</span><span class="reg-value">Moderata</span></div>
+        <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Media tensione</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Slot</span><span class="reg-value">Controllato — non strozzare</span></div>
+        <div class="reg-row"><span class="reg-name">Twist genova</span><span class="reg-value">Moderato</span></div>
+        <div class="reg-row"><span class="reg-name">Depowering</span><span class="reg-value">Allenta scotta prima del carrello</span></div>
+      </div>
+      <div class="tip-box">💡 In raffiche, fila la scotta genova prima di usare il carrello randa — la genova risponde più rapidamente e il depowering è più efficace.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Sbandamento eccessivo alle raffiche</span><span class="diag-fix"><strong>Fila la scotta genova</strong> immediatamente</span></div>
+        <div class="diag-row"><span class="diag-symptom">Grinze diagonali dalla balumina</span><span class="diag-fix"><strong>Fairlead troppo arretrato</strong> — avanza</span></div>
+        <div class="diag-row"><span class="diag-symptom">Grinze orizzontali nel mezzo</span><span class="diag-fix"><strong>Fairlead troppo avanzato</strong> — arretra</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="genova-forte" class="wind-panel">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta genova</span><span class="reg-value">Molto tirata — profilo piatto</span></div>
+        <div class="reg-row"><span class="reg-name">Fairlead laterale</span><span class="reg-value">Avanzato e interno</span></div>
+        <div class="reg-row"><span class="reg-name">Sag strallo</span><span class="reg-value">Teso al massimo</span></div>
+        <div class="reg-row"><span class="reg-name">Tensione luff</span><span class="reg-value">Alta</span></div>
+        <div class="reg-row"><span class="reg-name">Opzione riduzione</span><span class="reg-value">⚠️ Sostituire con fiocco — non navigare con genova &gt;25 nodi</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Paterazzo</span><span class="reg-value">Alta tensione</span></div>
+        <div class="reg-row"><span class="reg-name">Twist</span><span class="reg-value">Ridotto — chiuso</span></div>
+        <div class="reg-row"><span class="reg-name">Raccomandazione</span><span class="reg-value">Arrotolare e issare fiocco tempesta</span></div>
+      </div>
+      <div class="tip-box">⚠️ <strong>Attenzione:</strong> la genova in vento forte è difficile da gestire per il suo solap elevato. Oltre 22–25 nodi è meglio passare al fiocco. Se arrotolabile, riduci tenendo il fairlead aggiornato alla nuova dimensione.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Genova arrotolata che si gonfia al centro</span><span class="diag-fix"><strong>Arrotolamento parziale con sag</strong> — tendi paterazzo o cambia vela</span></div>
+        <div class="diag-row"><span class="diag-symptom">Difficoltà a stringere il vento</span><span class="diag-fix"><strong>Troppa vela a prua</strong> — riduci o sostituisci</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== GENNAKER ===================== -->
+<div id="gennaker" class="sail-page">
+  <div class="sail-header gennaker">
+    <div class="sail-header-icon">🎈</div>
+    <div class="sail-header-text">
+      <h2>Gennaker</h2>
+      <p>Vela asimmetrica · Lasco stretto–largo · Issata sull'asse o con tangone</p>
+    </div>
+    <div class="sail-badge">Lasco</div>
+  </div>
+
+  <div class="wind-tabs">
+    <div class="wind-tab leggero active" onclick="setWind('gennaker','leggero',this)">🟢 LEGGERO<span class="knots">3–10 nodi</span></div>
+    <div class="wind-tab medio" onclick="setWind('gennaker','medio',this)">🟡 MEDIO<span class="knots">11–20 nodi</span></div>
+    <div class="wind-tab forte" onclick="setWind('gennaker','forte',this)">🔴 FORTE<span class="knots">21–35+ nodi</span></div>
+  </div>
+
+  <div id="gennaker-leggero" class="wind-panel active">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta gennaker</span><span class="reg-value">Lasca — borsa massima</span></div>
+        <div class="reg-row"><span class="reg-name">Braccio (tack line)</span><span class="reg-value">Angolo basso — prua fuori</span></div>
+        <div class="reg-row"><span class="reg-name">Amantiglio (halyard)</span><span class="reg-value">Teso — testa alta</span></div>
+        <div class="reg-row"><span class="reg-name">Bugna di mura</span><span class="reg-value">Bassa — apertura bordo d'attacco</span></div>
+        <div class="reg-row"><span class="reg-name">Randa</span><span class="reg-value">Ammainare o tenere a cavallo</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Twist gennaker</span><span class="reg-value">Aperto — testa libera</span></div>
+        <div class="reg-row"><span class="reg-name">Angolo di andatura</span><span class="reg-value">Lasco stretto (60–100° AWA)</span></div>
+        <div class="reg-row"><span class="reg-name">Profondità del profilo</span><span class="reg-value">Massima — non appiattire</span></div>
+        <div class="reg-row"><span class="reg-name">Sbandamento</span><span class="reg-value">Leggero sopravvento favorisce</span></div>
+      </div>
+      <div class="tip-box">💡 In leggero il gennaker è la vela più potente del sloop. Tienilo gonfio con una scotta morbida — la tentazione di tirare troppo appiattisce il profilo e toglie spinta. Cerca il punto in cui il bordo d'attacco inizia a rientrare, poi abborda di un centimetro.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Bordo d'attacco che rientra (collasso parziale)</span><span class="diag-fix"><strong>Scotta troppo lasca o poggiare</strong> — abborda scotta o orza leggermente</span></div>
+        <div class="diag-row"><span class="diag-symptom">Vela piatta, no spinta</span><span class="diag-fix"><strong>Scotta troppo tirata</strong> — allenta</span></div>
+        <div class="diag-row"><span class="diag-symptom">Testa che cade</span><span class="diag-fix"><strong>Amantiglio lasco</strong> — tendi</span></div>
+        <div class="diag-row"><span class="diag-symptom">Vela che gira sulla randa</span><span class="diag-fix"><strong>Braccio troppo alto o randa troppo abbordatissima</strong> — bilancia</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gennaker-medio" class="wind-panel">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Scotta gennaker</span><span class="reg-value">Controllata — non troppo lasca</span></div>
+        <div class="reg-row"><span class="reg-name">Braccio (tack line)</span><span class="reg-value">Regolare con le raffiche</span></div>
+        <div class="reg-row"><span class="reg-name">Amantiglio</span><span class="reg-value">Teso</span></div>
+        <div class="reg-row"><span class="reg-name">Bugna di mura</span><span class="reg-value">Abbassare in raffica</span></div>
+        <div class="reg-row"><span class="reg-name">Randa</span><span class="reg-value">Kicker teso — controlla rollio</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Regolazioni Fini</div>
+        <div class="reg-row"><span class="reg-name">Depowering in raffica</span><span class="reg-value">Fila scotta rapidamente</span></div>
+        <div class="reg-row"><span class="reg-name">Angolo di andatura</span><span class="reg-value">Evitare andatura troppo portante</span></div>
+        <div class="reg-row"><span class="reg-name">Stabilità</span><span class="reg-value">Crew sul bordo sopravvento</span></div>
+        <div class="reg-row"><span class="reg-name">Ammainata</span><span class="reg-value">Pianificarla in anticipo</span></div>
+      </div>
+      <div class="tip-box">💡 In vento medio il gennaker può diventare aggressivo. Il timoniere deve essere pronto a poggiare nelle raffiche — non correggere con il timone ma con la scotta: fila, non strapogi.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Rollata improvvisa sopravvento</span><span class="diag-fix"><strong>Fila scotta immediatamente</strong> — poi riposiziona</span></div>
+        <div class="diag-row"><span class="diag-symptom">Broach (straorzata con spinnaker)</span><span class="diag-fix"><strong>Troppa vela + angolo troppo portante</strong> — orza, fila scotta, randa travaglia</span></div>
+        <div class="diag-row"><span class="diag-symptom">Collasso ripetuto del bordo d'attacco</span><span class="diag-fix"><strong>Andatura troppo portante</strong> — orza di 10–15°</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gennaker-forte" class="wind-panel">
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="section-title">⚙️ Regolazioni Principali</div>
+        <div class="reg-row"><span class="reg-name">Gennaker</span><span class="reg-value">⚠️ Ammainare — limite superato</span></div>
+        <div class="reg-row"><span class="reg-name">Limite operativo</span><span class="reg-value">Generalmente 18–22 nodi TWS</span></div>
+        <div class="reg-row"><span class="reg-name">Alternativa</span><span class="reg-value">Genova/fiocco al lasco largo</span></div>
+        <div class="reg-row"><span class="reg-name">Randa</span><span class="reg-value">Terzarolo + kicker molto teso</span></div>
+      </div>
+      <div class="section-card">
+        <div class="section-title">🔧 Procedura Ammainata</div>
+        <div class="reg-row"><span class="reg-name">1. Orza</span><span class="reg-value">Porta la barca in lasco stretto</span></div>
+        <div class="reg-row"><span class="reg-name">2. Fila scotta</span><span class="reg-value">Tieni il gennaker sotto vento alla randa</span></div>
+        <div class="reg-row"><span class="reg-name">3. Recupera</span><span class="reg-value">Per il braccio — ammaina in calza</span></div>
+        <div class="reg-row"><span class="reg-name">4. Mai in poppa</span><span class="reg-value">Non ammainare in poppa piena</span></div>
+      </div>
+      <div class="tip-box">⚠️ <strong>Non forzare il gennaker con vento forte.</strong> Il rischio di broach o di perdere il controllo del bordo d'attacco è alto. Ammaina con ordine e tempestività — meglio preventivamente che in emergenza.</div>
+      <div class="diag-card">
+        <div class="diag-title">🔍 Diagnostica Visiva</div>
+        <div class="diag-row"><span class="diag-symptom">Bordo d'attacco instabile — entra ed esce</span><span class="diag-fix"><strong>Troppo vento</strong> — inizia procedura di ammainata</span></div>
+        <div class="diag-row"><span class="diag-symptom">Barca difficile da tenere in rotta</span><span class="diag-fix"><strong>Gennaker sovradimensionato per le condizioni</strong> — ammaina</span></div>
+        <div class="diag-row"><span class="diag-symptom">Broach in avvio</span><span class="diag-fix"><strong>Emergenza</strong> — fila tutto, orza, recupera il controllo</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<script>
+function showSail(name, el) {
+  document.querySelectorAll('.sail-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  el.classList.add('active');
+}
+
+function setWind(sail, level, el) {
+  // Update tab appearance
+  el.closest('.wind-tabs').querySelectorAll('.wind-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  // Show correct wind panel (handle sails with andatura panels)
+  const page = document.getElementById(sail);
+  const andPanels = page.querySelectorAll('.and-panel');
+
+  if (andPanels.length > 0) {
+    // Randa: has bolina/lasco sub-panels
+    const activeAnd = page.querySelector('.and-panel.active');
+    if (activeAnd) {
+      const andName = activeAnd.id.split('-')[1]; // e.g. 'bolina' or 'lasco'
+      activeAnd.querySelectorAll('.wind-panel').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(`${sail}-${andName}-${level}`);
+      if (target) target.classList.add('active');
+    }
+  } else {
+    // Other sails: direct wind panels
+    page.querySelectorAll('.wind-panel').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(`${sail}-${level}`);
+    if (target) target.classList.add('active');
+  }
+}
+
+function setAnd(sail, andatura, el) {
+  el.closest('.andatura-toggle').querySelectorAll('.and-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  const page = document.getElementById(sail);
+  page.querySelectorAll('.and-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`${sail}-${andatura}`).classList.add('active');
+
+  // Reset wind to leggero when switching andatura
+  const windTabs = page.querySelectorAll('.wind-tab');
+  windTabs.forEach(t => t.classList.remove('active'));
+  windTabs[0].classList.add('active');
+  document.getElementById(`${sail}-${andatura}`).querySelectorAll('.wind-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`${sail}-${andatura}-leggero`).classList.add('active');
+}
+</script>
+</body>
+</html>
