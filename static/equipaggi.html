@@ -285,16 +285,23 @@ let P=[], daily={}, storico=[], inc={}, covRef={}, pianoManuale={}, ultimiBarche
 // ── Init ──────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('data').value = new Date().toISOString().slice(0,10);
-  caricaStorage();
-  renderP(); renderD();
-  // Carica da URL params (link da scheda CVC)
+
   const params=new URLSearchParams(location.search);
   const turno=params.get('turno'), corso=params.get('corso'), tok=params.get('tok');
+
   if(turno && corso && tok){
+    // Arriva dalla scheda CVC: carica storico/inc dal localStorage
+    // ma gli ALLIEVI li prende sempre freschi dalla scheda (non dal cache)
+    caricaStorageStorico(); // carica solo storico, inc, covRef
     document.getElementById('hdr-info').textContent=`T${turno} — ${corso}`;
     document.getElementById('turno-i').value=turno;
     document.getElementById('corso-i').value=corso;
-    caricaDaScheda(turno,corso,tok);
+    renderP(); renderD();
+    caricaDaScheda(turno,corso,tok); // sovrascrive P con allievi del turno
+  } else {
+    // Apertura standalone: carica tutto dal localStorage
+    caricaStorage();
+    renderP(); renderD();
   }
 });
 
@@ -317,6 +324,17 @@ function caricaStorage(){
     if(d.anno)  document.getElementById('anno').value=d.anno;
     if(d.corso) document.getElementById('corso-i').value=d.corso;
     if(d.turno) document.getElementById('turno-i').value=d.turno;
+  }catch{}
+}
+
+// Carica solo storico/matrice (non gli allievi) — usato quando si arriva dalla scheda CVC
+function caricaStorageStorico(){
+  try{
+    const d=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(!d) return;
+    // Non caricare P (allievi): verranno dalla scheda CVC
+    storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{}; pianoManuale=d.pianoManuale||{};
+    if(d.anno)  document.getElementById('anno').value=d.anno;
   }catch{}
 }
 function salva(){
@@ -373,32 +391,46 @@ async function caricaDaScheda(turno,corso,tok){
   try{
     const res=await fetch(`/api/turno/${turno}?corso=${encodeURIComponent(corso)}`,
       {headers:{'X-Auth-Token':tok}});
-    if(!res.ok) return;
+    if(!res.ok){ console.warn('API error:', res.status); return; }
     const d=await res.json();
-    let k=0;
+
+    if(!d.allievi||!d.allievi.length){
+      console.warn('Nessun allievo nel turno'); return;
+    }
+
+    // SOSTITUISCE P con gli allievi del turno (mantiene IS/CT/AT già inseriti manualmente)
+    const referentiEsistenti=P.filter(p=>['IS','CT','AT'].includes(p.r));
+    P=[]; // svuota allievi
+
     (d.allievi||[]).forEach(r=>{
-      if(!P.find(p=>p.n===r.allievo)){
-        // Rank dal voto Tecnica del giorno precedente (tec_g1..tec_g6,tec_fin)
-        // Cerca l'ultimo giorno con un voto tecnica disponibile
-        // Se nessun voto → rank=3 (corrisponde a voto base 6)
-        let rank=3; // default giorno 1: tutti a 6 → rank 3
-        const tecKeys=['tec_g1','tec_g2','tec_g3','tec_g4','tec_g5','tec_g6','tec_fin'];
-        let lastTec=null;
-        tecKeys.forEach(k2=>{ if(r[k2]!=null) lastTec=r[k2]; });
-        if(lastTec!=null){
-          // Voto tecnica 1-10 → rank 1-5
-          // 1-2→1, 3-4→2, 5-6→3, 7-8→4, 9-10→5
-          if(lastTec<=2) rank=1;
-          else if(lastTec<=4) rank=2;
-          else if(lastTec<=6) rank=3;
-          else if(lastTec<=8) rank=4;
-          else rank=5;
-        }
-        P.push({n:r.allievo, c:'', s:'', r:'A', rank}); k++;
+      // Rank dal voto Tecnica: cerca l'ultimo giorno compilato
+      let rank=3;
+      const tecKeys=['tec_g1','tec_g2','tec_g3','tec_g4','tec_g5','tec_g6','tec_fin'];
+      let lastTec=null;
+      tecKeys.forEach(k2=>{ if(r[k2]!=null) lastTec=r[k2]; });
+      if(lastTec!=null){
+        if(lastTec<=2) rank=1;
+        else if(lastTec<=4) rank=2;
+        else if(lastTec<=6) rank=3;
+        else if(lastTec<=8) rank=4;
+        else rank=5;
       }
+      P.push({n:r.allievo, c:'', s:'', r:'A', rank});
     });
-    if(k){ renderP(); renderD(); alert(`✅ ${k} allievi importati dalla scheda.`); }
-  }catch(e){ console.warn('Import scheda:',e); }
+
+    // Re-aggiunge IS/CT/AT che erano già stati inseriti manualmente
+    referentiEsistenti.forEach(ref=>{
+      if(!P.find(p=>p.n===ref.n)) P.push(ref);
+    });
+
+    // Reinizializza daily per i nuovi allievi
+    daily={};
+    P.forEach((_,i)=>{ daily[i]={r:P[i].r, imb:true}; });
+
+    renderP(); renderD();
+    console.log(`✅ ${d.allievi.length} allievi caricati da T${turno} ${corso}`);
+
+  }catch(e){ console.warn('Import scheda fallito:',e); }
 }
 
 // ── Daily state ───────────────────────────────────────────────────────────
