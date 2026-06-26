@@ -547,6 +547,30 @@ def lista_public():
         cur.execute(csql,params[:-1]); total=cur.fetchone()[0]
     return jsonify({'total':total,'rows':rows})
 
+
+@app.route('/api/scheda/allievo', methods=['DELETE'])
+def elimina_allievo_turno():
+    token = request.headers.get('X-Auth-Token', '')
+    turno = request.args.get('turno', '')
+    corso = request.args.get('corso', '')
+    allievo = request.args.get('allievo', '').strip()
+    if not turno or not corso or not allievo:
+        return jsonify({'error': 'Parametri mancanti'}), 400
+    try:
+        turno = int(turno)
+    except:
+        return jsonify({'error': 'Turno non valido'}), 400
+    if not check_turno_auth(turno, token):
+        return jsonify({'error': 'Non autorizzato'}), 401
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            f'DELETE FROM valutazioni WHERE turno={PH} AND corso={PH} AND allievo={PH}',
+            (turno, corso, allievo)
+        )
+        conn.commit()
+    return jsonify({'ok': True})
+
 @app.route('/api/valutazioni/<int:vid>', methods=['DELETE'])
 @check_admin
 def elimina(vid):
@@ -702,7 +726,7 @@ def export_excel_turno(turno):
         DAY_C=['2E75B6','375623','7B5C00','7030A0','C00000','006B6B','8B3A00']
         thin=Side(style='thin',color='CCCCCC')
         BRD=Border(left=thin,right=thin,top=thin,bottom=thin)
-        CRITERI_NOMI=['Tecnica','Sen. Naut.','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I']
+        CRITERI_NOMI=['Tecnica','Senso Nautico','Affidabilità','Progressione','Impegno','Disponibilità','Comp. T/I']
         DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7']
 
         ws.merge_cells('A1:D1')
