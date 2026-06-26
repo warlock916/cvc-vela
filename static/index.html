@@ -743,11 +743,21 @@ function renderRigaMobile(nome,id){
   div.innerHTML=html; container.appendChild(div);
 }
 
-function rimuoviAllievo(nome){
-  if(!confirm(`Rimuovere ${nome}?`)) return;
+async function rimuoviAllievo(nome){
+  if(!confirm(`Rimuovere ${nome}? Verrà eliminato anche dal database.`)) return;
   allievi=allievi.filter(a=>a!==nome);
   document.getElementById(`row_${nomeToId(nome)}`)?.remove();
   document.getElementById(`mob_${nomeToId(nome)}`)?.remove();
+
+  // Elimina anche dal database, così non ricompare al ricaricamento
+  try{
+    await fetchAuth(`${API}/api/scheda/allievo?turno=${session.turno}&corso=${encodeURIComponent(session.corso)}&allievo=${encodeURIComponent(nome)}`,{
+      method:'DELETE',
+      headers:{'X-Auth-Token':session.token}
+    });
+  }catch(e){
+    console.warn('Errore eliminazione dal DB:', e);
+  }
 }
 
 function validateVoto(el){
