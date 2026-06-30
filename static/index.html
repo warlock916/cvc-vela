@@ -45,6 +45,8 @@ table.scheda thead tr:nth-child(2) th{font-size:.68rem;padding:3px;font-weight:6
 table.scheda td.nome-cell{text-align:left;min-width:110px;font-weight:600;background:#f5f5f5;position:sticky;left:0;z-index:2;border-right:2px solid #bbb;}
 table.scheda th.nome-th{position:sticky;left:0;z-index:3;min-width:110px;}
 table.scheda td input{width:52px;padding:3px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.88rem;font-weight:bold;}
+.voto-select{width:52px;padding:3px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.88rem;font-weight:bold;background:white;cursor:pointer;}
+.voto-select:focus{outline:none;border-color:var(--blu2);background:#e8f5ff;}
 table.scheda td input:focus{outline:none;border-color:var(--blu2);background:#e8f5ff;}
 table.scheda td input.invalid{border-color:var(--rosso);background:#fff0f0;}
 td.pts-day{background:var(--oro);color:#333;font-weight:bold;font-size:.78rem;min-width:28px;}
@@ -336,6 +338,7 @@ const CRITERI_KEYS=['tec','sen','aff','pro','imp','dis','com'];
 const DAY_COLORS=['#2E75B6','#375623','#7B5C00','#7030A0','#C00000','#006B6B','#8B3A00'];
 const DAY_LABELS=['G1','G2','G3','G4','G5','G6','G7'];
 const DAY_KEYS  =['g1','g2','g3','g4','g5','g6','fin'];
+const VOTO_OPTIONS = Array.from({length:10},(_,i)=>i+1).map(v=>`<option value="${v}">${v}</option>`).join('');
 const PESI={
   D1:[.30,.10,.10,.15,.12,.13,.10],D2:[.30,.10,.10,.15,.12,.13,.10],
   D3:[.30,.15,.15,.10,.08,.12,.10],D4:[.30,.15,.20,.05,.08,.12,.10],
@@ -668,7 +671,7 @@ function renderRigaDesktop(nome,id){
   </td>`;
   DAY_KEYS.forEach((dk,di)=>{
     CRITERI_KEYS.forEach(key=>{
-      cells+=`<td ${di>0&&CRITERI_KEYS.indexOf(key)===0?'class="sep-td"':''}><input type="number" id="${key}_${id}_${dk}" min="1" max="10" placeholder="—" oninput="validateVoto(this);ricalcolaAllievo('${nome}')"></td>`;
+      cells+=`<td ${di>0&&CRITERI_KEYS.indexOf(key)===0?'class="sep-td"':''}><select class="voto-select" id="${key}_${id}_${dk}" onchange="ricalcolaAllievo('${nome}')"><option value="">—</option>${VOTO_OPTIONS}</select></td>`;
     });
     const cls=di===6?'pts-fin-cell':'pts-day';
     cells+=`<td class="${cls}" id="pts_${id}_${dk}">—</td>`;
@@ -721,9 +724,9 @@ function renderRigaMobile(nome,id){
     DAY_KEYS.forEach((dk,di)=>{
       const bg=DAY_COLORS[di]+'22';
       html+=`<td style="padding:2px;background:${bg};text-align:center;">
-        <input type="number" id="${key}_${id}_${dk}" min="1" max="10" placeholder="—"
-          style="width:46px;padding:4px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.9rem;font-weight:bold;-webkit-appearance:none;-moz-appearance:textfield;appearance:textfield;"
-          oninput="validateVoto(this);ricalcolaAllievo('${nome}')">
+        <select class="voto-select" id="${key}_${id}_${dk}"
+          style="width:50px;padding:4px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.9rem;font-weight:bold;"
+          onchange="ricalcolaAllievo('${nome}')"><option value="">—</option>${VOTO_OPTIONS}</select>
       </td>`;
     });
     html+=`</tr>`;
@@ -971,9 +974,11 @@ async function apriModal(id){
         <h4 style="color:${bg}">${lbl}</h4>
         ${CRITERI_NOMI.map((crit,ci)=>`
           <div><label>${crit}</label>
-          <input type="number" id="mod_${dk}_${CRITERI_KEYS[ci]}" min="1" max="10"
-            value="${r[CRITERI_KEYS[ci]+'_'+dk]??''}" placeholder="—"
-            oninput="validateVoto(this);aggiornaModalPts()"></div>`).join('')}
+          <select class="voto-select" id="mod_${dk}_${CRITERI_KEYS[ci]}"
+            style="width:100%;" onchange="aggiornaModalPts()">
+            <option value="" ${(r[CRITERI_KEYS[ci]+'_'+dk]==null)?'selected':''}>—</option>
+            ${[1,2,3,4,5,6,7,8,9,10].map(v=>`<option value="${v}" ${r[CRITERI_KEYS[ci]+'_'+dk]==v?'selected':''}>${v}</option>`).join('')}
+          </select></div>`).join('')}
         <div class="modal-pts" id="mod_pts_${dk}">Pts: ${r['pts_'+dk]??'—'}</div>
       </div>`;
     }).join('');
