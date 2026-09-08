@@ -348,6 +348,8 @@ const PESI={
 };
 
 let session=null, adminToken=null, allievi=[], alleviRuoli={};
+// ID univoco per questa finestra del browser (rileva sessioni concorrenti)
+const CLIENT_ID = Math.random().toString(36).slice(2);
 const isMobile=()=>window.innerWidth<=768;
 
 // ── Sessione ──────────────────────────────────────────────────────────────
@@ -515,7 +517,15 @@ function calcolaPunteggio(corso,voti){
 }
 
 // ── Allievi ───────────────────────────────────────────────────────────────
-function nomeToId(n){return n.toLowerCase().replace(/[^a-z0-9]/g,'_');}
+function nomeToId(n){
+  // Translittera accenti e caratteri speciali → ASCII sicuro per ID HTML
+  return n.normalize('NFD')            // decomponi lettere accentate
+           .replace(/[̀-ͯ]/g,'') // rimuovi i diacritici
+           .toLowerCase()
+           .replace(/[^a-z0-9]/g,'_')  // ogni altra cosa → underscore
+           .replace(/_+/g,'_')          // underscore multipli → singolo
+           .replace(/^_|_$/g,'');       // trim underscore iniziali/finali
+}
 
 function importaExcel(input){
   const file = input.files[0];
@@ -549,22 +559,19 @@ function importaExcel(input){
         const cella = (rows[i][0]||'').toString().trim();
         if(!cella){ vuoti++; continue; }
 
-        // Prende l'ULTIMA parola = nome; la PRIMA parola = cognome
+        // Usa TUTTO il contenuto della cella (Cognome Nome o Nome Cognome)
+        // capitalizzato per word → es "marco rossi" → "Marco Rossi"
         const parti = cella.split(/\s+/).filter(p=>p.length>0);
         if(parti.length===0){ vuoti++; continue; }
-        const nome = parti[parti.length-1];
-        const cognome = parti[0];
 
-        // Capitalizza
-        let base = nome.charAt(0).toUpperCase() + nome.slice(1).toLowerCase();
+        // Capitalizza ogni parola
+        const nomeCompleto = parti.map(p=>p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()).join(' ');
 
-        // Se duplicato, aggiungi numero progressivo: Matteo → Matteo2 → Matteo3
-        let finale = base;
-        let idx=2;
-        while(allievi.includes(finale)){ finale=base+idx; idx++; }
+        // Controlla duplicati esatti; se già esiste, salta (non aggiunge varianti strane)
+        if(allievi.includes(nomeCompleto)){ vuoti++; continue; }
 
-        allievi.push(finale);
-        renderRiga(finale);
+        allievi.push(nomeCompleto);
+        renderRiga(nomeCompleto);
         aggiunti++;
       }
 
@@ -588,6 +595,13 @@ function importaExcel(input){
   reader.readAsArrayBuffer(file);
 }
 
+// Wrapper sicuro: legge nome/id da data-* (evita problemi con apici nei nomi)
+function modificaNomeById(el){
+  const nome = el.dataset.nome;
+  const id   = el.dataset.id;
+  modificaNome(nome, id);
+}
+
 function modificaNome(nomeVecchio, id){
   const nuovoNome = prompt('Rinomina allievo:', nomeVecchio);
   if(!nuovoNome || nuovoNome.trim()==='' || nuovoNome.trim()===nomeVecchio) return;
@@ -598,21 +612,37 @@ function modificaNome(nomeVecchio, id){
   const idx = allievi.indexOf(nomeVecchio);
   if(idx>=0) allievi[idx]=nome;
 
+  // Aggiorna alleviRuoli
+  if(alleviRuoli[nomeVecchio]!==undefined){
+    alleviRuoli[nome]=alleviRuoli[nomeVecchio];
+    delete alleviRuoli[nomeVecchio];
+  }
+
   // Aggiorna label visibile (desktop e mobile)
-  document.querySelectorAll(`#nome_lbl_${id}`).forEach(el=>el.textContent=nome);
-  // Aggiorna pulsante rimuovi
+  document.querySelectorAll(`[id="nome_lbl_${id}"]`).forEach(el=>el.textContent=nome);
+
+  // Aggiorna data-nome sui pulsanti matita e select ruolo (approccio data-* sicuro)
+  document.querySelectorAll(`[data-nome="${nomeVecchio}"]`).forEach(el=>{
+    el.dataset.nome=nome;
+  });
+
+  // Aggiorna pulsante rimuovi (usa data-nome se disponibile, altrimenti onclick)
+  document.querySelectorAll(`[data-rimuovi="${nomeVecchio}"]`)
+    .forEach(el=>{ el.dataset.rimuovi=nome; });
+
+  // Fallback: aggiorna onclick rimuovi ancora presenti
   document.querySelectorAll(`[onclick="rimuoviAllievo('${nomeVecchio}')"]`)
     .forEach(el=>el.setAttribute('onclick',`rimuoviAllievo('${nome}')`));
-  // Aggiorna onclick del nome
-  document.querySelectorAll(`[onclick="modificaNome('${nomeVecchio}','${id}')"]`)
-    .forEach(el=>el.setAttribute('onclick',`modificaNome('${nome}','${id}')`));
-  // Aggiorna foto cell
+
+  // Aggiorna foto cell onclick (non usa data-* per ora)
   document.querySelectorAll(`[onclick*="apriUploadFoto('${nomeVecchio}'"]`)
     .forEach(el=>el.setAttribute('onclick',`apriUploadFoto('${nome}','${id}')`));
-  // Aggiorna ricalcola nelle celle input
-  document.querySelectorAll(`[oninput*="ricalcolaAllievo('${nomeVecchio}')"]`)
-    .forEach(el=>el.setAttribute('oninput',
-      el.getAttribute('oninput').replace(`ricalcolaAllievo('${nomeVecchio}')`,`ricalcolaAllievo('${nome}')`)));
+
+  // Aggiorna onchange ricalcola nelle celle select
+  document.querySelectorAll(`[onchange*="ricalcolaAllievo('${nomeVecchio}')"]`)
+    .forEach(el=>el.setAttribute('onchange',
+      el.getAttribute('onchange').replace(
+        `ricalcolaAllievo('${nomeVecchio}')`,`ricalcolaAllievo('${nome}')`)));
 }
 
 function aggiungiConRuolo(ruolo){
@@ -656,12 +686,12 @@ function renderRigaDesktop(nome,id){
         <span style="position:absolute;bottom:-2px;right:-2px;background:var(--blu2);color:white;border-radius:50%;width:14px;height:14px;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1;">+</span>
       </div>
       <span id="nome_lbl_${id}">${nome}</span>
-      <span onclick="modificaNome('${nome}','${id}')" title="Rinomina allievo"
+      <span data-nome="${nome.replace(/'/g,"\'")}" data-id="${id}" onclick="modificaNomeById(this)" title="Rinomina allievo"
         style="cursor:pointer;color:var(--blu2);font-size:.75rem;margin-left:4px;opacity:.7;"
         onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">✏️</span>
       <select id="ruolo_${id}" class="sel-ruolo" title="Ruolo allievo"
         style="font-size:.68rem;padding:1px 3px;border-radius:3px;border:1px solid #ccc;margin-left:4px;background:#f8f9fa;width:50px;"
-        onchange="alleviRuoli['${nome}']=this.value">
+        data-nome="${nome}" onchange="alleviRuoli[this.dataset.nome]=this.value">
         <option value="A" selected>A</option>
         <option value="IS">IS</option>
         <option value="CT">CT</option>
@@ -671,12 +701,12 @@ function renderRigaDesktop(nome,id){
   </td>`;
   DAY_KEYS.forEach((dk,di)=>{
     CRITERI_KEYS.forEach(key=>{
-      cells+=`<td ${di>0&&CRITERI_KEYS.indexOf(key)===0?'class="sep-td"':''}><select class="voto-select" id="${key}_${id}_${dk}" onchange="ricalcolaAllievo('${nome}')"><option value="">—</option>${VOTO_OPTIONS}</select></td>`;
+      cells+=`<td ${di>0&&CRITERI_KEYS.indexOf(key)===0?'class="sep-td"':''}><select class="voto-select" id="${key}_${id}_${dk}" data-nome="${nome}" onchange="ricalcolaAllievo(this.dataset.nome)"><option value="">—</option>${VOTO_OPTIONS}</select></td>`;
     });
     const cls=di===6?'pts-fin-cell':'pts-day';
     cells+=`<td class="${cls}" id="pts_${id}_${dk}">—</td>`;
   });
-  cells+=`<td><button class="btn btn-danger" onclick="rimuoviAllievo('${nome}')">✕</button></td>`;
+  cells+=`<td><button class="btn btn-danger" data-rimuovi="${nome}" onclick="rimuoviAllievoBtn(this)">✕</button></td>`;
   tr.innerHTML=cells; tbody.appendChild(tr);
 }
 
@@ -695,15 +725,15 @@ function renderRigaMobile(nome,id){
     <span id="nome_lbl_${id}" style="flex:1;">${nome}</span>
     <select id="ruolo_${id}" class="sel-ruolo" title="Ruolo"
       style="font-size:.68rem;padding:1px 3px;border-radius:3px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:white;margin-right:3px;width:48px;"
-      onchange="alleviRuoli['${nome}']=this.value">
+      data-nome="${nome}" onchange="alleviRuoli[this.dataset.nome]=this.value">
       <option value="A" selected>A</option>
       <option value="IS">IS</option>
       <option value="CT">CT</option>
       <option value="AT">AT</option>
     </select>
-    <span onclick="modificaNome('${nome}','${id}')" title="Rinomina"
+    <span data-nome="${nome.replace(/'/g,"\'")}" data-id="${id}" onclick="modificaNomeById(this)" title="Rinomina"
       style="cursor:pointer;font-size:.75rem;margin-right:4px;opacity:.8;">✏️</span>
-    <button class="btn btn-danger btn-sm" onclick="rimuoviAllievo('${nome}')">✕</button>
+    <button class="btn btn-danger btn-sm" data-rimuovi="${nome}" onclick="rimuoviAllievoBtn(this)">✕</button>
   </div>`;
 
   // Tabella unica: prima riga = etichette giorni, poi una riga per criterio, ultima riga punteggi
@@ -726,7 +756,7 @@ function renderRigaMobile(nome,id){
       html+=`<td style="padding:2px;background:${bg};text-align:center;">
         <select class="voto-select" id="${key}_${id}_${dk}"
           style="width:50px;padding:4px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.9rem;font-weight:bold;"
-          onchange="ricalcolaAllievo('${nome}')"><option value="">—</option>${VOTO_OPTIONS}</select>
+          data-nome="${nome}" onchange="ricalcolaAllievo(this.dataset.nome)"><option value="">—</option>${VOTO_OPTIONS}</select>
       </td>`;
     });
     html+=`</tr>`;
@@ -745,6 +775,8 @@ function renderRigaMobile(nome,id){
 
   div.innerHTML=html; container.appendChild(div);
 }
+
+function rimuoviAllievoBtn(el){ rimuoviAllievo(el.dataset.rimuovi); }
 
 async function rimuoviAllievo(nome){
   if(!confirm(`Rimuovere ${nome}? Verrà eliminato anche dal database.`)) return;
