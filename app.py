@@ -98,6 +98,7 @@ def init_db():
             token TEXT PRIMARY KEY,
             tipo  TEXT DEFAULT 'admin',
             turno INTEGER,
+            corso TEXT,
             foto_ok INTEGER DEFAULT 0,
             created_at {TS}
         )''')
@@ -143,6 +144,13 @@ def migrate_db():
                 if not cur.fetchone():
                     cur.execute('ALTER TABLE sessions ADD COLUMN foto_ok INTEGER DEFAULT 0')
                     conn.commit()
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='sessions' AND column_name='corso'"
+                )
+                if not cur.fetchone():
+                    cur.execute('ALTER TABLE sessions ADD COLUMN corso TEXT')
+                    conn.commit()
             else:
                 cur.execute("PRAGMA table_info(valutazioni)")
                 cols = [r[1] for r in cur.fetchall()]
@@ -163,8 +171,27 @@ def migrate_db():
                 if 'foto_ok' not in cols3:
                     cur.execute('ALTER TABLE sessions ADD COLUMN foto_ok INTEGER DEFAULT 0')
                     conn.commit()
+                if 'corso' not in cols3:
+                    cur.execute('ALTER TABLE sessions ADD COLUMN corso TEXT')
+                    conn.commit()
     except Exception as e:
         print(f"Migration warning: {e}")
+
+    # Pulisci sessioni scadute (> 24h)
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            if USE_PG:
+                cur.execute(
+                    "DELETE FROM sessions WHERE created_at < NOW() - INTERVAL '48 hours'"
+                )
+            else:
+                cur.execute(
+                    "DELETE FROM sessions WHERE created_at < datetime('now', '-48 hours')"
+                )
+            conn.commit()
+    except Exception as e:
+        print(f"Session cleanup warning: {e}")
 
     # Crea tabella settings se non esiste
     try:
@@ -231,10 +258,19 @@ def check_admin(f):
         return f(*args,**kwargs)
     return wrapper
 
-def check_turno_auth(turno_num, token):
+def check_turno_auth(turno_num, token, corso=None):
     with get_db() as conn:
         cur=conn.cursor()
-        cur.execute(f"SELECT token FROM sessions WHERE token={PH} AND (tipo='admin' OR (tipo='turno' AND turno={PH}))",(token,turno_num))
+        if corso:
+            cur.execute(
+                f"SELECT token FROM sessions WHERE token={PH} AND "                f"(tipo='admin' OR (tipo='turno' AND turno={PH} AND corso={PH}))",
+                (token, turno_num, corso)
+            )
+        else:
+            cur.execute(
+                f"SELECT token FROM sessions WHERE token={PH} AND "                f"(tipo='admin' OR (tipo='turno' AND turno={PH}))",
+                (token, turno_num)
+            )
         return cur.fetchone() is not None
 
 # ── Routes base ───────────────────────────────────────────────────────────
@@ -321,7 +357,8 @@ def turno_login():
                 return jsonify({'error':'Password errata per questo turno'}),401
         token=secrets.token_hex(32)
         foto_ok=1 if pwd==FOTO_PWD else 0
-        cur.execute(f"INSERT INTO sessions(token,tipo,turno,foto_ok) VALUES({PH},{PH},{PH},{PH})",(token,'turno',numero,foto_ok))
+        corso_sessione=turno_dict['corso']
+        cur.execute(f"INSERT INTO sessions(token,tipo,turno,corso,foto_ok) VALUES({PH},{PH},{PH},{PH},{PH})",(token,'turno',numero,corso_sessione,foto_ok))
         conn.commit()
     return jsonify({'token':token,'tipo':'turno','turno':numero,
                     'istruttore':turno_dict['istruttore'],'corso':turno_dict['corso'],
@@ -374,7 +411,7 @@ def salva_scheda():
             if not all([corso,istr,allievo,turno]): continue
             try: turno=int(turno)
             except: continue
-            if not check_turno_auth(turno,token): return jsonify({'error':'Non autorizzato'}),401
+            if not check_turno_auth(turno,token,corso): return jsonify({'error':'Non autorizzato'}),401
             cols,vals=[],[]
             for c in CRITERI:
                 for dk in DAY_KEYS:
@@ -560,7 +597,7 @@ def elimina_allievo_turno():
         turno = int(turno)
     except:
         return jsonify({'error': 'Turno non valido'}), 400
-    if not check_turno_auth(turno, token):
+    if not check_turno_auth(turno, token, corso):
         return jsonify({'error': 'Non autorizzato'}), 401
     with get_db() as conn:
         cur = conn.cursor()
