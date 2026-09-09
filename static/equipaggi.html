@@ -7,75 +7,81 @@
 <style>
 :root{
   --blu:#1F4E79;--blu2:#2E75B6;--az:#BDD7EE;
-  --oro:#FFD700;--verde:#70AD47;--rosso:#C00000;
-  --arancio:#E6A817;--grigio:#F2F2F2;--bordo:#CCC;
+  --verde:#70AD47;--rosso:#C00000;--oro:#FFD700;
+  --arancio:#E6A817;--bordo:#CCC;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:Arial,sans-serif;background:#e8f0f7;color:#1a1a1a;min-height:100vh;}
-header{background:var(--blu);color:white;padding:10px 16px;display:flex;align-items:center;gap:12px;}
+header{background:var(--blu);color:white;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 header h1{font-size:.95rem;}
 header a{color:rgba(255,255,255,.7);font-size:.8rem;text-decoration:none;}
-header a:hover{color:white;}
 header span{margin-left:auto;font-size:.78rem;opacity:.8;}
 .container{max-width:1300px;margin:14px auto;padding:0 10px 60px;}
 .card{background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:16px 18px;margin-bottom:14px;}
-.card h2{color:var(--blu);font-size:.92rem;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--az);}
+.card h2{color:var(--blu);font-size:.92rem;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--az);display:flex;align-items:center;gap:8px;}
 label{display:block;font-size:.78rem;font-weight:bold;color:#555;margin-bottom:3px;}
 input,select{width:100%;padding:6px 9px;border:1.5px solid var(--bordo);border-radius:5px;font-size:.83rem;}
 input:focus,select:focus{outline:none;border-color:var(--blu2);}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.btn{padding:7px 16px;border:none;border-radius:6px;font-size:.83rem;font-weight:bold;cursor:pointer;transition:.2s;}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.btn{padding:7px 16px;border:none;border-radius:6px;font-size:.83rem;font-weight:bold;cursor:pointer;transition:.15s;}
 .btn-success{background:var(--verde);color:white;}.btn-success:hover{filter:brightness(.9);}
 .btn-primary{background:var(--blu2);color:white;}.btn-primary:hover{background:var(--blu);}
 .btn-danger{background:var(--rosso);color:white;font-size:.72rem;padding:3px 7px;}
 .btn-outline{background:none;border:1.5px solid var(--blu2);color:var(--blu2);}.btn-outline:hover{background:var(--az);}
+.btn-purple{background:#7030A0;color:white;font-weight:bold;}.btn-purple:hover{filter:brightness(.9);}
 .btn-sm{padding:3px 9px;font-size:.73rem;}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+/* Tabelle */
 .tbl{width:100%;border-collapse:collapse;font-size:.8rem;}
 .tbl th{background:var(--blu);color:white;padding:6px 8px;text-align:left;}
 .tbl td{padding:4px 6px;border-bottom:1px solid #eee;vertical-align:middle;}
-.tbl td input[type=text]{width:100%;padding:3px 5px;font-size:.78rem;}
+.tbl td input[type=text]{padding:3px 5px;font-size:.78rem;}
 .tbl td select{padding:3px 5px;font-size:.78rem;}
-.rA{background:#dbeafe;color:#1e40af;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
-.rAdV{background:#fce7f3;color:#9d174d;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
-.rAT{background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
-.rI{background:#d1fae5;color:#065f46;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
-.eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-top:10px;}
-.eq-box{border:2px solid var(--blu2);border-radius:8px;overflow:hidden;}
-.eq-hdr{color:white;padding:5px 10px;font-size:.8rem;font-weight:bold;display:flex;justify-content:space-between;}
-.eq-body{padding:6px 8px;}
-.eq-row{display:flex;align-items:center;gap:4px;padding:2px 0;font-size:.78rem;}
+/* Badge ruolo */
+.rA  {background:#dbeafe;color:#1e40af;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.rIS {background:#fce7f3;color:#9d174d;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.rCT {background:#d1fae5;color:#065f46;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+.rAT {background:#fef3c7;color:#92400e;border-radius:3px;padding:1px 5px;font-size:.7rem;font-weight:bold;}
+/* Equipaggi */
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px;}
+.eq-box{border:2px solid var(--blu2);border-radius:8px;overflow:hidden;transition:border-color .2s;}
+.eq-box.drag-over{border-color:var(--verde);border-width:3px;background:#f0fff4;}
+.eq-hdr{color:white;padding:5px 10px;font-size:.8rem;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+.eq-body{padding:6px 8px;min-height:32px;}
+.eq-row{display:flex;align-items:center;gap:5px;padding:2px 0;font-size:.79rem;}
+.eq-row.draggable{cursor:grab;border-radius:3px;padding:2px 3px;}
+.eq-row.draggable:hover{background:#f0f4ff;}
+.eq-row.draggable:active{cursor:grabbing;opacity:.6;}
+/* Storico */
 .slot-box{margin-bottom:8px;border:1px solid #ddd;border-radius:6px;overflow:hidden;}
 .slot-hdr{background:#f0f4f8;padding:5px 10px;font-size:.78rem;font-weight:bold;color:var(--blu);display:flex;justify-content:space-between;align-items:center;}
 .slot-body{padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;}
-.mat-tbl{border-collapse:collapse;font-size:.65rem;}
-.mat-tbl th{padding:3px 4px;background:var(--blu);color:white;font-size:.6rem;white-space:nowrap;}
-.mat-tbl td{padding:2px 4px;border:1px solid #ddd;text-align:center;min-width:22px;}
-.m0{color:#ddd;}.m1{background:#dbeafe;}.m2{background:#93c5fd;}.m3{background:#3b82f6;color:white;}.m4{background:#1e40af;color:white;font-weight:bold;}
-.tabs{display:flex;gap:0;border-bottom:2px solid var(--blu2);margin-bottom:12px;}
+/* Matrice */
+.mt{border-collapse:collapse;font-size:.65rem;}
+.mt th{padding:3px 4px;background:var(--blu);color:white;font-size:.6rem;white-space:nowrap;}
+.mt td{padding:2px 4px;border:1px solid #ddd;text-align:center;min-width:22px;}
+.m0{color:#ccc;}.m1{background:#dbeafe;}.m2{background:#93c5fd;}.m3{background:#3b82f6;color:white;}.m4{background:#1e40af;color:white;font-weight:bold;}
+/* Tabs */
+.tabs{display:flex;border-bottom:2px solid var(--blu2);margin-bottom:12px;gap:0;flex-wrap:wrap;}
 .tab{padding:7px 14px;cursor:pointer;font-size:.83rem;border:none;background:none;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;}
 .tab.active{color:var(--blu);border-bottom:3px solid var(--blu);font-weight:bold;}
 .tc{display:none;}.tc.active{display:block;}
-
-.eq-box.editing{border-color:var(--arancio);border-width:3px;}
-.eq-drop{min-height:40px;border:2px dashed #ccc;border-radius:5px;padding:4px;margin:2px 0;transition:background .2s;}
-.eq-drop.over{background:#e8f5e9;border-color:var(--verde);}
-.eq-persona-drag{cursor:grab;user-select:none;}
-.eq-persona-drag:active{cursor:grabbing;opacity:.6;}
-.btn-mantieni{background:#7030A0;color:white;font-weight:bold;}
-.btn-mantieni:hover{filter:brightness(.9);}
-.alert-w{background:#fff3cd;border-left:4px solid var(--arancio);padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:10px;}
-.piano-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px;}
-.piano-box{border:2px solid #ddd;border-radius:7px;overflow:hidden;font-size:.78rem;}
-.piano-box-hdr{padding:4px 8px;font-weight:bold;color:white;display:flex;justify-content:space-between;}
-.piano-box-body{padding:5px 8px;min-height:36px;}
-.piano-slot{display:flex;align-items:center;gap:4px;margin:2px 0;}
-.rank-star{color:var(--oro);font-size:.7rem;}
+.alert-w{background:#fff3cd;border-left:4px solid var(--arancio);padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:8px;}
+.alert-e{background:#fce8e8;border-left:4px solid var(--rosso);padding:8px 12px;border-radius:4px;font-size:.82rem;margin-bottom:8px;}
 .badge{background:var(--blu2);color:white;border-radius:10px;padding:1px 7px;font-size:.7rem;margin-left:4px;}
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
-input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+.note{font-size:.72rem;color:#888;margin-top:6px;line-height:1.5;}
+/* Conf barca */
+.barca-conf-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border:1px solid #eee;border-radius:6px;margin-bottom:6px;font-size:.8rem;}
+.barca-conf-row label{margin:0;font-size:.78rem;font-weight:normal;}
+.num-sm{width:52px !important;padding:3px 5px !important;text-align:center;}
+/* Copertura */
+.cov-verde{color:var(--verde);font-weight:bold;}
+.cov-rosso{color:var(--rosso);font-size:.72rem;}
 </style>
 </head>
 <body>
@@ -86,623 +92,557 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 </header>
 <div class="container">
 
-<!-- ANAGRAFICA -->
+<!-- ── SEZIONE 1: ANAGRAFICA ─────────────────────────────────────────── -->
 <div class="card">
-  <h2>👥 Anagrafica Corso</h2>
-  <div class="grid3" style="margin-bottom:12px;">
+  <h2>👥 Partecipanti</h2>
+  <div class="g3" style="margin-bottom:10px;">
     <div><label>Anno</label><input type="number" id="anno" value="2025" style="width:90px;"></div>
     <div><label>Corso</label><input type="text" id="corso-i" placeholder="es. C3"></div>
     <div><label>Turno</label><input type="number" id="turno-i" placeholder="es. 7" min="1" max="60"></div>
   </div>
+
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
-    <label style="margin:0;">Partecipanti <span class="badge" id="badge-n">0</span></label>
-    <div class="btn-row" style="margin:0;">
-      <button class="btn btn-outline btn-sm" onclick="addP()">+ Allievo</button>
-      <button class="btn btn-outline btn-sm" onclick="addP('','','','IS')" style="border-color:#9d174d;color:#9d174d;">+ IS</button>
-      <button class="btn btn-outline btn-sm" onclick="addP('','','','CT')" style="border-color:#065f46;color:#065f46;">+ CT</button>
-      <button class="btn btn-outline btn-sm" onclick="addP('','','','AT')" style="border-color:#92400e;color:#92400e;">+ AT</button>
-      <button class="btn btn-outline btn-sm" onclick="importa()">📥 Importa</button>
+    <span style="font-size:.8rem;font-weight:bold;color:var(--blu);">
+      Allievi <span class="badge" id="badge-a">0</span>
+      &nbsp; IS <span class="badge" id="badge-is" style="background:#9d174d;">0</span>
+      &nbsp; CT <span class="badge" id="badge-ct" style="background:#065f46;">0</span>
+      &nbsp; AT <span class="badge" id="badge-at" style="background:#92400e;">0</span>
+    </span>
+    <div class="btn-row" style="margin:0;gap:5px;">
+      <button class="btn btn-outline btn-sm" onclick="addP('','','','A')">+ Allievo</button>
+      <button class="btn btn-outline btn-sm" style="border-color:#9d174d;color:#9d174d;" onclick="addP('','','','IS')">+ IS</button>
+      <button class="btn btn-outline btn-sm" style="border-color:#065f46;color:#065f46;" onclick="addP('','','','CT')">+ CT</button>
+      <button class="btn btn-outline btn-sm" style="border-color:#92400e;color:#92400e;" onclick="addP('','','','AT')">+ AT</button>
       <button class="btn btn-primary btn-sm" onclick="salva()">💾 Salva</button>
       <span id="saved-lbl" style="font-size:.75rem;color:var(--verde);display:none;">✅</span>
     </div>
   </div>
-  <div style="overflow:auto;max-height:320px;">
+
+  <div style="overflow:auto;max-height:300px;">
     <table class="tbl">
-      <thead><tr><th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th><th title="1-5 (dal voto Tecnica del giorno precedente; Giorno 1 = 3)">Rank ⓘ</th><th></th></tr></thead>
+      <thead><tr>
+        <th>Nome</th><th>Cognome</th><th>Soprannome</th><th>Ruolo</th>
+        <th title="Rank dal voto Tecnica (1-5); Giorno 1 = 3">Rank ⓘ</th>
+        <th style="text-align:center;width:80px;">Imbarcato</th>
+        <th></th>
+      </tr></thead>
       <tbody id="p-tbody"></tbody>
     </table>
   </div>
-  <p style="font-size:.72rem;color:#888;margin-top:8px;">
-    Ruoli: <strong>A</strong>=Allievo &nbsp;<strong>IS</strong>=Istruttore &nbsp;<strong>CT</strong>=Capo Turno &nbsp;<strong>AT</strong>=Assistente di Terra<br>
-    ⚠️ <strong>IS, CT e AT non possono essere sulla stessa imbarcazione.</strong>
+  <p class="note">
+    <strong>A</strong>=Allievo · <strong>IS</strong>=Istruttore · <strong>CT</strong>=Capo Turno (uno solo) · <strong>AT</strong>=Assistente Terra (trattato come allievo aggiuntivo)<br>
+    ⚠️ IS e CT non possono stare sulla stessa barca. AT conta come allievo.
   </p>
 </div>
 
-<!-- DATI GIORNALIERI -->
+<!-- ── SEZIONE 2: CONFIGURAZIONE BARCHE ─────────────────────────────── -->
 <div class="card">
-  <h2>📅 Dati Giornalieri</h2>
-  <div class="grid4" style="margin-bottom:12px;">
+  <h2>⚙️ Configurazione Barche</h2>
+  <div class="g4" style="margin-bottom:12px;">
     <div><label>Data</label><input type="date" id="data"></div>
     <div><label>Sessione</label>
       <select id="mpt">
-        <option value="M">☀️ Mattino (M)</option>
-        <option value="P">🌤️ Pomeriggio (P)</option>
-        <option value="T">🌞 Tutto il giorno (T)</option>
+        <option value="M">☀️ Mattino</option>
+        <option value="P">🌤️ Pomeriggio</option>
+        <option value="T">🌞 Tutto il giorno</option>
       </select>
     </div>
-    <div><label>N° Barche disponibili</label><input type="number" id="n-barche" value="4" min="1" max="20" oninput="renderPianoIstruttori()"></div>
-    <div>
-      <label>Tipo barche</label>
-      <select id="tipo-barche" onchange="aggiornaTipoBarche()">
-        <option value="omogenee">Tutte uguali</option>
-        <option value="miste">Miste (2 e 5+)</option>
-      </select>
-    </div>
-  </div>
-  <!-- Configurazione barche -->
-  <div id="conf-omogenee" style="margin-bottom:10px;">
-    <label style="font-size:.78rem;font-weight:bold;color:#555;">N° persone per barca <span style="color:#888;font-weight:normal;">(istruttore escluso)</span></label>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input type="number" id="n-eq" value="2" min="1" max="6" style="width:70px;">
-      <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;margin:0;cursor:pointer;">
-        <input type="checkbox" id="ha-istr-omog" style="width:14px;height:14px;" onchange="renderPianoIstruttori()">
-        Barche con istruttore (IS/CT)
-      </label>
-    </div>
-  </div>
-  <div id="conf-miste" style="display:none;margin-bottom:10px;">
-    <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      <div><label style="font-size:.78rem;font-weight:bold;color:#555;">N° barche da 2</label>
-        <input type="number" id="n-b2" value="2" min="0" max="10" style="width:65px;"></div>
-      <div><label style="font-size:.78rem;font-weight:bold;color:#555;">N° barche da 5 <span style="font-weight:normal;color:#888;">(+istruttore)</span></label>
-        <input type="number" id="n-b5" value="2" min="0" max="10" style="width:65px;" oninput="syncBarche5()"></div>
+    <div><label>N° barche</label><input type="number" id="n-barche" value="4" min="1" max="20" oninput="aggiornaTipoBarche()"></div>
+    <div><label>Allievi per barca</label>
+      <input type="number" id="n-als" value="2" min="1" max="10" title="Minimo 1 allievo per barca (obbligatorio)">
     </div>
   </div>
 
-  <div id="d-warn" class="alert-w" style="display:none;"></div>
-  <div style="overflow:auto;max-height:340px;">
-    <table class="tbl">
-      <thead><tr>
-        <th>Nome</th><th>Cognome</th><th>Soprannome</th>
-        <th>Ruolo oggi</th>
-        <th style="text-align:center;width:80px;">Imbarcato</th>
-      </tr></thead>
-      <tbody id="d-tbody"></tbody>
-    </table>
+  <!-- Quanti IS e CT per barca -->
+  <div class="g2" style="margin-bottom:10px;">
+    <div style="padding:10px;background:#fce7f3;border-radius:8px;border:1px solid #f9c;">
+      <label style="color:#9d174d;">🎓 Istruttori (IS) per barca</label>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <input type="number" id="n-is-barca" value="0" min="0" max="3" style="width:60px;" title="0 = nessun IS; 1 = un IS per barca, ecc.">
+        <span style="font-size:.75rem;color:#666;">per barca (può essere 0)</span>
+      </div>
+      <p style="font-size:.71rem;color:#9d174d;margin-top:4px;">IS in eccesso rimangono senza barca fissa</p>
+    </div>
+    <div style="padding:10px;background:#d1fae5;border-radius:8px;border:1px solid #6ee7b7;">
+      <label style="color:#065f46;">⭐ Capo Turno (CT)</label>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <select id="ct-barca" style="font-size:.78rem;">
+          <option value="">— Auto / Non imbarcare —</option>
+        </select>
+      </div>
+      <p style="font-size:.71rem;color:#065f46;margin-top:4px;">Il CT è uno solo; scegli su quale barca assegnarlo</p>
+    </div>
   </div>
+
+  <!-- Avviso configurazione -->
+  <div id="conf-warn" class="alert-w" style="display:none;"></div>
+
   <div class="btn-row">
     <button class="btn btn-success" style="padding:9px 24px;font-size:.88rem;" onclick="genera()">⚡ Genera Equipaggi</button>
-    <button class="btn btn-outline btn-sm" onclick="setTutti(true)">✅ Tutti imbarcati</button>
-    <button class="btn btn-outline btn-sm" onclick="setTutti(false)">🚫 Nessuno imbarcato</button>
     <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;font-weight:bold;cursor:pointer;margin:0;">
       <input type="checkbox" id="usa-ranking" style="width:14px;height:14px;">
-      Usa ranking voti
+      Bilancia per ranking
+    </label>
+    <label style="display:flex;align-items:center;gap:5px;font-size:.78rem;cursor:pointer;margin:0;">
+      <input type="checkbox" id="imb-tutti" style="width:14px;height:14px;" onchange="setTutti(this.checked)">
+      Tutti imbarcati
     </label>
   </div>
 </div>
 
-<!-- PIANO ISTRUTTORI -->
-<div class="card" id="piano-card" style="display:none;">
-  <h2>📋 Piano Istruttori / AdV / AT
-    <button class="btn btn-outline btn-sm" style="margin-left:auto;" onclick="resetPianoManuale()">↩ Rigenera auto</button>
-  </h2>
-  <p style="font-size:.78rem;color:#666;margin-bottom:8px;">
-    Assegna manualmente ogni referente a una barca. Il sistema rispetta questi vincoli nella generazione.
-    <br>⚠️ Max un referente per barca — AdV, AT e I non possono stare insieme.
-  </p>
-  <div id="piano-istr-grid" class="piano-grid"></div>
-</div>
-
-<!-- OUTPUT -->
+<!-- ── OUTPUT ────────────────────────────────────────────────────────── -->
 <div id="output" style="display:none;">
   <div class="card">
     <div class="tabs">
       <button class="tab active" onclick="showTab('eq',this)">⛵ Equipaggi</button>
-      <button class="tab" onclick="showTab('piano',this)">📋 Copertura Ref.</button>
-      <button class="tab" onclick="showTab('mat',this)">🔗 Matrice Incontri</button>
+      <button class="tab" onclick="showTab('cov',this)">👁 Chi hanno visto</button>
+      <button class="tab" onclick="showTab('mat',this)">🔗 Matrice A</button>
       <button class="tab" onclick="showTab('stor',this)">📋 Storico</button>
     </div>
+
+    <!-- Tab Equipaggi -->
     <div id="tc-eq" class="tc active">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
         <div id="eq-info" style="font-size:.82rem;color:#555;flex:1;"></div>
-        <button id="btn-mantieni" class="btn btn-mantieni btn-sm" onclick="mantieniMattina()" style="display:none;" title="Usa gli equipaggi mattutini come base per il pomeriggio">
-          🔒 Mantieni equipaggi mattina
+        <button id="btn-mantieni" class="btn btn-purple btn-sm" onclick="mantieniMattina()" style="display:none;">
+          🔒 Mantieni mattina → pomeriggio
         </button>
-        <button id="btn-modifica" class="btn btn-outline btn-sm" onclick="toggleModifica()" title="Trascina le persone tra le barche per modificare">
-          ✏️ Modifica manuale
+        <button id="btn-modifica" class="btn btn-outline btn-sm" onclick="toggleModifica()">
+          ✏️ Modifica
         </button>
       </div>
       <div id="eq-warn" class="alert-w" style="display:none;"></div>
       <div class="eq-grid" id="eq-grid"></div>
     </div>
-    <div id="tc-piano" class="tc">
-      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">Quante volte ogni referente (I/AdV/AT) ha navigato con ogni allievo.</p>
-      <div style="overflow-x:auto;"><table class="mat-tbl" id="cov-tbl"></table></div>
+
+    <!-- Tab Chi hanno visto -->
+    <div id="tc-cov" class="tc">
+      <p style="font-size:.78rem;color:#666;margin-bottom:8px;">
+        Quante sessioni ogni IS/CT ha navigato con ogni allievo (A+AT). <span class="m0" style="padding:1px 5px;border-radius:2px;">0</span> = mai insieme → priorità nella prossima generazione.
+      </p>
+      <div style="overflow-x:auto;"><table class="mt" id="cov-tbl"></table></div>
     </div>
+
+    <!-- Tab Matrice allievi -->
     <div id="tc-mat" class="tc">
       <p style="font-size:.78rem;color:#666;margin-bottom:8px;">
-        Incontri tra allievi (A). Il sistema minimizza le ripetizioni: ogni coppia deve incontrarsi una volta prima di ripetersi.
-        <span style="margin-left:8px;">
-          <span class="m1" style="padding:1px 5px;border-radius:2px;">1×</span>
-          <span class="m2" style="padding:1px 5px;border-radius:2px;margin-left:2px;">2×</span>
-          <span class="m3" style="padding:1px 5px;border-radius:2px;margin-left:2px;color:white;">3×</span>
-          <span class="m4" style="padding:1px 5px;border-radius:2px;margin-left:2px;color:white;">4×+</span>
-        </span>
+        Incontri tra allievi (A+AT). Obiettivo: completare il giro prima di ripetere.
+        <span class="m1" style="padding:1px 5px;border-radius:2px;margin-left:6px;">1×</span>
+        <span class="m2" style="padding:1px 5px;border-radius:2px;margin-left:2px;">2×</span>
+        <span class="m3" style="padding:1px 5px;border-radius:2px;margin-left:2px;color:white;">3×</span>
+        <span class="m4" style="padding:1px 5px;border-radius:2px;margin-left:2px;color:white;">4×+</span>
       </p>
-      <div style="overflow-x:auto;"><table class="mat-tbl" id="mat-tbl"></table></div>
+      <div style="overflow-x:auto;"><table class="mt" id="mat-tbl"></table></div>
     </div>
+
+    <!-- Tab Storico -->
     <div id="tc-stor" class="tc">
       <div class="btn-row" style="margin-bottom:8px;">
-        <button class="btn btn-danger btn-sm" onclick="if(confirm('Reset completo storico e matrice incontri?'))resetStorico()">🗑 Reset storico e matrice</button>
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('Cancellare storico e matrici?'))resetStorico()">🗑 Reset completo</button>
       </div>
-      <div style="max-height:400px;overflow-y:auto;" id="stor-list"></div>
+      <div style="max-height:500px;overflow-y:auto;" id="stor-list"></div>
     </div>
   </div>
 </div>
 
-</div>
+</div><!-- /container -->
 <script>
-const RUOLI  = ['A','IS','CT','AT'];
+// ══════════════════════════════════════════════════════════════════
+// COSTANTI E STATO
+// ══════════════════════════════════════════════════════════════════
+const RUOLI   = ['A','IS','CT','AT'];
+const RBADGE  = {A:'rA', IS:'rIS', CT:'rCT', AT:'rAT'};
+const RCOLOR  = {CT:'#065f46', IS:'#9d174d', A:'#1F4E79', AT:'#92400e'};
+const KEY     = 'cvc_eq_v4';
 
-function aggiornaTipoBarche(){
-  const tipo=document.getElementById('tipo-barche').value;
-  document.getElementById('conf-omogenee').style.display=tipo==='omogenee'?'block':'none';
-  document.getElementById('conf-miste').style.display=tipo==='miste'?'block':'none';
-  renderPianoIstruttori();
-}
+// P = lista persone [{n,c,s,r,rank,imb}]
+// inc = matrice incontri tra allievi {nomeA:{nomeB:count}}
+// covRef = copertura IS/CT sugli allievi {nomeRef:{nomeAll:count}}
+// storico = array sessioni generate
+let P=[], storico=[], inc={}, covRef={};
+let ultimiBarche=null, modalitaModifica=false;
+let dragNome=null, dragDaBarca=null;
 
-function syncBarche5(){
-  const n5=parseInt(document.getElementById('n-b5').value)||0;
-  // Aggiorna n-barche (totale)
-  const n2=parseInt(document.getElementById('n-b2').value)||0;
-  document.getElementById('n-barche').value=n2+n5;
-  renderPianoIstruttori();
-}
-
-// Calcola la struttura barche in base alla configurazione
-function getStruttura(){
-  const tipo=document.getElementById('tipo-barche').value;
-  const nB=parseInt(document.getElementById('n-barche').value)||4;
-  if(tipo==='miste'){
-    const n2=parseInt(document.getElementById('n-b2').value)||0;
-    const n5=parseInt(document.getElementById('n-b5').value)||0;
-    const barche=[];
-    for(let i=0;i<n2;i++) barche.push({id:i+1, cap:2, haIstr:false});
-    for(let i=0;i<n5;i++) barche.push({id:n2+i+1, cap:5, haIstr:true});
-    return barche;
-  } else {
-    const nE=parseInt(document.getElementById('n-eq').value)||2;
-    const haIstr=document.getElementById('ha-istr-omog')?.checked||false;
-    return Array.from({length:nB},(_,i)=>({id:i+1, cap:nE, haIstr}));
-  }
-}
-const RBADGE = {A:'rA', IS:'rAdV', CT:'rI', AT:'rAT'};
-const RCOLOR  = {CT:'#065f46', IS:'#9d174d', AT:'#92400e', A:'#1F4E79'};
-const KEY = 'cvc_eq_v3';
-
-let P=[], daily={}, storico=[], inc={}, covRef={}, pianoManuale={}, ultimiBarche=null, modalitaModifica=false;
-
-// ── Init ──────────────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('data').value = new Date().toISOString().slice(0,10);
 
-  const params=new URLSearchParams(location.search);
+  const params = new URLSearchParams(location.search);
   const turno=params.get('turno'), corso=params.get('corso'), tok=params.get('tok');
 
   if(turno && corso && tok){
-    // Arriva dalla scheda CVC: carica storico/inc dal localStorage
-    // ma gli ALLIEVI li prende sempre freschi dalla scheda (non dal cache)
-    caricaStorageStorico(); // carica solo storico, inc, covRef
-    document.getElementById('hdr-info').textContent=`T${turno} — ${corso}`;
-    document.getElementById('turno-i').value=turno;
-    document.getElementById('corso-i').value=corso;
-    renderP(); renderD();
-    caricaDaScheda(turno,corso,tok); // sovrascrive P con allievi del turno
+    // Arriva dalla scheda: carica storico/matrici da localStorage, allievi dalla scheda
+    caricaStorageStorico();
+    document.getElementById('hdr-info').textContent = `T${turno} — ${corso}`;
+    document.getElementById('turno-i').value = turno;
+    document.getElementById('corso-i').value = corso;
+    caricaDaScheda(turno, corso, tok);
   } else {
-    // Apertura standalone: carica tutto dal localStorage
     caricaStorage();
-    renderP(); renderD();
   }
+  renderP();
+  aggiornaTipoBarche();
 });
 
-// ── Storage locale ────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════════════════════════
 function salvaStorage(){
   try{
     localStorage.setItem(KEY, JSON.stringify({
-      P, storico, inc, covRef, pianoManuale,
-      anno:document.getElementById('anno').value,
-      corso:document.getElementById('corso-i').value,
-      turno:document.getElementById('turno-i').value,
+      P, storico, inc, covRef,
+      anno:  document.getElementById('anno').value,
+      corso: document.getElementById('corso-i').value,
+      turno: document.getElementById('turno-i').value,
     }));
   }catch(e){ console.warn('Storage error',e); }
 }
+
 function caricaStorage(){
   try{
-    const d=JSON.parse(localStorage.getItem(KEY)||'null');
+    const d = JSON.parse(localStorage.getItem(KEY)||'null');
     if(!d) return;
-    P=d.P||[]; storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{}; pianoManuale=d.pianoManuale||{};
-    if(d.anno)  document.getElementById('anno').value=d.anno;
-    if(d.corso) document.getElementById('corso-i').value=d.corso;
-    if(d.turno) document.getElementById('turno-i').value=d.turno;
-  }catch{}
+    P=d.P||[]; storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{};
+    if(d.anno)  document.getElementById('anno').value  = d.anno;
+    if(d.corso) document.getElementById('corso-i').value = d.corso;
+    if(d.turno) document.getElementById('turno-i').value = d.turno;
+  }catch(e){}
 }
 
-// Carica solo storico/matrice (non gli allievi) — usato quando si arriva dalla scheda CVC
 function caricaStorageStorico(){
+  // Solo storico/matrici, non le persone
   try{
-    const d=JSON.parse(localStorage.getItem(KEY)||'null');
+    const d = JSON.parse(localStorage.getItem(KEY)||'null');
     if(!d) return;
-    // Non caricare P (allievi): verranno dalla scheda CVC
-    storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{}; pianoManuale=d.pianoManuale||{};
-    if(d.anno)  document.getElementById('anno').value=d.anno;
-  }catch{}
+    storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{};
+    if(d.anno) document.getElementById('anno').value = d.anno;
+  }catch(e){}
 }
+
 function salva(){
   salvaStorage();
-  const l=document.getElementById('saved-lbl');
-  l.style.display='inline'; setTimeout(()=>l.style.display='none',1800);
+  const l = document.getElementById('saved-lbl');
+  l.style.display='inline'; setTimeout(()=>l.style.display='none', 1800);
 }
 
-// ── Anagrafica ────────────────────────────────────────────────────────────
-function addP(n='',c='',s='',r='A',rank=3){
-  P.push({n,c,s,r,rank}); renderP(); renderD();
+// ══════════════════════════════════════════════════════════════════
+// CARICA DA SCHEDA CVC
+// ══════════════════════════════════════════════════════════════════
+async function caricaDaScheda(turno, corso, tok){
+  try{
+    const res = await fetch(`/api/turno/${turno}?corso=${encodeURIComponent(corso)}`,
+      {headers:{'X-Auth-Token': tok}});
+    if(!res.ok){ console.warn('API error:', res.status); return; }
+    const d = await res.json();
+
+    // Mantieni IS/CT/AT già inseriti manualmente; sostituisci gli allievi A
+    const referentiEsistenti = P.filter(p => ['IS','CT','AT'].includes(p.r));
+    P = [];
+
+    // Importa allievi con rank calcolato da voto Tecnica
+    (d.allievi||[]).forEach(r => {
+      let rank = 3; // default giorno 1
+      const tecKeys = ['tec_g1','tec_g2','tec_g3','tec_g4','tec_g5','tec_g6','tec_fin'];
+      let lastTec = null;
+      tecKeys.forEach(k => { if(r[k] != null) lastTec = r[k]; });
+      if(lastTec != null){
+        if(lastTec <= 2) rank=1;
+        else if(lastTec <= 4) rank=2;
+        else if(lastTec <= 6) rank=3;
+        else if(lastTec <= 8) rank=4;
+        else rank=5;
+      }
+      P.push({n:r.allievo, c:'', s:'', r:'A', rank, imb:true});
+    });
+
+    // Re-aggiungi referenti manuali
+    referentiEsistenti.forEach(ref => {
+      if(!P.find(p => p.n===ref.n)) P.push(ref);
+    });
+
+    renderP();
+    aggiornaTipoBarche();
+    salvaStorage();
+    console.log(`✅ ${d.allievi.length} persone caricate`);
+  }catch(e){ console.warn('caricaDaScheda:', e); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ANAGRAFICA — RENDER
+// ══════════════════════════════════════════════════════════════════
+function addP(n='', c='', s='', r='A', rank=3){
+  P.push({n, c, s, r, rank, imb:true});
+  renderP(); aggiornaTipoBarche();
 }
 
 function renderP(){
-  document.getElementById('p-tbody').innerHTML=P.map((p,i)=>`
+  const tbody = document.getElementById('p-tbody');
+  tbody.innerHTML = P.map((p,i) => `
     <tr>
-      <td><input type="text" value="${p.n}" placeholder="Nome"
-        oninput="P[${i}].n=this.value.trim();syncD()"></td>
-      <td><input type="text" value="${p.c}" placeholder="Cognome"
+      <td><input type="text" value="${esc(p.n)}" placeholder="Nome"
+        oninput="P[${i}].n=this.value.trim();aggiornaBadge()"></td>
+      <td><input type="text" value="${esc(p.c)}" placeholder="Cognome"
         oninput="P[${i}].c=this.value.trim()"></td>
-      <td><input type="text" value="${p.s}" placeholder="Soprannome"
+      <td><input type="text" value="${esc(p.s)}" placeholder="Soprannome"
         oninput="P[${i}].s=this.value.trim()"></td>
-      <td><select onchange="P[${i}].r=this.value;renderP();syncD()" style="width:65px;">
+      <td><select onchange="P[${i}].r=this.value;renderP();aggiornaTipoBarche()" style="width:60px;">
         ${RUOLI.map(r=>`<option value="${r}" ${p.r===r?'selected':''}>${r}</option>`).join('')}
       </select></td>
-      <td><select onchange="P[${i}].rank=parseInt(this.value)" style="width:55px;padding:2px 4px;font-size:.78rem;">
-        ${[1,2,3,4,5].map(v=>`<option value="${v}" ${(p.rank||3)==v?'selected':''}>${v}</option>`).join('')}
-      </select></td>
-      <td><button class="btn btn-danger" onclick="P.splice(${i},1);renderP();renderD()">✕</button></td>
-    </tr>`).join('');
-  document.getElementById('badge-n').textContent=P.length;
-}
-
-function importa(){
-  const t=prompt(
-    'Incolla i nomi (una persona per riga).\n'+
-    'Formato: Nome Cognome [Soprannome] [Ruolo]\n'+
-    'Ruolo: A, AdV, AT, I (default = A)\n\n'+
-    'Esempio:\nMarco Rossi A\nPaolo Istruttore I\nSara Verdi AdV','');
-  if(!t) return;
-  let k=0;
-  t.split('\n').map(r=>r.trim()).filter(Boolean).forEach(riga=>{
-    const w=riga.split(/\s+/);
-    const r=RUOLI.includes(w[w.length-1])?w.pop():'A';
-    const n=w[0]||'', c=w[1]||'', s=w[2]||'';
-    if(n && !P.find(p=>p.n===n&&p.c===c)){ P.push({n,c,s,r}); k++; }
-  });
-  renderP(); renderD();
-  if(k) alert(`✅ ${k} persone aggiunte.`);
-}
-
-// ── Carica allievi dalla scheda CVC ──────────────────────────────────────
-async function caricaDaScheda(turno,corso,tok){
-  try{
-    const res=await fetch(`/api/turno/${turno}?corso=${encodeURIComponent(corso)}`,
-      {headers:{'X-Auth-Token':tok}});
-    if(!res.ok){ console.warn('API error:', res.status); return; }
-    const d=await res.json();
-
-    if(!d.allievi||!d.allievi.length){
-      console.warn('Nessun allievo nel turno'); return;
-    }
-
-    // SOSTITUISCE P con gli allievi del turno (mantiene IS/CT/AT già inseriti manualmente)
-    const referentiEsistenti=P.filter(p=>['IS','CT','AT'].includes(p.r));
-    P=[]; // svuota allievi
-
-    (d.allievi||[]).forEach(r=>{
-      // Rank dal voto Tecnica: cerca l'ultimo giorno compilato
-      let rank=3;
-      const tecKeys=['tec_g1','tec_g2','tec_g3','tec_g4','tec_g5','tec_g6','tec_fin'];
-      let lastTec=null;
-      tecKeys.forEach(k2=>{ if(r[k2]!=null) lastTec=r[k2]; });
-      if(lastTec!=null){
-        if(lastTec<=2) rank=1;
-        else if(lastTec<=4) rank=2;
-        else if(lastTec<=6) rank=3;
-        else if(lastTec<=8) rank=4;
-        else rank=5;
-      }
-      P.push({n:r.allievo, c:'', s:'', r:'A', rank});
-    });
-
-    // Re-aggiunge IS/CT/AT che erano già stati inseriti manualmente
-    referentiEsistenti.forEach(ref=>{
-      if(!P.find(p=>p.n===ref.n)) P.push(ref);
-    });
-
-    // Reinizializza daily per i nuovi allievi
-    daily={};
-    P.forEach((_,i)=>{ daily[i]={r:P[i].r, imb:true}; });
-
-    renderP(); renderD();
-    console.log(`✅ ${d.allievi.length} allievi caricati da T${turno} ${corso}`);
-
-  }catch(e){ console.warn('Import scheda fallito:',e); }
-}
-
-// ── Daily state ───────────────────────────────────────────────────────────
-function syncD(){
-  P.forEach((_,i)=>{ if(!daily[i]) daily[i]={r:P[i].r, imb:true}; });
-  renderD(); renderPianoIstruttori();
-}
-
-function renderD(){
-  P.forEach((_,i)=>{ if(!daily[i]) daily[i]={r:P[i].r, imb:true}; });
-  document.getElementById('d-tbody').innerHTML=P.map((p,i)=>{
-    const ds=daily[i];
-    return `<tr>
-      <td><strong>${p.n}</strong></td>
-      <td>${p.c}</td>
-      <td style="color:#888;font-size:.75rem;">${p.s||'—'}</td>
-      <td><select onchange="daily[${i}].r=this.value" style="width:65px;padding:2px 4px;font-size:.78rem;">
-        ${RUOLI.map(r=>`<option value="${r}" ${ds.r===r?'selected':''}>${r}</option>`).join('')}
+      <td><select onchange="P[${i}].rank=+this.value" style="width:50px;padding:2px 4px;font-size:.75rem;">
+        ${[1,2,3,4,5].map(v=>`<option ${(p.rank||3)==v?'selected':''}>${v}</option>`).join('')}
       </select></td>
       <td style="text-align:center;">
-        <input type="checkbox" ${ds.imb?'checked':''} style="width:16px;height:16px;cursor:pointer;"
-          onchange="daily[${i}].imb=this.checked">
+        <input type="checkbox" ${p.imb!==false?'checked':''} style="width:15px;height:15px;cursor:pointer;"
+          onchange="P[${i}].imb=this.checked">
       </td>
-    </tr>`;
-  }).join('');
+      <td><button class="btn btn-danger" data-i="${i}" onclick="rimuoviP(this.dataset.i)">✕</button></td>
+    </tr>`).join('');
+  aggiornaBadge();
 }
 
-function setTutti(v){ P.forEach((_,i)=>{ if(daily[i]) daily[i].imb=v; }); renderD(); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
-function renderPianoIstruttori(){
-  const struttura=getStruttura();
-  const referenti=P.map((p,i)=>({...p,rOggi:daily[i]?.r||p.r,imb:daily[i]?.imb!==false}))
-    .filter(p=>p.imb && p.n.trim() && ['CT','IS','AT'].includes(p.rOggi));
+function rimuoviP(i){ P.splice(+i,1); renderP(); aggiornaTipoBarche(); }
 
-  const card=document.getElementById('piano-card');
-  if(!referenti.length && !struttura.some(b=>b.haIstr)){ card.style.display='none'; return; }
-  card.style.display='block';
-
-  const grid=document.getElementById('piano-istr-grid');
-  grid.innerHTML=struttura.map(b=>{
-    const assegnato=pianoManuale[b.id];
-    const bgCol=assegnato?(RCOLOR[assegnato.rOggi]||'#888'):(b.haIstr?'#555':'#aaa');
-    const barInfo=b.haIstr?` <span style="font-size:.65rem;opacity:.7;">(${b.cap}p+IS)</span>`
-                          :` <span style="font-size:.65rem;opacity:.7;">(${b.cap}p)</span>`;
-    return `<div class="piano-box" style="${!b.haIstr?'opacity:.6;':''}">
-      <div class="piano-box-hdr" style="background:${bgCol};">
-        <span>Barca ${b.id}${barInfo}</span>
-        ${assegnato?`<span class="${RBADGE[assegnato.rOggi]||'rA'}" style="background:rgba(255,255,255,.25);color:white;">${assegnato.rOggi}</span>`:''}
-      </div>
-      <div class="piano-box-body">
-        ${b.haIstr?`<select onchange="setPianoManuale(${b.id},this.value)" style="width:100%;font-size:.75rem;padding:3px;">
-          <option value="">— Auto —</option>
-          ${referenti.map(r=>`<option value="${r.n}" ${assegnato?.n===r.n?'selected':''}>${r.n}${r.c?' '+r.c:''} [${r.rOggi}]</option>`).join('')}
-        </select>
-        ${assegnato?`<div class="piano-slot" style="margin-top:4px;">
-          <span class="${RBADGE[assegnato.rOggi]}">${assegnato.rOggi}</span>
-          <span>${assegnato.n}</span>
-        </div>`:'<span style="color:#888;font-size:.7rem;">Auto</span>'}`
-        :'<span style="color:#ccc;font-size:.7rem;">Solo allievi</span>'}
-      </div>
-    </div>`;
-  }).join('');
+function aggiornaBadge(){
+  const imb = P.filter(p=>p.imb!==false);
+  document.getElementById('badge-a').textContent  = imb.filter(p=>p.r==='A').length;
+  document.getElementById('badge-is').textContent = imb.filter(p=>p.r==='IS').length;
+  document.getElementById('badge-ct').textContent = imb.filter(p=>p.r==='CT').length;
+  document.getElementById('badge-at').textContent = imb.filter(p=>p.r==='AT').length;
 }
 
-function setPianoManuale(barId, nomePers){
-  if(!nomePers){ delete pianoManuale[barId]; renderPianoIstruttori(); salvaStorage(); return; }
-  const p=P.find(p=>p.n===nomePers);
-  const rOggi=daily[P.indexOf(p)]?.r||p?.r||'I';
-  pianoManuale[barId]={n:nomePers,c:p?.c||'',s:p?.s||'',rOggi};
-  renderPianoIstruttori(); salvaStorage();
+function setTutti(v){ P.forEach(p=>p.imb=v); renderP(); }
+
+// ══════════════════════════════════════════════════════════════════
+// CONFIGURAZIONE BARCHE
+// ══════════════════════════════════════════════════════════════════
+function aggiornaTipoBarche(){
+  aggiornaBadge();
+  // Popola il select CT-barca con le barche disponibili
+  const nB = parseInt(document.getElementById('n-barche').value)||4;
+  const ctSel = document.getElementById('ct-barca');
+  const cur = ctSel.value;
+  ctSel.innerHTML = '<option value="">— Auto / Non imbarcare —</option>';
+  for(let i=1;i<=nB;i++){
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = `Barca ${i}`;
+    if(+cur===i) opt.selected=true;
+    ctSel.appendChild(opt);
+  }
+
+  // Verifica configurazione
+  verificaConf();
 }
 
-function resetPianoManuale(){ pianoManuale={}; renderPianoIstruttori(); salvaStorage(); }
+function verificaConf(){
+  const w = document.getElementById('conf-warn');
+  const msgs = [];
+  const nAls = parseInt(document.getElementById('n-als').value)||2;
+  if(nAls < 1) msgs.push('⚠️ Gli allievi per barca devono essere almeno 1.');
+  const imb = P.filter(p=>p.imb!==false && p.n.trim());
+  const nCT = imb.filter(p=>p.r==='CT').length;
+  if(nCT > 1) msgs.push(`⚠️ Ci sono ${nCT} CT — deve essere uno solo.`);
+  if(msgs.length){ w.innerHTML=msgs.join('<br>'); w.style.display='block'; }
+  else w.style.display='none';
+}
 
-// ── Algoritmo genera ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// GENERA EQUIPAGGI
+// ══════════════════════════════════════════════════════════════════
 function genera(){
-  const nB=parseInt(document.getElementById('n-barche').value)||4;
-  const nE=parseInt(document.getElementById('n-eq').value)||2;
-  const data=document.getElementById('data').value;
-  const mpt=document.getElementById('mpt').value;
-  const w=document.getElementById('d-warn');
-  w.style.display='none';
+  verificaConf();
+  const wConf = document.getElementById('conf-warn');
+  if(wConf.style.display!=='none'){ wConf.scrollIntoView({behavior:'smooth'}); return; }
 
-  if(!data){ w.textContent='⚠️ Inserisci la data.'; w.style.display='block'; return; }
-  if(!P.length){ w.textContent='⚠️ Nessun partecipante in anagrafica.'; w.style.display='block'; return; }
+  const nB   = parseInt(document.getElementById('n-barche').value)||4;
+  const nAls = Math.max(1, parseInt(document.getElementById('n-als').value)||2);
+  const nIS  = Math.max(0, parseInt(document.getElementById('n-is-barca').value)||0);
+  const ctBarcaId = parseInt(document.getElementById('ct-barca').value)||0;
+  const data = document.getElementById('data').value;
+  const mpt  = document.getElementById('mpt').value;
+  const usaRanking = document.getElementById('usa-ranking').checked;
 
-  // Persone imbarcate oggi
-  const imb=P.map((p,i)=>({
-    ...p,
-    rOggi: daily[i]?.r||p.r,
-    imb:   daily[i]?.imb!==false
-  })).filter(p=>p.imb && p.n.trim());
+  if(!data){ alert('Inserisci la data.'); return; }
 
-  if(!imb.length){ w.textContent='⚠️ Nessuno è imbarcato.'; w.style.display='block'; return; }
+  // Persone imbarcate
+  const imb = P.filter(p => p.imb!==false && p.n.trim());
+  if(!imb.length){ alert('Nessuno è imbarcato.'); return; }
 
-  const allievi=imb.filter(p=>p.rOggi==='A');
-  const adv    =imb.filter(p=>p.rOggi==='IS');   // IS = Istruttore
-  const at     =imb.filter(p=>p.rOggi==='AT');
-  const istr   =imb.filter(p=>p.rOggi==='CT');   // CT = Capo Turno
+  const allievi = imb.filter(p => p.r==='A');
+  const atList  = imb.filter(p => p.r==='AT');  // AT = allievo aggiuntivo
+  const isList  = imb.filter(p => p.r==='IS');
+  const ctList  = imb.filter(p => p.r==='CT');   // max 1
 
-  // Regola: AdV, AT, I → max uno per barca, in ordine di priorità I > AdV > AT
-  const referenti=[...istr,...adv,...at];
-  const struttura=getStruttura();
-  const nBeff=struttura.length;
-  const barche=struttura.map(b=>({...b, pers:[]}));
-  const warns=[];
+  // AT conta come allievo
+  const tuttiAllievi = [...allievi, ...atList];
+  if(!tuttiAllievi.length){ alert('Nessun allievo (A o AT) imbarcato.'); return; }
 
-  // Assegna referenti alle barche che ne prevedono uno (haIstr=true)
-  // Prima il piano manuale, poi automatico per copertura ottimale allievi non ancora visti
-  const barceConRef=new Set();
+  const warns = [];
 
-  // Piano manuale ha priorità
-  Object.entries(pianoManuale).forEach(([barId,ref])=>{
-    const barca=barche.find(b=>b.id===parseInt(barId));
-    if(barca && barca.haIstr && ref){
-      const fullRef=imb.find(p=>p.n===ref.n);
-      if(fullRef){ barca.pers.push(fullRef); barceConRef.add(barca.id); }
+  // ── Crea struttura barche ──────────────────────────────────────
+  // Ogni barca: cap = n° allievi (A+AT), postiIS = n° IS, hasCT (bool)
+  const barche = Array.from({length:nB}, (_,i) => ({
+    id: i+1,
+    cap: nAls,       // posti per allievi
+    nIS: nIS,        // posti IS su questa barca
+    hasCT: ctBarcaId>0 && ctBarcaId===i+1,
+    pers: []
+  }));
+
+  // ── Assegna CT ────────────────────────────────────────────────
+  const ct = ctList[0] || null;
+  if(ct){
+    const barcaCT = ctBarcaId ? barche.find(b=>b.id===ctBarcaId) : barche[0];
+    if(barcaCT){ barcaCT.pers.push({...ct, rOggi:'CT'}); barcaCT.hasCT=true; }
+    if(ctList.length>1) warns.push(`⚠️ Ci sono ${ctList.length} CT — solo il primo (${ct.n}) è stato imbarcato.`);
+  }
+
+  // ── Assegna IS ────────────────────────────────────────────────
+  // Ogni barca richiede nIS istruttori; assegna chi ha visto meno allievi
+  const isOrd = [...isList].sort((a,b)=>{
+    const cA = Object.values(covRef[a.n]||{}).reduce((s,v)=>s+v,0);
+    const cB = Object.values(covRef[b.n]||{}).reduce((s,v)=>s+v,0);
+    return cA-cB;
+  });
+  let isIdx=0;
+  barche.forEach(b=>{
+    for(let slot=0; slot<b.nIS; slot++){
+      if(isIdx>=isOrd.length) break;
+      // Salta se già c'è il CT su questa barca e IS coinciderebbe
+      const candidato = isOrd[isIdx];
+      b.pers.push({...candidato, rOggi:'IS'});
+      isIdx++;
     }
   });
+  const isEccesso = isList.slice(isIdx);
+  if(isEccesso.length){
+    warns.push(`ℹ️ ${isEccesso.length} IS non assegnati a barche (configurazione = ${nIS} IS/barca): ${isEccesso.map(r=>r.n).join(', ')}`);
+  }
 
-  // Assegna automaticamente i referenti rimanenti alle barche con haIstr libere
-  // Priorità: referente che ha visto MENO allievi va sulla barca con MENO copertura
-  const refLiberi=referenti.filter(r=>!barche.some(b=>b.pers.some(p=>p.n===r.n)));
-  const barcheConIstrLibere=barche.filter(b=>b.haIstr && !barceConRef.has(b.id));
-
-  // Ordina referenti per copertura crescente (chi ha visto meno va prima)
-  const refOrd=[...refLiberi].sort((a,b)=>{
-    const covA=Object.values(covRef[a.n]||{}).reduce((s,v)=>s+v,0);
-    const covB=Object.values(covRef[b.n]||{}).reduce((s,v)=>s+v,0);
-    return covA-covB;
-  });
-  refOrd.forEach(ref=>{
-    const barca=barcheConIstrLibere.find(b=>!barceConRef.has(b.id));
-    if(barca){ barca.pers.push(ref); barceConRef.add(barca.id); }
-    else allievi.push({...ref});
-  });
-
-  // Ordina allievi: meno incontri totali + ranking
-  const usaRanking=document.getElementById('usa-ranking')?.checked;
-  const allOrd=[...allievi].sort((a,b)=>{
-    const sA=allievi.reduce((s,x)=>s+(inc[a.n]?.[x.n]||0),0);
-    const sB=allievi.reduce((s,x)=>s+(inc[b.n]?.[x.n]||0),0);
+  // ── Ordina allievi ─────────────────────────────────────────────
+  // Prima chi ha fatto meno incontri totali; a parità considera rank e copertura IS
+  const allOrd = [...tuttiAllievi].sort((a,b)=>{
+    const sA = tuttiAllievi.reduce((s,x)=>s+(inc[a.n]?.[x.n]||0),0);
+    const sB = tuttiAllievi.reduce((s,x)=>s+(inc[b.n]?.[x.n]||0),0);
     if(sA!==sB) return sA-sB;
-    // A parità di incontri, ordina per ranking (alto prima per bilanciare)
     if(usaRanking) return (b.rank||3)-(a.rank||3);
     return 0;
   });
 
-  // Distribuisci allievi nelle barche fino alla capienza di ciascuna
-  // Capienza = barca.cap (allievi) + 1 se ha istruttore
-  const usati=new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
-  const candidati=[...allOrd]; // copia ordinata
+  // ── Distribuisci allievi ───────────────────────────────────────
+  const usati = new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
 
-  // Per ogni posto libero in ogni barca, assegna il candidato migliore
-  // Ottimizza: chi ha meno copertura dall'istruttore va sulla barca con quell'istruttore
   barche.forEach(barca=>{
-    const limiteAllievi=barca.cap; // cap = n° allievi, l'istruttore è extra
-    const nAttuali=barca.pers.filter(p=>!['CT','IS','AT'].includes(p.rOggi)).length;
-    const istrBarca=barca.pers.find(p=>['CT','IS'].includes(p.rOggi));
+    while(barca.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').length < barca.cap){
+      const liberi = allOrd.filter(p=>!usati.has(p.n));
+      if(!liberi.length) break;
 
-    while(barca.pers.filter(p=>!['CT','IS','AT'].includes(p.rOggi)).length < limiteAllievi){
-      const liberi=candidati.filter(p=>!usati.has(p.n));
-      if(!liberi.length) break; // nessun allievo rimasto
-      // Scegli chi ha meno incontri con i già presenti in barca
-      const istrNome=barca.pers.find(p=>['CT','IS'].includes(p.rOggi))?.n;
-      const best=liberi.reduce((best,c)=>{
-        const sC=barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s,0);
-        const sB=barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s,0);
+      // Scegli il candidato con meno incontri con chi è già in barca
+      // + priorità a chi non ha mai navigato con l'IS/CT di questa barca
+      const refNome = barca.pers.find(p=>p.rOggi==='IS'||p.rOggi==='CT')?.n;
+      const best = liberi.reduce((best,c)=>{
+        const sC = barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s, 0);
+        const sB = barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s, 0);
         if(sC!==sB) return sC<sB?c:best;
-        // Parità incontri: preferisci chi non è ancora stato con questo istruttore
-        if(istrNome){
-          const covC=covRef[istrNome]?.[c.n]||0;
-          const covB=covRef[istrNome]?.[best.n]||0;
+        if(refNome){
+          const covC = covRef[refNome]?.[c.n]||0;
+          const covB = covRef[refNome]?.[best.n]||0;
           if(covC!==covB) return covC<covB?c:best;
         }
-        // Poi usa ranking se abilitato
         if(usaRanking) return (c.rank||3)<(best.rank||3)?c:best;
         return best;
       }, liberi[0]);
-      barca.pers.push(best);
+
+      barca.pers.push({...best, rOggi: best.r});
       usati.add(best.n);
     }
   });
 
-  // Non-imbarcati: allievi rimasti fuori (troppi allievi per i posti disponibili)
-  const nonAssegnati=candidati.filter(p=>!usati.has(p.n));
-  if(nonAssegnati.length){
-    warns.push(`ℹ️ ${nonAssegnati.length} allievi non assegnati (posti esauriti): ${nonAssegnati.map(p=>p.n).join(', ')}`);
+  // Non assegnati
+  const nonAss = allOrd.filter(p=>!usati.has(p.n));
+  if(nonAss.length){
+    warns.push(`ℹ️ ${nonAss.length} allievi non assegnati (posti esauriti): ${nonAss.map(p=>p.n).join(', ')}`);
   }
 
-  // Aggiorna matrice incontri (solo tra allievi A)
+  // ── Aggiorna matrici ───────────────────────────────────────────
   barche.forEach(b=>{
-    const nn=b.pers.filter(p=>p.rOggi==='A').map(p=>p.n);
-    for(let x=0;x<nn.length;x++) for(let y=x+1;y<nn.length;y++){
-      if(!inc[nn[x]]) inc[nn[x]]={};
-      if(!inc[nn[y]]) inc[nn[y]]={};
-      inc[nn[x]][nn[y]]=(inc[nn[x]][nn[y]]||0)+1;
-      inc[nn[y]][nn[x]]=(inc[nn[y]][nn[x]]||0)+1;
+    // Matrice allievi ↔ allievi
+    const als = b.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').map(p=>p.n);
+    for(let x=0;x<als.length;x++) for(let y=x+1;y<als.length;y++){
+      inc[als[x]] = inc[als[x]]||{};
+      inc[als[y]] = inc[als[y]]||{};
+      inc[als[x]][als[y]] = (inc[als[x]][als[y]]||0)+1;
+      inc[als[y]][als[x]] = (inc[als[y]][als[x]]||0)+1;
     }
-    // Aggiorna copertura referenti → allievi
-    const refs=b.pers.filter(p=>['CT','IS','AT'].includes(p.rOggi));
-    const als2=b.pers.filter(p=>p.rOggi==='A');
+    // Copertura IS/CT → allievi
+    const refs = b.pers.filter(p=>p.rOggi==='IS'||p.rOggi==='CT');
     refs.forEach(r=>{
-      if(!covRef[r.n]) covRef[r.n]={};
-      als2.forEach(a=>{ covRef[r.n][a.n]=(covRef[r.n][a.n]||0)+1; });
+      covRef[r.n] = covRef[r.n]||{};
+      als.forEach(a=>{ covRef[r.n][a]=(covRef[r.n][a]||0)+1; });
     });
   });
 
-  // Salva nello storico
+  // ── Storico ────────────────────────────────────────────────────
   storico.push({
-    data, mpt, nB:struttura.length, nE:struttura.map(b=>b.cap).join('/'), struttura,
-    barche:barche.map(b=>({
-      id:b.id,
-      pers:b.pers.map(p=>({n:p.n, c:p.c, s:p.s, r:p.rOggi}))
+    data, mpt, nB, nAls, nIS,
+    barche: barche.map(b=>({
+      id: b.id,
+      pers: b.pers.map(p=>({n:p.n, c:p.c||'', s:p.s||'', r:p.rOggi}))
     }))
   });
   salvaStorage();
 
-  // Warning referenti in eccesso
-  if(referenti.length>nB)
-    warns.push(`⚠️ ${referenti.length-nB} referenti (I/AdV/AT) in eccesso rispetto alle barche — distribuiti come allievi.`);
-
-  // Render
+  // ── Render ─────────────────────────────────────────────────────
   document.getElementById('output').style.display='block';
   modalitaModifica=false;
-  renderEq(barche,data,mpt,warns,false);
+  renderEq(barche, data, mpt, warns, false);
+  renderCov();
   renderMatrice();
-  renderCopertura();
   renderStorico();
   document.getElementById('output').scrollIntoView({behavior:'smooth'});
 }
 
-// ── Render equipaggi ──────────────────────────────────────────────────────
-function renderEq(barche,data,mpt,warns,editMode=false){
-  // Salva riferimento agli ultimi equipaggi
-  ultimiBarche=barche;
-  // Mostra pulsante "mantieni mattina" solo per sessione mattutina
-  const btnM=document.getElementById('btn-mantieni');
-  if(btnM) btnM.style.display=(mpt==='M')?'inline-block':'none';
+// ══════════════════════════════════════════════════════════════════
+// RENDER EQUIPAGGI
+// ══════════════════════════════════════════════════════════════════
+function renderEq(barche, data, mpt, warns, editMode=false){
+  ultimiBarche = barche;
+  const lbl = {M:'☀️ Mattino',P:'🌤️ Pomeriggio',T:'🌞 Tutto il giorno'}[mpt]||mpt;
+  document.getElementById('eq-info').innerHTML =
+    `<strong>${data}</strong> — ${lbl} — <strong>${barche.length}</strong> barche`;
 
-  const lbl={M:'☀️ Mattino',P:'🌤️ Pomeriggio',T:'🌞 Tutto il giorno'}[mpt]||mpt;
-  document.getElementById('eq-info').innerHTML=
-    `<strong>${data}</strong> — ${lbl} — ${barche.length} barche`;
+  const btnM = document.getElementById('btn-mantieni');
+  if(btnM) btnM.style.display = mpt==='M' ? 'inline-block' : 'none';
 
-  const ew=document.getElementById('eq-warn');
-  if(warns?.length){ ew.innerHTML=warns.join('<br>'); ew.style.display='block'; }
+  const ew = document.getElementById('eq-warn');
+  if(warns&&warns.length){ ew.innerHTML=warns.join('<br>'); ew.style.display='block'; }
   else ew.style.display='none';
 
-  document.getElementById('eq-grid').innerHTML=barche.map(b=>{
-    // Colore header in base al referente presente
-    const topR = b.pers.find(p=>p.rOggi==='I')?.rOggi
-               ||b.pers.find(p=>p.rOggi==='AdV')?.rOggi
-               ||b.pers.find(p=>p.rOggi==='AT')?.rOggi||'A';
-    const bg=RCOLOR[topR]||'var(--blu)';
-    return `<div class="eq-box">
+  document.getElementById('eq-grid').innerHTML = barche.map(b=>{
+    const topRef = b.pers.find(p=>p.rOggi==='CT') || b.pers.find(p=>p.rOggi==='IS');
+    const bg = topRef ? (RCOLOR[topRef.rOggi]||'var(--blu)') : 'var(--blu)';
+    const nAls = b.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').length;
+    const nRef = b.pers.filter(p=>p.rOggi==='IS'||p.rOggi==='CT').length;
+    return `<div class="eq-box" id="eq-box-${b.id}"
+      ${editMode?`ondragover="ev.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="dropPersona(ev,${b.id})"`:''}>
       <div class="eq-hdr" style="background:${bg};">
         <span>Barca ${b.id}</span>
-        <span style="opacity:.75;font-size:.7rem;">${b.pers.length}p</span>
+        <span style="opacity:.75;font-size:.7rem;">${nAls}A${nRef?'+'+nRef+'Ref':''}</span>
       </div>
-      <div class="eq-body ${editMode?'eq-drop':''}"
-        ${editMode?`ondragover="ev.preventDefault();this.classList.add('over')"
-          ondragleave="this.classList.remove('over')"
-          ondrop="dropPersona(ev,${b.id})"`:''}>
+      <div class="eq-body">
         ${b.pers.length===0
           ? '<span style="color:#ccc;font-size:.75rem;">— vuota —</span>'
           : b.pers.map(p=>`
-            <div class="eq-row ${editMode?'eq-persona-drag':''}"
-              ${editMode?`draggable="true" ondragstart="dragPersona(ev,'${p.n}',${b.id})"`:''}
-              title="${editMode?'Trascina per spostare':''}">
+            <div class="eq-row ${editMode?'draggable':''}"
+              ${editMode?`draggable="true" ondragstart="dragPersona(ev,'${p.n.replace(/'/g,"\\'")}',${b.id})"`:''}>
               <span class="${RBADGE[p.rOggi]||'rA'}">${p.rOggi}</span>
-              <span>${p.n}${p.c?' '+p.c:''}</span>
-              ${p.s?`<span style="color:#aaa;font-size:.68rem;">(${p.s})</span>`:''}
+              <span>${esc(p.n)}${p.c?' '+esc(p.c):''}</span>
+              ${p.s?`<span style="color:#aaa;font-size:.68rem;">(${esc(p.s)})</span>`:''}
             </div>`).join('')
         }
       </div>
@@ -710,124 +650,137 @@ function renderEq(barche,data,mpt,warns,editMode=false){
   }).join('');
 }
 
-// ── Copertura referenti ──────────────────────────────────────────────────
-function renderCopertura(){
-  const refs=P.filter(p=>['CT','IS','AT'].includes(p.r));
-  const als=P.filter(p=>p.r==='A');
-  const t=document.getElementById('cov-tbl');
-  if(!refs.length||!als.length){ t.innerHTML='<tr><td style="padding:8px;color:#aaa;">Nessun dato.</td></tr>'; return; }
-  let html=`<thead><tr><th>Referente</th>${als.map(a=>`<th title="${a.n}${a.c?' '+a.c:''}">${(a.s||a.n).slice(0,5)}</th>`).join('')}<th>Non ancora visti</th></tr></thead><tbody>`;
-  refs.forEach(r=>{
-    const nonVisti=als.filter(a=>!(covRef[r.n]?.[a.n])).map(a=>a.n);
-    html+=`<tr>
-      <td style="white-space:nowrap;font-weight:bold;padding:3px 6px;">
-        <span class="${RBADGE[r.r]||'rA'}">${r.r}</span> ${r.n}${r.c?' '+r.c:''}
-      </td>`;
-    als.forEach(a=>{
-      const v=(covRef[r.n]?.[a.n])||0;
-      const cl=v===0?'m0':v===1?'m1':v===2?'m2':'m3';
-      html+=`<td class="${cl}">${v||''}</td>`;
-    });
-    html+=`<td style="font-size:.7rem;color:var(--rosso);padding:3px 6px;">${nonVisti.join(', ')||'✅ Tutti'}</td>`;
-    html+=`</tr>`;
-  });
-  t.innerHTML=html+'</tbody>';
-}
-
-
-// ── Mantieni equipaggi mattina per pomeriggio ─────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// MANTIENI MATTINA / MODIFICA
+// ══════════════════════════════════════════════════════════════════
 function mantieniMattina(){
-  if(!ultimiBarche){ alert('Nessun equipaggio mattutino salvato.'); return; }
-  if(!confirm('Usare gli equipaggi del mattino come base per il pomeriggio?\nPotrai modificarli trascinando le persone.')) return;
+  if(!ultimiBarche){ alert('Nessun equipaggio mattutino.'); return; }
+  if(!confirm('Copia gli equipaggi del mattino come base per il pomeriggio?\nPotrai modificarli manualmente.')) return;
   document.getElementById('mpt').value='P';
+  // Deep copy
+  const copia = ultimiBarche.map(b=>({...b, pers:[...b.pers]}));
   modalitaModifica=false;
-  renderEq(ultimiBarche, document.getElementById('data').value, 'P', []);
-  toggleModifica(); // attiva subito la modifica
+  renderEq(copia, document.getElementById('data').value, 'P', []);
+  toggleModifica();
 }
 
 function toggleModifica(){
   modalitaModifica=!modalitaModifica;
   const btn=document.getElementById('btn-modifica');
-  if(btn){
-    btn.textContent=modalitaModifica?'✅ Fine modifica':'✏️ Modifica manuale';
-    btn.style.background=modalitaModifica?'var(--verde)':'';
-    btn.style.color=modalitaModifica?'white':'';
-  }
+  btn.textContent = modalitaModifica?'✅ Fine modifica':'✏️ Modifica';
+  btn.style.background = modalitaModifica?'var(--verde)':'';
+  btn.style.color = modalitaModifica?'white':'';
   if(ultimiBarche) renderEq(ultimiBarche,
     document.getElementById('data').value,
     document.getElementById('mpt').value, [], modalitaModifica);
 }
 
-// ── Drag & Drop equipaggi ────────────────────────────────────────────────
-let dragNome=null, dragDaBarca=null;
-
-function dragPersona(ev,nome,barId){
+// ══════════════════════════════════════════════════════════════════
+// DRAG & DROP
+// ══════════════════════════════════════════════════════════════════
+function dragPersona(ev, nome, barId){
   dragNome=nome; dragDaBarca=barId;
   ev.dataTransfer.effectAllowed='move';
 }
 
-function dropPersona(ev,barId){
+function dropPersona(ev, barId){
   ev.preventDefault();
-  ev.currentTarget.classList.remove('over');
-  if(!dragNome||dragDaBarca===barId) return;
-  if(!ultimiBarche) return;
-
-  const srcBarca=ultimiBarche.find(b=>b.id===dragDaBarca);
-  const dstBarca=ultimiBarche.find(b=>b.id===barId);
-  if(!srcBarca||!dstBarca) return;
-
-  const personaIdx=srcBarca.pers.findIndex(p=>p.n===dragNome);
-  if(personaIdx<0) return;
-  const persona=srcBarca.pers.splice(personaIdx,1)[0];
-  dstBarca.pers.push(persona);
-
+  document.getElementById(`eq-box-${barId}`)?.classList.remove('drag-over');
+  if(!dragNome || dragDaBarca===barId || !ultimiBarche) return;
+  const src = ultimiBarche.find(b=>b.id===dragDaBarca);
+  const dst = ultimiBarche.find(b=>b.id===barId);
+  if(!src||!dst) return;
+  const idx = src.pers.findIndex(p=>p.n===dragNome);
+  if(idx<0) return;
+  dst.pers.push(src.pers.splice(idx,1)[0]);
   dragNome=null; dragDaBarca=null;
-  renderEq(ultimiBarche, document.getElementById('data').value,
+  renderEq(ultimiBarche,
+    document.getElementById('data').value,
     document.getElementById('mpt').value, [], modalitaModifica);
 }
 
-// ── Matrice incontri ──────────────────────────────────────────────────────
-function renderMatrice(){
-  const als=P.filter(p=>p.r==='A');
-  const t=document.getElementById('mat-tbl');
-  if(!als.length){
-    t.innerHTML='<tr><td style="padding:10px;color:#888;">Nessun allievo (A) in anagrafica.</td></tr>';
+// ══════════════════════════════════════════════════════════════════
+// COPERTURA IS/CT
+// ══════════════════════════════════════════════════════════════════
+function renderCov(){
+  const refs = P.filter(p=>['IS','CT'].includes(p.r) && p.n.trim());
+  // "Allievi" per la copertura = A + AT
+  const als  = P.filter(p=>['A','AT'].includes(p.r) && p.n.trim());
+  const t = document.getElementById('cov-tbl');
+  if(!refs.length || !als.length){
+    t.innerHTML='<tr><td style="padding:10px;color:#aaa;">Aggiungi IS/CT e allievi per vedere la copertura.</td></tr>';
     return;
   }
-  let html=`<thead><tr><th></th>${als.map(a=>`<th title="${a.n}${a.c?' '+a.c:''}">${(a.s||a.n).slice(0,5)}</th>`).join('')}</tr></thead><tbody>`;
-  als.forEach(a=>{
-    html+=`<tr><th style="text-align:left;padding:2px 5px;font-weight:normal;white-space:nowrap;background:#f8f9fa;">${a.n}${a.c?' '+a.c[0]+'.':''}</th>`;
-    als.forEach(b=>{
-      if(a.n===b.n&&a.c===b.c){html+=`<td style="background:#f0f0f0;">—</td>`;return;}
-      const v=(inc[a.n]?.[b.n])||0;
-      const cl=v===0?'m0':v===1?'m1':v===2?'m2':v===3?'m3':'m4';
-      html+=`<td class="${cl}" title="${a.n} ↔ ${b.n}: ${v} incontri">${v||''}</td>`;
+  let html = `<thead><tr>
+    <th style="text-align:left;">Referente</th>
+    ${als.map(a=>`<th title="${esc(a.n)}${a.c?' '+esc(a.c):''}">${(a.s||a.n).slice(0,6)}</th>`).join('')}
+    <th>Non visti</th><th>Tot sessioni</th>
+  </tr></thead><tbody>`;
+  refs.forEach(r=>{
+    const nonVisti = als.filter(a=>!(covRef[r.n]?.[a.n]));
+    const tot = als.reduce((s,a)=>s+(covRef[r.n]?.[a.n]||0),0);
+    html += `<tr>
+      <td style="white-space:nowrap;padding:3px 6px;font-weight:bold;">
+        <span class="${RBADGE[r.r]}">${r.r}</span> ${esc(r.n)}${r.c?' '+esc(r.c):''}
+      </td>`;
+    als.forEach(a=>{
+      const v = covRef[r.n]?.[a.n]||0;
+      const cl = v===0?'m0':v===1?'m1':v===2?'m2':'m3';
+      html += `<td class="${cl}" title="${esc(r.n)} ↔ ${esc(a.n)}: ${v}">${v||''}</td>`;
     });
-    html+=`</tr>`;
+    html += `<td class="cov-rosso">${nonVisti.map(a=>a.n).join(', ')||'<span class="cov-verde">✅ Tutti</span>'}</td>`;
+    html += `<td style="text-align:center;font-weight:bold;">${tot}</td>`;
+    html += `</tr>`;
   });
-  t.innerHTML=html+'</tbody>';
+  t.innerHTML = html+'</tbody>';
 }
 
-// ── Storico ───────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// MATRICE INCONTRI ALLIEVI
+// ══════════════════════════════════════════════════════════════════
+function renderMatrice(){
+  const als = P.filter(p=>['A','AT'].includes(p.r) && p.n.trim());
+  const t = document.getElementById('mat-tbl');
+  if(!als.length){
+    t.innerHTML='<tr><td style="padding:10px;color:#aaa;">Nessun allievo.</td></tr>';
+    return;
+  }
+  let html = `<thead><tr><th></th>${als.map(a=>`<th title="${esc(a.n)}">${(a.s||a.n).slice(0,5)}</th>`).join('')}</tr></thead><tbody>`;
+  als.forEach(a=>{
+    html += `<tr><th style="text-align:left;padding:2px 5px;font-weight:normal;white-space:nowrap;background:#f8f9fa;">${esc(a.n)}${a.c?' '+a.c[0]+'.':''}</th>`;
+    als.forEach(b=>{
+      if(a.n===b.n){ html+=`<td style="background:#f0f0f0;">—</td>`; return; }
+      const v = inc[a.n]?.[b.n]||0;
+      const cl = v===0?'m0':v===1?'m1':v===2?'m2':v===3?'m3':'m4';
+      html += `<td class="${cl}" title="${esc(a.n)} ↔ ${esc(b.n)}: ${v}">${v||''}</td>`;
+    });
+    html += `</tr>`;
+  });
+  t.innerHTML = html+'</tbody>';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// STORICO
+// ══════════════════════════════════════════════════════════════════
 function renderStorico(){
-  const el=document.getElementById('stor-list');
+  const el = document.getElementById('stor-list');
   if(!storico.length){
     el.innerHTML='<p style="color:#aaa;font-size:.82rem;">Nessuna sessione generata.</p>';
     return;
   }
-  el.innerHTML=[...storico].reverse().map((s,ri)=>{
-    const i=storico.length-1-ri;
-    const lbl={M:'☀️ Mat',P:'🌤️ Pom',T:'🌞 Tutto'}[s.mpt]||s.mpt;
+  el.innerHTML = [...storico].reverse().map((s,ri)=>{
+    const i = storico.length-1-ri;
+    const lbl = {M:'☀️ Mat',P:'🌤️ Pom',T:'🌞 Tutto'}[s.mpt]||s.mpt;
     return `<div class="slot-box">
       <div class="slot-hdr">
-        <span>${s.data} — ${lbl} — ${s.nB} barche × ${s.nE}p</span>
-        <button class="btn btn-danger btn-sm" onclick="delSlot(${i})">✕</button>
+        <span>${s.data} — ${lbl} — ${s.nB} barche · ${s.nAls}A+${s.nIS}IS/barca</span>
+        <button class="btn btn-danger btn-sm" data-i="${i}" onclick="delSlot(this.dataset.i)">✕</button>
       </div>
       <div class="slot-body">
         ${s.barche.map(b=>`
-          <div style="background:#f5f5f5;border-radius:4px;padding:3px 8px;font-size:.72rem;min-width:130px;">
+          <div style="background:#f5f5f5;border-radius:4px;padding:3px 8px;font-size:.72rem;min-width:120px;">
             <strong>B${b.id}:</strong>
-            ${b.pers.map(p=>`<span class="${RBADGE[p.r]||'rA'}" style="margin-right:2px;">${p.r}</span>${p.n}${p.s?` (${p.s})`:''}`).join(', ')||'—'}
+            ${b.pers.map(p=>`<span class="${RBADGE[p.r]||'rA'}">${p.r}</span> ${esc(p.n)}`).join(' · ')||'—'}
           </div>`).join('')}
       </div>
     </div>`;
@@ -835,23 +788,25 @@ function renderStorico(){
 }
 
 function delSlot(i){
-  if(!confirm('Eliminare questa sessione dallo storico?')) return;
-  storico.splice(i,1); salvaStorage(); renderStorico();
+  if(!confirm('Eliminare questa sessione?')) return;
+  storico.splice(+i,1); salvaStorage(); renderStorico();
 }
 
 function resetStorico(){
   storico=[]; inc={}; covRef={};
-  salvaStorage(); renderStorico(); renderMatrice(); renderCopertura();
+  salvaStorage(); renderStorico(); renderMatrice(); renderCov();
 }
 
-// ── Tab navigation ────────────────────────────────────────────────────────
-function showTab(name,btn){
+// ══════════════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ══════════════════════════════════════════════════════════════════
+function showTab(name, btn){
   document.querySelectorAll('.tc').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tc-'+name).classList.add('active');
   btn.classList.add('active');
+  if(name==='cov')  renderCov();
   if(name==='mat')  renderMatrice();
-  if(name==='piano') renderCopertura();
   if(name==='stor') renderStorico();
 }
 </script>
