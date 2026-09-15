@@ -120,6 +120,13 @@ def migrate_db():
                 if not cur.fetchone():
                     cur.execute('ALTER TABLE valutazioni ADD COLUMN foto_url TEXT')
                     conn.commit()
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='valutazioni' AND column_name='updated_at'"
+                )
+                if not cur.fetchone():
+                    cur.execute("ALTER TABLE valutazioni ADD COLUMN updated_at TIMESTAMP DEFAULT NOW()")
+                    conn.commit()
                 # email in turni
                 cur.execute(
                     "SELECT column_name FROM information_schema.columns "
@@ -156,6 +163,9 @@ def migrate_db():
                 cols = [r[1] for r in cur.fetchall()]
                 if 'foto_url' not in cols:
                     cur.execute('ALTER TABLE valutazioni ADD COLUMN foto_url TEXT')
+                    conn.commit()
+                if 'updated_at' not in cols:
+                    cur.execute('ALTER TABLE valutazioni ADD COLUMN updated_at TEXT')
                     conn.commit()
                 cur.execute("PRAGMA table_info(turni)")
                 cols2 = [r[1] for r in cur.fetchall()]
@@ -223,6 +233,7 @@ PESI = {
     'D5':[.30,.15,.24,.05,.08,.08,.10],'C1':[.35,.15,.10,.10,.10,.10,.10],
     'C2':[.35,.15,.10,.10,.10,.10,.10],'C3':[.30,.20,.15,.05,.10,.10,.10],
     'C4':[.25,.25,.15,.05,.10,.10,.10],'C5':[.25,.25,.15,.05,.10,.10,.10],
+    'WWCC1':[.14,.14,.14,.14,.15,.15,.14],'SK':[.14,.14,.14,.14,.15,.15,.14],'FOIL':[.14,.14,.14,.14,.15,.15,.14],
 }
 
 def calcola_punteggio(corso, voti):
@@ -230,6 +241,8 @@ def calcola_punteggio(corso, voti):
     if not p or None in voti: return None
     tec,sen,aff,pro,imp,dis,com = voti
     vp = sum(v*w for v,w in zip(voti,p))
+    # Nuovi corsi: nessun veto, media pesata diretta
+    if corso in ('WWCC1','SK','FOIL'): return int(math.floor(vp))
     if corso in ('D1','D2','C1','C2'):
         if tec==5 or com==5: return 5
         result = tec+1 if tec+1<vp else vp
@@ -395,7 +408,71 @@ def turno_info(numero):
         if not t: return jsonify({'error':'Turno non trovato'}),404
         cur.execute(f'SELECT * FROM valutazioni WHERE turno={PH} AND corso={PH} ORDER BY allievo',(numero,t['corso']))
         rows=rows_to_dicts(cur.fetchall(), cur)
+    # Aggiungi updated_at come string per ogni allievo
+    for r in rows:
+        if r.get('updated_at') is None:
+            r['updated_at'] = None
     return jsonify({'turno':t,'allievi':rows})
+
+
+@app.route('/api/scheda/one', methods=['POST'])
+def salva_allievo_singolo():
+    """Salva i voti di un singolo allievo. Usato per autosave concorrente.
+    Non sovrascrive altri allievi, minimizza il rischio di lost update."""
+    d = request.json or {}
+    token = request.headers.get('X-Auth-Token', '')
+    rec = d.get('record', {})
+    corso   = rec.get('corso', '')
+    istr    = rec.get('istruttore', '').strip()
+    allievo = rec.get('allievo', '').strip()
+    turno   = rec.get('turno')
+
+    if not all([corso, istr, allievo, turno]):
+        return jsonify({'error': 'Campi obbligatori mancanti'}), 400
+    try: turno = int(turno)
+    except: return jsonify({'error': 'Turno non valido'}), 400
+    if not check_turno_auth(turno, token, corso):
+        return jsonify({'error': 'Non autorizzato'}), 401
+
+    import datetime
+    oggi = date.today().isoformat()
+    now  = datetime.datetime.utcnow().isoformat()
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cols, vals = [], []
+        for c in CRITERI:
+            for dk in DAY_KEYS:
+                v = rec.get(f'{c}_{dk}')
+                v = int(v) if v is not None and str(v).strip() != '' and 1 <= int(v) <= 10 else None
+                cols.append(f'{c}_{dk}'); vals.append(v)
+        pts_list = []
+        for dk in DAY_KEYS:
+            voti_day = [rec.get(f'{c}_{dk}') for c in CRITERI]
+            voti_day = [int(x) if x is not None and str(x).strip()!='' and 1<=int(x)<=10 else None for x in voti_day]
+            pt = calcola_punteggio(corso, voti_day)
+            cols.append(f'pts_{dk}'); vals.append(pt); pts_list.append(pt)
+        validi = [p for p in pts_list if p is not None]
+        pf = int(math.floor(sum(validi)/len(validi))) if validi else None
+
+        cur.execute(f'SELECT id FROM valutazioni WHERE turno={PH} AND allievo={PH} AND corso={PH}',
+                    (turno, allievo, corso))
+        existing = cur.fetchone()
+        if existing:
+            eid = existing[0] if USE_PG else existing['id']
+            set_clause = ','.join(f'{c}={PH}' for c in cols) + f',punteggio_finale={PH},updated_at={PH}'
+            cur.execute(f'UPDATE valutazioni SET {set_clause} WHERE id={PH}',
+                        vals + [pf, now, eid])
+        else:
+            all_cols = ['data','istruttore','corso','turno','allievo'] + cols + ['punteggio_finale','updated_at']
+            all_vals = [oggi, istr, corso, turno, allievo] + vals + [pf, now]
+            cur.execute(
+                f"INSERT INTO valutazioni ({','.join(all_cols)}) VALUES ({','.join([PH]*len(all_cols))})",
+                all_vals
+            )
+        conn.commit()
+
+    return jsonify({'ok': True, 'punteggio_finale': pf})
 
 @app.route('/api/scheda', methods=['POST'])
 def salva_scheda():
@@ -430,11 +507,13 @@ def salva_scheda():
             existing=cur.fetchone()
             if existing:
                 eid=existing[0] if USE_PG else existing['id']
-                set_clause=','.join(f'{c}={PH}' for c in cols)+f',punteggio_finale={PH}'
-                cur.execute(f'UPDATE valutazioni SET {set_clause} WHERE id={PH}',vals+[pf,eid])
+                set_clause=','.join(f'{c}={PH}' for c in cols)+f',punteggio_finale={PH},updated_at={PH}'
+                import datetime
+                cur.execute(f'UPDATE valutazioni SET {set_clause} WHERE id={PH}',vals+[pf,datetime.datetime.utcnow().isoformat(),eid])
             else:
-                all_cols=['data','istruttore','corso','turno','allievo']+cols+['punteggio_finale']
-                all_vals=[oggi,istr,corso,turno,allievo]+vals+[pf]
+                import datetime
+                all_cols=['data','istruttore','corso','turno','allievo']+cols+['punteggio_finale','updated_at']
+                all_vals=[oggi,istr,corso,turno,allievo]+vals+[pf,datetime.datetime.utcnow().isoformat()]
                 cur.execute(f"INSERT INTO valutazioni ({','.join(all_cols)}) VALUES ({','.join([PH]*len(all_vals))})",all_vals)
             salvati+=1
         conn.commit()
