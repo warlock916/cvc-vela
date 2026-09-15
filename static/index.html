@@ -140,6 +140,23 @@ table.riepilogo td{padding:6px 9px;}
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none !important;margin:0 !important;display:none !important;}
 input[type=number]{-moz-appearance:textfield !important;appearance:textfield !important;}
+
+/* ── stato salvataggio per allievo ── */
+.save-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:4px;vertical-align:middle;flex-shrink:0;}
+.save-dot.ok   {background:#70AD47;}
+.save-dot.dirty{background:#E6A817;}
+.save-dot.saving{background:#2E75B6;animation:pulse-dot .6s infinite alternate;}
+.save-dot.error{background:#C00000;}
+@keyframes pulse-dot{from{opacity:1}to{opacity:.3}}
+/* ── sync bar ── */
+#sync-bar{position:fixed;bottom:0;left:0;right:0;z-index:999;background:#1F4E79;color:white;
+  font-size:.78rem;padding:4px 14px;display:flex;align-items:center;gap:10px;min-height:28px;}
+#sync-bar.warn{background:#C00000;}
+#sync-bar.ok{background:#375623;}
+#sync-bar span{flex:1;}
+#sync-bar button{padding:2px 10px;font-size:.73rem;border:1px solid rgba(255,255,255,.5);
+  background:none;color:white;border-radius:4px;cursor:pointer;}
+#sync-bar button:hover{background:rgba(255,255,255,.15);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -191,6 +208,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
         <option value="">— Seleziona —</option>
         <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
         <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
+        <option>WWCC1</option><option>SK</option><option>FOIL</option>
       </select>
     </div>
     <div class="form-row">
@@ -303,6 +321,7 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
           <option value="">Tutti i corsi</option>
           <option>D1</option><option>D2</option><option>D3</option><option>D4</option><option>D5</option>
           <option>C1</option><option>C2</option><option>C3</option><option>C4</option><option>C5</option>
+          <option>WWCC1</option><option>SK</option><option>FOIL</option>
         </select>
         <input type="number" id="f-turno" placeholder="N. turno" min="1" max="60" oninput="loadRiepilogo()" style="max-width:90px;">
       </div>
@@ -345,10 +364,16 @@ const PESI={
   D5:[.30,.15,.24,.05,.08,.08,.10],C1:[.35,.15,.10,.10,.10,.10,.10],
   C2:[.35,.15,.10,.10,.10,.10,.10],C3:[.30,.20,.15,.05,.10,.10,.10],
   C4:[.25,.25,.15,.05,.10,.10,.10],C5:[.25,.25,.15,.05,.10,.10,.10],
+  WWCC1:[.14,.14,.14,.14,.15,.15,.14],SK:[.14,.14,.14,.14,.15,.15,.14],FOIL:[.14,.14,.14,.14,.15,.15,.14],
 };
 
 let session=null, adminToken=null, allievi=[], alleviRuoli={};
-// ID univoco per questa finestra del browser (rileva sessioni concorrenti)
+// Concorrenza: tracking stato salvataggio per allievo
+const dirtyAllievi  = new Set();   // nomi con modifiche non salvate
+const savingAllievi = new Set();   // nomi in fase di salvataggio
+const saveTimers    = {};          // debounce timer per allievo
+const lastServerTs  = {};          // updated_at dal server per allievo
+let syncIntervalId = null;         // ID del setInterval di sync periodica
 const CLIENT_ID = Math.random().toString(36).slice(2);
 const isMobile=()=>window.innerWidth<=768;
 
@@ -457,6 +482,7 @@ async function caricaTurno(){
     const d=await res.json();
     if(!res.ok) return;
     for(const r of d.allievi){
+      lastServerTs[r.allievo] = r.updated_at||null;
       if(!allievi.includes(r.allievo)){
         allievi.push(r.allievo);
         renderRiga(r.allievo);
@@ -502,6 +528,8 @@ function calcolaPunteggio(corso,voti){
   const [tec,sen,,,,,com]=voti;
   const vp=voti.reduce((s,v,i)=>s+v*p[i],0);
   let r;
+  // Nuovi corsi: nessun veto, media pesata diretta
+  if(['WWCC1','SK','FOIL'].includes(corso)) return p?Math.floor(vp):null;
   if(['D1','D2','C1','C2'].includes(corso)){
     if(tec===5||com===5)r=5; else r=tec+1<vp?tec+1:vp;
   }else if(['D3','C3','C4','C5'].includes(corso)){
@@ -686,6 +714,7 @@ function renderRigaDesktop(nome,id){
         <span style="position:absolute;bottom:-2px;right:-2px;background:var(--blu2);color:white;border-radius:50%;width:14px;height:14px;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1;">+</span>
       </div>
       <span id="nome_lbl_${id}">${nome}</span>
+      <span class="save-dot ok" id="dot_${id}" title="✅ Salvato"></span>
       <span data-nome="${nome.replace(/'/g,"\'")}" data-id="${id}" onclick="modificaNomeById(this)" title="Rinomina allievo"
         style="cursor:pointer;color:var(--blu2);font-size:.75rem;margin-left:4px;opacity:.7;"
         onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">✏️</span>
@@ -701,7 +730,7 @@ function renderRigaDesktop(nome,id){
   </td>`;
   DAY_KEYS.forEach((dk,di)=>{
     CRITERI_KEYS.forEach(key=>{
-      cells+=`<td ${di>0&&CRITERI_KEYS.indexOf(key)===0?'class="sep-td"':''}><select class="voto-select" id="${key}_${id}_${dk}" data-nome="${nome}" onchange="ricalcolaAllievo(this.dataset.nome)"><option value="">—</option>${VOTO_OPTIONS}</select></td>`;
+      cells+=`<td ${di>0&&CRITERI_KEYS.indexOf(key)===0?'class="sep-td"':''}><select class="voto-select" id="${key}_${id}_${dk}" data-nome="${nome}" onchange="ricalcolaAllievo(this.dataset.nome);scheduleAutosave(this.dataset.nome)"><option value="">—</option>${VOTO_OPTIONS}</select></td>`;
     });
     const cls=di===6?'pts-fin-cell':'pts-day';
     cells+=`<td class="${cls}" id="pts_${id}_${dk}">—</td>`;
@@ -756,7 +785,7 @@ function renderRigaMobile(nome,id){
       html+=`<td style="padding:2px;background:${bg};text-align:center;">
         <select class="voto-select" id="${key}_${id}_${dk}"
           style="width:50px;padding:4px 2px;text-align:center;border:1px solid #ccc;border-radius:3px;font-size:.9rem;font-weight:bold;"
-          data-nome="${nome}" onchange="ricalcolaAllievo(this.dataset.nome)"><option value="">—</option>${VOTO_OPTIONS}</select>
+          data-nome="${nome}" onchange="ricalcolaAllievo(this.dataset.nome);scheduleAutosave(this.dataset.nome)"><option value="">—</option>${VOTO_OPTIONS}</select>
       </td>`;
     });
     html+=`</tr>`;
@@ -827,38 +856,153 @@ function ricalcolaAllievo(nome){
 }
 
 // ── Salva ─────────────────────────────────────────────────────────────────
+// ── Autosave concorrente ─────────────────────────────────────────────────
+
+function scheduleAutosave(nome){
+  // Marca come dirty e aggiorna il dot
+  dirtyAllievi.add(nome);
+  setDot(nome, 'dirty');
+  // Cancella timer precedente e ne avvia uno nuovo (debounce 1.5s)
+  if(saveTimers[nome]) clearTimeout(saveTimers[nome]);
+  saveTimers[nome] = setTimeout(()=>autosaveAllievo(nome), 1500);
+}
+
+function setDot(nome, stato){
+  const id = nomeToId(nome);
+  const dot = document.getElementById(`dot_${id}`);
+  if(!dot) return;
+  dot.className = `save-dot ${stato}`;
+  const titoli = {ok:'✅ Salvato', dirty:'🟡 Modifica non salvata', saving:'⏳ Salvando...', error:'❌ Errore salvataggio'};
+  dot.title = titoli[stato] || stato;
+}
+
+async function autosaveAllievo(nome){
+  if(!session) return;
+  if(savingAllievi.has(nome)) return; // già in corso
+  dirtyAllievi.delete(nome);
+  savingAllievi.add(nome);
+  setDot(nome, 'saving');
+
+  try{
+    const rec = buildRecord(nome);
+    const res = await fetchAuth(`${API}/api/scheda/one`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Auth-Token':session.token},
+      body: JSON.stringify({record: rec})
+    });
+    if(!res) throw new Error('Sessione scaduta');
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error||'Errore server');
+    // Aggiorna timestamp locale
+    lastServerTs[nome] = new Date().toISOString();
+    setDot(nome, 'ok');
+  }catch(e){
+    // Se ancora dirty (modifica fatta durante il save) → riprova
+    if(dirtyAllievi.has(nome)){
+      setDot(nome,'dirty');
+    } else {
+      dirtyAllievi.add(nome); // rimetti in coda
+      setDot(nome,'error');
+      console.warn(`Autosave fallito per ${nome}:`, e.message);
+    }
+  }finally{
+    savingAllievi.delete(nome);
+  }
+}
+
+function buildRecord(nome){
+  // Costruisce il record voti per un singolo allievo
+  const id  = nomeToId(nome);
+  const rec = {istruttore:session.istruttore, corso:session.corso, turno:session.turno, allievo:nome};
+  DAY_KEYS.forEach(dk=>{
+    CRITERI_KEYS.forEach(key=>{
+      const el = document.getElementById(`${key}_${id}_${dk}`);
+      const v  = el && el.value !== '' ? parseInt(el.value) : null;
+      rec[`${key}_${dk}`] = (v!==null && v>=1 && v<=10) ? v : null;
+    });
+  });
+  return rec;
+}
+
+// ── Salva tutti i pendenti ──────────────────────────────────────────────
+async function salvaTuttiPendenti(){
+  const pendenti = [...dirtyAllievi];
+  if(!pendenti.length) return;
+  // Cancella tutti i debounce in corso
+  pendenti.forEach(n=>{ if(saveTimers[n]) clearTimeout(saveTimers[n]); });
+  await Promise.all(pendenti.map(n=>autosaveAllievo(n)));
+}
+
+// ── Sincronizzazione remota periodica ────────────────────────────────────
+async function syncRemota(){
+  if(!session) return;
+  try{
+    const res = await fetchAuth(
+      `${API}/api/turno/${session.turno}?corso=${encodeURIComponent(session.corso)}`,
+      {headers:{'X-Auth-Token':session.token}}
+    );
+    if(!res || !res.ok) return;
+    const d = await res.json();
+    let aggiornati = 0;
+
+    (d.allievi||[]).forEach(r=>{
+      const nome = r.allievo;
+      // Se l'allievo è dirty o in fase di saving → non sovrascrivere
+      if(dirtyAllievi.has(nome) || savingAllievi.has(nome)) return;
+      // Confronta updated_at: se il server è più recente → aggiorna
+      const serverTs = r.updated_at;
+      const localTs  = lastServerTs[nome];
+      if(!serverTs || serverTs === localTs) return;
+      // Aggiorna i valori nella UI senza triggerare autosave
+      const id = nomeToId(nome);
+      let changed = false;
+      DAY_KEYS.forEach(dk=>{
+        CRITERI_KEYS.forEach(key=>{
+          const el = document.getElementById(`${key}_${id}_${dk}`);
+          if(!el) return;
+          const nuovoV = r[`${key}_${dk}`] != null ? String(r[`${key}_${dk}`]) : '';
+          if(el.value !== nuovoV){ el.value = nuovoV; changed = true; }
+        });
+      });
+      if(changed){
+        ricalcolaAllievo(nome);
+        lastServerTs[nome] = serverTs;
+        aggiornati++;
+      }
+    });
+
+    // Mostra banner se ci sono stati aggiornamenti
+    const bar = document.getElementById('sync-bar');
+    const msg = document.getElementById('sync-msg');
+    if(aggiornati > 0){
+      bar.className='warn';
+      msg.textContent = `⚡ ${aggiornati} allievi aggiornati da altri istruttori (${new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})})`;
+      bar.style.display='flex';
+      setTimeout(()=>{ bar.className=''; msg.textContent='✅ Dati sincronizzati'; setTimeout(()=>bar.style.display='none',3000); }, 4000);
+    }
+  }catch(e){ /* sync fallita silenziosamente */ }
+}
+
+async function ricaricaDatiRemoti(){
+  // Force reload completo (solo per i non-dirty)
+  await syncRemota();
+}
+
+// ── Override salvaScheda: salva tutti i pendenti ─────────────────────────
 async function salvaScheda(){
   ['alert-ok','alert-err'].forEach(i=>document.getElementById(i).classList.remove('show'));
   if(!allievi.length){showErr('Aggiungi almeno un allievo.');return;}
-  const records=allievi.map(nome=>{
-    const id=nomeToId(nome);
-    const rec={istruttore:session.istruttore,corso:session.corso,turno:session.turno,allievo:nome};
-    let allPts=[];
-    DAY_KEYS.forEach(dk=>{
-      CRITERI_KEYS.forEach(key=>{
-        const el=document.getElementById(`${key}_${id}_${dk}`);
-        const v=el&&el.value!==''?parseInt(el.value):null;
-        rec[`${key}_${dk}`]=(v!==null&&v>=1&&v<=10)?v:null;
-      });
-      const ptsEl=document.getElementById(`pts_${id}_${dk}`);
-      const pt=ptsEl&&ptsEl.textContent!=='—'?parseInt(ptsEl.textContent):null;
-      rec[`pts_${dk}`]=pt; allPts.push(pt);
-    });
-    const validi=allPts.filter(p=>p!==null);
-    rec.punteggio_finale=validi.length?Math.floor(validi.reduce((a,b)=>a+b)/validi.length):null;
-    return rec;
-  });
+  // Prima salva i pendenti con autosave per-allievo (sicuro per concorrenza)
+  allievi.forEach(nome=>dirtyAllievi.add(nome)); // marca tutti come da salvare
+  allievi.forEach(nome=>setDot(nome,'dirty'));
+  const btn=document.getElementById('btn-salva');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Salvataggio...';}
   try{
-    const res=await fetchAuth(`${API}/api/scheda`,{
-      method:'POST',headers:{'Content-Type':'application/json','X-Auth-Token':session.token},
-      body:JSON.stringify({records})
-    });
-    if(!res) return;
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error||'Errore');
+    await salvaTuttiPendenti();
     document.getElementById('alert-ok').classList.add('show');
     setTimeout(()=>document.getElementById('alert-ok').classList.remove('show'),3000);
   }catch(e){showErr(e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='💾 Salva';}}
 }
 
 function showErr(m){document.getElementById('err-msg').textContent=m;document.getElementById('alert-err').classList.add('show');}
@@ -1317,5 +1461,10 @@ function aggiornaReport(){
 
 init();
 </script>
+<div id="sync-bar" style="display:none;">
+  <span id="sync-msg">⟳ Sincronizzazione...</span>
+  <button onclick="ricaricaDatiRemoti()">🔄 Aggiorna ora</button>
+  <button onclick="document.getElementById('sync-bar').style.display='none'">✕</button>
+</div>
 </body>
 </html>
