@@ -321,13 +321,20 @@ def verify():
     token=request.headers.get('X-Auth-Token','')
     with get_db() as conn:
         cur=conn.cursor()
-        cur.execute(f'SELECT tipo,turno,istruttore,corso,foto_ok FROM sessions WHERE token={PH}',(token,))
+        # JOIN con turni per ricavare istruttore (non è nella tabella sessions)
+        cur.execute(
+            f'SELECT s.tipo, s.turno, s.corso, s.foto_ok, t.istruttore '
+            f'FROM sessions s '
+            f'LEFT JOIN turni t ON t.numero=s.turno AND t.corso=s.corso '
+            f'WHERE s.token={PH}',
+            (token,)
+        )
         row=cur.fetchone()
     if not row: return jsonify({'valid':False}),401
     if USE_PG:
-        tipo,turno,istruttore,corso,foto_ok = row[0],row[1],row[2],row[3],row[4]
+        tipo,turno,corso,foto_ok,istruttore = row[0],row[1],row[2],row[3],row[4]
     else:
-        tipo,turno,istruttore,corso,foto_ok = row['tipo'],row['turno'],row['istruttore'],row['corso'],row['foto_ok']
+        tipo,turno,corso,foto_ok,istruttore = row['tipo'],row['turno'],row['corso'],row['foto_ok'],row['istruttore']
     return jsonify({'valid':True,'tipo':tipo,'turno':turno,
                     'istruttore':istruttore or '','corso':corso or '','foto_ok':foto_ok or 0})
 
