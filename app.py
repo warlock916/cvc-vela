@@ -127,6 +127,13 @@ def migrate_db():
                 if not cur.fetchone():
                     cur.execute("ALTER TABLE valutazioni ADD COLUMN updated_at TIMESTAMP DEFAULT NOW()")
                     conn.commit()
+                cur.execute(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='valutazioni' AND column_name='ruolo'"
+                )
+                if not cur.fetchone():
+                    cur.execute("ALTER TABLE valutazioni ADD COLUMN ruolo TEXT DEFAULT 'A'")
+                    conn.commit()
                 # email in turni
                 cur.execute(
                     "SELECT column_name FROM information_schema.columns "
@@ -166,6 +173,9 @@ def migrate_db():
                     conn.commit()
                 if 'updated_at' not in cols:
                     cur.execute('ALTER TABLE valutazioni ADD COLUMN updated_at TEXT')
+                    conn.commit()
+                if 'ruolo' not in cols:
+                    cur.execute("ALTER TABLE valutazioni ADD COLUMN ruolo TEXT DEFAULT 'A'")
                     conn.commit()
                 cur.execute("PRAGMA table_info(turni)")
                 cols2 = [r[1] for r in cur.fetchall()]
@@ -311,12 +321,15 @@ def verify():
     token=request.headers.get('X-Auth-Token','')
     with get_db() as conn:
         cur=conn.cursor()
-        cur.execute(f'SELECT tipo,turno FROM sessions WHERE token={PH}',(token,))
+        cur.execute(f'SELECT tipo,turno,istruttore,corso,foto_ok FROM sessions WHERE token={PH}',(token,))
         row=cur.fetchone()
     if not row: return jsonify({'valid':False}),401
-    tipo=row[0] if USE_PG else row['tipo']
-    turno=row[1] if USE_PG else row['turno']
-    return jsonify({'valid':True,'tipo':tipo,'turno':turno})
+    if USE_PG:
+        tipo,turno,istruttore,corso,foto_ok = row[0],row[1],row[2],row[3],row[4]
+    else:
+        tipo,turno,istruttore,corso,foto_ok = row['tipo'],row['turno'],row['istruttore'],row['corso'],row['foto_ok']
+    return jsonify({'valid':True,'tipo':tipo,'turno':turno,
+                    'istruttore':istruttore or '','corso':corso or '','foto_ok':foto_ok or 0})
 
 @app.route('/api/turno/<int:numero>/exists', methods=['GET'])
 def turno_exists(numero):
@@ -427,6 +440,9 @@ def salva_allievo_singolo():
     allievo = rec.get('allievo', '').strip()
     turno   = rec.get('turno')
 
+    ruolo = rec.get('ruolo', 'A') or 'A'
+    if ruolo not in ('A','IS','CT','AT'): ruolo = 'A'
+
     if not all([corso, istr, allievo, turno]):
         return jsonify({'error': 'Campi obbligatori mancanti'}), 400
     try: turno = int(turno)
@@ -460,12 +476,12 @@ def salva_allievo_singolo():
         existing = cur.fetchone()
         if existing:
             eid = existing[0] if USE_PG else existing['id']
-            set_clause = ','.join(f'{c}={PH}' for c in cols) + f',punteggio_finale={PH},updated_at={PH}'
+            set_clause = ','.join(f'{c}={PH}' for c in cols) + f',punteggio_finale={PH},updated_at={PH},ruolo={PH}'
             cur.execute(f'UPDATE valutazioni SET {set_clause} WHERE id={PH}',
-                        vals + [pf, now, eid])
+                        vals + [pf, now, ruolo, eid])
         else:
-            all_cols = ['data','istruttore','corso','turno','allievo'] + cols + ['punteggio_finale','updated_at']
-            all_vals = [oggi, istr, corso, turno, allievo] + vals + [pf, now]
+            all_cols = ['data','istruttore','corso','turno','allievo'] + cols + ['punteggio_finale','updated_at','ruolo']
+            all_vals = [oggi, istr, corso, turno, allievo] + vals + [pf, now, ruolo]
             cur.execute(
                 f"INSERT INTO valutazioni ({','.join(all_cols)}) VALUES ({','.join([PH]*len(all_cols))})",
                 all_vals
@@ -489,6 +505,8 @@ def salva_scheda():
             try: turno=int(turno)
             except: continue
             if not check_turno_auth(turno,token,corso): return jsonify({'error':'Non autorizzato'}),401
+            ruolo_rec = rec.get('ruolo','A') or 'A'
+            if ruolo_rec not in ('A','IS','CT','AT'): ruolo_rec='A'
             cols,vals=[],[]
             for c in CRITERI:
                 for dk in DAY_KEYS:
@@ -507,13 +525,13 @@ def salva_scheda():
             existing=cur.fetchone()
             if existing:
                 eid=existing[0] if USE_PG else existing['id']
-                set_clause=','.join(f'{c}={PH}' for c in cols)+f',punteggio_finale={PH},updated_at={PH}'
+                set_clause=','.join(f'{c}={PH}' for c in cols)+f',punteggio_finale={PH},updated_at={PH},ruolo={PH}'
                 import datetime
-                cur.execute(f'UPDATE valutazioni SET {set_clause} WHERE id={PH}',vals+[pf,datetime.datetime.utcnow().isoformat(),eid])
+                cur.execute(f'UPDATE valutazioni SET {set_clause} WHERE id={PH}',vals+[pf,datetime.datetime.utcnow().isoformat(),ruolo_rec,eid])
             else:
                 import datetime
-                all_cols=['data','istruttore','corso','turno','allievo']+cols+['punteggio_finale','updated_at']
-                all_vals=[oggi,istr,corso,turno,allievo]+vals+[pf,datetime.datetime.utcnow().isoformat()]
+                all_cols=['data','istruttore','corso','turno','allievo']+cols+['punteggio_finale','updated_at','ruolo']
+                all_vals=[oggi,istr,corso,turno,allievo]+vals+[pf,datetime.datetime.utcnow().isoformat(),ruolo_rec]
                 cur.execute(f"INSERT INTO valutazioni ({','.join(all_cols)}) VALUES ({','.join([PH]*len(all_vals))})",all_vals)
             salvati+=1
         conn.commit()
