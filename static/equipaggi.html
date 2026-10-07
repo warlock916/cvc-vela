@@ -86,7 +86,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 </head>
 <body>
 <header>
-  <a href="/">← App</a>
+  <a href="#" id="lnk-back" onclick="tornaApp();return false;">← App</a>
   <h1>⛵ CVC – Genera Equipaggi</h1>
   <span id="hdr-info"></span>
 </header>
@@ -262,6 +262,7 @@ const KEY     = 'cvc_eq_v4';
 let P=[], storico=[], inc={}, covRef={};
 let ultimiBarche=null, modalitaModifica=false;
 let dragNome=null, dragDaBarca=null;
+let _sessToken=null, _sessTurno=null, _sessCorso=null; // parametri dal link scheda
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
@@ -273,6 +274,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const turno=params.get('turno'), corso=params.get('corso'), tok=params.get('tok');
 
   if(turno && corso && tok){
+    _sessToken=tok; _sessTurno=turno; _sessCorso=corso;
+    // Aggiorna link ← App per passare il tok al ritorno
+    const back=document.getElementById('lnk-back');
+    if(back) back.href=`/?turno=${turno}&corso=${encodeURIComponent(corso)}&tok=${encodeURIComponent(tok)}`;
     // Arriva dalla scheda: carica storico/matrici da localStorage, allievi dalla scheda
     caricaStorageStorico();
     document.getElementById('hdr-info').textContent = `T${turno} — ${corso}`;
@@ -285,6 +290,21 @@ window.addEventListener('DOMContentLoaded', ()=>{
   renderP();
   aggiornaTipoBarche();
 });
+
+function tornaApp(){
+  if(_sessToken){
+    const url=`/?turno=${_sessTurno}&corso=${encodeURIComponent(_sessCorso)}&tok=${encodeURIComponent(_sessToken)}`;
+    if(window.opener && !window.opener.closed){
+      window.opener.location.href=url;
+      window.close();
+    } else {
+      location.href=url;
+    }
+  } else {
+    if(window.opener && !window.opener.closed){ window.opener.focus(); window.close(); }
+    else history.back();
+  }
+}
 
 // ══════════════════════════════════════════════════════════════════
 // STORAGE
@@ -354,7 +374,8 @@ async function caricaDaScheda(turno, corso, tok){
         else if(lastTec <= 8) rank=4;
         else rank=5;
       }
-      P.push({n:r.allievo, c:'', s:'', r:'A', rank, imb:true});
+      const ruolo = (r.ruolo && ['A','IS','CT','AT'].includes(r.ruolo)) ? r.ruolo : 'A';
+      P.push({n:r.allievo, c:'', s:'', r:ruolo, rank, imb:true});
     });
 
     // Re-aggiungi referenti manuali
@@ -377,12 +398,28 @@ function addP(n='', c='', s='', r='A', rank=3){
   renderP(); aggiornaTipoBarche();
 }
 
+// Sincronizza un allievo aggiunto manualmente nel DB della scheda
+async function syncAllievoDB(nome, ruolo){
+  if(!_sessToken || !nome.trim()) return;
+  try{
+    await fetch('/api/scheda/one',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Auth-Token':_sessToken},
+      body: JSON.stringify({record:{
+        istruttore:'equipaggi', corso:_sessCorso, turno:parseInt(_sessTurno),
+        allievo:nome.trim(), ruolo: ruolo||'A'
+      }})
+    });
+  }catch(e){ console.warn('syncAllievoDB:', e); }
+}
+
 function renderP(){
   const tbody = document.getElementById('p-tbody');
   tbody.innerHTML = P.map((p,i) => `
     <tr>
       <td><input type="text" value="${esc(p.n)}" placeholder="Nome"
-        oninput="P[${i}].n=this.value.trim();aggiornaBadge()"></td>
+        oninput="P[${i}].n=this.value.trim();aggiornaBadge()"
+        onblur="if(_sessToken&&P[${i}]&&P[${i}].n)syncAllievoDB(P[${i}].n,P[${i}].r)"></td>
       <td><input type="text" value="${esc(p.c)}" placeholder="Cognome"
         oninput="P[${i}].c=this.value.trim()"></td>
       <td><input type="text" value="${esc(p.s)}" placeholder="Soprannome"
@@ -627,9 +664,9 @@ function renderEq(barche, data, mpt, warns, editMode=false){
     const nAls = b.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').length;
     const nRef = b.pers.filter(p=>p.rOggi==='IS'||p.rOggi==='CT').length;
     return `<div class="eq-box" id="eq-box-${b.id}"
-      ${editMode?`ondragover="ev.preventDefault();this.classList.add('drag-over')"
+      ${editMode?`ondragover="event.preventDefault();this.classList.add('drag-over')"
         ondragleave="this.classList.remove('drag-over')"
-        ondrop="dropPersona(ev,${b.id})"`:''}>
+        ondrop="dropPersona(event,${b.id})"`:''}>
       <div class="eq-hdr" style="background:${bg};">
         <span>Barca ${b.id}</span>
         <span style="opacity:.75;font-size:.7rem;">${nAls}A${nRef?'+'+nRef+'Ref':''}</span>
@@ -639,7 +676,11 @@ function renderEq(barche, data, mpt, warns, editMode=false){
           ? '<span style="color:#ccc;font-size:.75rem;">— vuota —</span>'
           : b.pers.map(p=>`
             <div class="eq-row ${editMode?'draggable':''}"
-              ${editMode?`draggable="true" ondragstart="dragPersona(ev,'${p.n.replace(/'/g,"\\'")}',${b.id})"`:''}>
+              ${editMode?`draggable="true"
+                ondragstart="dragPersona(event,'${p.n.replace(/'/g,"\\'")}',${b.id})"
+                ontouchstart="touchStartPersona(event,'${p.n.replace(/'/g,"\\'")}',${b.id})"
+                ontouchmove="touchMovePersona(event)"
+                ontouchend="touchEndPersona(event)"`:''}>
               <span class="${RBADGE[p.rOggi]||'rA'}">${p.rOggi}</span>
               <span>${esc(p.n)}${p.c?' '+esc(p.c):''}</span>
               ${p.s?`<span style="color:#aaa;font-size:.68rem;">(${esc(p.s)})</span>`:''}
@@ -676,23 +717,75 @@ function toggleModifica(){
 }
 
 // ══════════════════════════════════════════════════════════════════
-// DRAG & DROP
+// DRAG & DROP (desktop HTML5 + touch mobile)
 // ══════════════════════════════════════════════════════════════════
 function dragPersona(ev, nome, barId){
   dragNome=nome; dragDaBarca=barId;
   ev.dataTransfer.effectAllowed='move';
+  ev.dataTransfer.setData('text/plain', nome); // richiesto da alcuni browser
 }
 
 function dropPersona(ev, barId){
   ev.preventDefault();
-  document.getElementById(`eq-box-${barId}`)?.classList.remove('drag-over');
-  if(!dragNome || dragDaBarca===barId || !ultimiBarche) return;
+  document.querySelectorAll('.eq-box').forEach(el=>el.classList.remove('drag-over'));
+  if(!dragNome || dragDaBarca===barId || !ultimiBarche){ dragNome=null; dragDaBarca=null; return; }
   const src = ultimiBarche.find(b=>b.id===dragDaBarca);
   const dst = ultimiBarche.find(b=>b.id===barId);
-  if(!src||!dst) return;
+  if(!src||!dst){ dragNome=null; dragDaBarca=null; return; }
   const idx = src.pers.findIndex(p=>p.n===dragNome);
-  if(idx<0) return;
+  if(idx<0){ dragNome=null; dragDaBarca=null; return; }
   dst.pers.push(src.pers.splice(idx,1)[0]);
+  dragNome=null; dragDaBarca=null;
+  renderEq(ultimiBarche,
+    document.getElementById('data').value,
+    document.getElementById('mpt').value, [], modalitaModifica);
+}
+
+// ── Touch support ────────────────────────────────────────────────
+let touchClone=null;
+function touchStartPersona(ev, nome, barId){
+  dragNome=nome; dragDaBarca=barId;
+  const row = ev.currentTarget;
+  touchClone = row.cloneNode(true);
+  touchClone.style.cssText='position:fixed;opacity:.75;pointer-events:none;z-index:9999;padding:4px 8px;background:#fff;border:1px solid #ccc;border-radius:6px;font-size:.8rem;';
+  document.body.appendChild(touchClone);
+  const t = ev.touches[0];
+  touchClone.style.left = (t.clientX-60)+'px';
+  touchClone.style.top  = (t.clientY-20)+'px';
+}
+function touchMovePersona(ev){
+  ev.preventDefault();
+  if(!touchClone) return;
+  const t = ev.touches[0];
+  touchClone.style.left = (t.clientX-60)+'px';
+  touchClone.style.top  = (t.clientY-20)+'px';
+  // evidenzia barca sotto il dito
+  document.querySelectorAll('.eq-box').forEach(el=>{
+    const r = el.getBoundingClientRect();
+    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom)
+      el.classList.add('drag-over');
+    else el.classList.remove('drag-over');
+  });
+}
+function touchEndPersona(ev){
+  if(touchClone){ touchClone.remove(); touchClone=null; }
+  document.querySelectorAll('.eq-box').forEach(el=>el.classList.remove('drag-over'));
+  if(!dragNome || !ultimiBarche) return;
+  const t = ev.changedTouches[0];
+  let targetBarId = null;
+  document.querySelectorAll('.eq-box').forEach(el=>{
+    const r = el.getBoundingClientRect();
+    if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom){
+      const m = el.id.match(/eq-box-(\d+)/);
+      if(m) targetBarId = parseInt(m[1]);
+    }
+  });
+  if(targetBarId===null || targetBarId===dragDaBarca){ dragNome=null; dragDaBarca=null; return; }
+  const src = ultimiBarche.find(b=>b.id===dragDaBarca);
+  const dst = ultimiBarche.find(b=>b.id===targetBarId);
+  if(!src||!dst){ dragNome=null; dragDaBarca=null; return; }
+  const idx = src.pers.findIndex(p=>p.n===dragNome);
+  if(idx>=0) dst.pers.push(src.pers.splice(idx,1)[0]);
   dragNome=null; dragDaBarca=null;
   renderEq(ultimiBarche,
     document.getElementById('data').value,
