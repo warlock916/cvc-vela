@@ -316,6 +316,9 @@ function salvaStorage(){
       anno:  document.getElementById('anno').value,
       corso: document.getElementById('corso-i').value,
       turno: document.getElementById('turno-i').value,
+      ultimiBarche: ultimiBarche||null,
+      lastData: document.getElementById('data').value||'',
+      lastMpt:  document.getElementById('mpt').value||'M',
     }));
   }catch(e){ console.warn('Storage error',e); }
 }
@@ -328,6 +331,14 @@ function caricaStorage(){
     if(d.anno)  document.getElementById('anno').value  = d.anno;
     if(d.corso) document.getElementById('corso-i').value = d.corso;
     if(d.turno) document.getElementById('turno-i').value = d.turno;
+    if(d.ultimiBarche && d.ultimiBarche.length){
+      ultimiBarche = d.ultimiBarche;
+      if(d.lastData) document.getElementById('data').value = d.lastData;
+      if(d.lastMpt)  document.getElementById('mpt').value  = d.lastMpt;
+      document.getElementById('output').style.display='block';
+      modalitaModifica=false;
+      renderEq(ultimiBarche, d.lastData||'', d.lastMpt||'M', [], false);
+    }
   }catch(e){}
 }
 
@@ -338,6 +349,14 @@ function caricaStorageStorico(){
     if(!d) return;
     storico=d.storico||[]; inc=d.inc||{}; covRef=d.covRef||{};
     if(d.anno) document.getElementById('anno').value = d.anno;
+    if(d.ultimiBarche && d.ultimiBarche.length){
+      ultimiBarche = d.ultimiBarche;
+      if(d.lastData) document.getElementById('data').value = d.lastData;
+      if(d.lastMpt)  document.getElementById('mpt').value  = d.lastMpt;
+      document.getElementById('output').style.display='block';
+      modalitaModifica=false;
+      renderEq(ultimiBarche, d.lastData||'', d.lastMpt||'M', [], false);
+    }
   }catch(e){}
 }
 
