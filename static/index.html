@@ -392,6 +392,19 @@ async function fetchAuth(url, opts={}){
 }
 
 async function init(){
+  // Supporto ripristino sessione via URL param tok (usato dal ritorno da equipaggi)
+  const urlP = new URLSearchParams(location.search);
+  const urlTok = urlP.get('tok');
+  if(urlTok){
+    const res=await fetch(`${API}/api/verify`,{headers:{'X-Auth-Token':urlTok}});
+    if(res.ok){
+      const d=await res.json();
+      const s={token:urlTok, turno:d.turno, istruttore:d.istruttore, corso:d.corso, fotoAbilitata:d.foto_ok===1};
+      saveSession(s);
+      history.replaceState({},document.title, location.pathname); // pulisce URL
+      session=s; enterApp(); return;
+    }
+  }
   const saved=loadSession();
   if(saved){
     const res=await fetch(`${API}/api/verify`,{headers:{'X-Auth-Token':saved.token}});
@@ -483,10 +496,24 @@ async function caricaTurno(){
     if(!res.ok) return;
     for(const r of d.allievi){
       lastServerTs[r.allievo] = r.updated_at||null;
+      // Ripristina sempre il ruolo dal server (anche per allievi già in lista)
+      if(r.ruolo && ['A','IS','CT','AT'].includes(r.ruolo)){
+        alleviRuoli[r.allievo] = r.ruolo;
+        const selEl = document.getElementById(`ruolo_${nomeToId(r.allievo)}`);
+        if(selEl) selEl.value = r.ruolo;
+      }
       if(!allievi.includes(r.allievo)){
         allievi.push(r.allievo);
         renderRiga(r.allievo);
         const id=nomeToId(r.allievo);
+        // Imposta ruolo appena renderizzato
+        if(r.ruolo && ['A','IS','CT','AT'].includes(r.ruolo)){
+          alleviRuoli[r.allievo] = r.ruolo;
+          setTimeout(()=>{
+            const sel=document.getElementById(`ruolo_${id}`);
+            if(sel) sel.value=r.ruolo;
+          },0);
+        }
         DAY_KEYS.forEach(dk=>{
           CRITERI_KEYS.forEach(key=>{
             const el=document.getElementById(`${key}_${id}_${dk}`);
@@ -720,7 +747,7 @@ function renderRigaDesktop(nome,id){
         onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">✏️</span>
       <select id="ruolo_${id}" class="sel-ruolo" title="Ruolo allievo"
         style="font-size:.68rem;padding:1px 3px;border-radius:3px;border:1px solid #ccc;margin-left:4px;background:#f8f9fa;width:50px;"
-        data-nome="${nome}" onchange="alleviRuoli[this.dataset.nome]=this.value">
+        data-nome="${nome}" onchange="alleviRuoli[this.dataset.nome]=this.value;scheduleAutosave(this.dataset.nome)">
         <option value="A" selected>A</option>
         <option value="IS">IS</option>
         <option value="CT">CT</option>
@@ -754,7 +781,7 @@ function renderRigaMobile(nome,id){
     <span id="nome_lbl_${id}" style="flex:1;">${nome}</span>
     <select id="ruolo_${id}" class="sel-ruolo" title="Ruolo"
       style="font-size:.68rem;padding:1px 3px;border-radius:3px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:white;margin-right:3px;width:48px;"
-      data-nome="${nome}" onchange="alleviRuoli[this.dataset.nome]=this.value">
+      data-nome="${nome}" onchange="alleviRuoli[this.dataset.nome]=this.value;scheduleAutosave(this.dataset.nome)">
       <option value="A" selected>A</option>
       <option value="IS">IS</option>
       <option value="CT">CT</option>
@@ -913,7 +940,8 @@ async function autosaveAllievo(nome){
 function buildRecord(nome){
   // Costruisce il record voti per un singolo allievo
   const id  = nomeToId(nome);
-  const rec = {istruttore:session.istruttore, corso:session.corso, turno:session.turno, allievo:nome};
+  const rec = {istruttore:session.istruttore, corso:session.corso, turno:session.turno, allievo:nome,
+               ruolo: alleviRuoli[nome]||'A'};
   DAY_KEYS.forEach(dk=>{
     CRITERI_KEYS.forEach(key=>{
       const el = document.getElementById(`${key}_${id}_${dk}`);
