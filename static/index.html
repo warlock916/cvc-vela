@@ -285,10 +285,14 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
       <h2 style="margin:0;">🏆 Report — Classifica per Giorno</h2>
-      <button class="btn btn-primary btn-sm" onclick="aggiornaReport()" style="font-size:.8rem;">🔄 Aggiorna</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="aggiornaReport()" style="font-size:.8rem;">🔄 Sessione corrente</button>
+        <button class="btn btn-success btn-sm" onclick="aggiornaReportDaDB()" style="font-size:.8rem;">📊 Carica da DB</button>
+      </div>
     </div>
+    <div id="report-db-info" style="display:none;font-size:.78rem;color:#666;margin-bottom:8px;background:#f0f7ff;padding:6px 10px;border-radius:5px;border-left:3px solid var(--blu2);"></div>
     <div id="report-content">
-      <p style="color:#888;font-size:.85rem;">Nessun dato caricato.</p>
+      <p style="color:#888;font-size:.85rem;">Premi <b>📊 Carica da DB</b> per i dati salvati, oppure <b>🔄 Sessione corrente</b> per i dati della sessione attiva.</p>
     </div>
   </div>
 </div>
