@@ -283,9 +283,12 @@ input[type=number]{-moz-appearance:textfield !important;appearance:textfield !im
 <!-- REPORT -->
 <div id="page-report" class="page">
   <div class="card">
-    <h2>🏆 Report — Classifica per Giorno</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      <h2 style="margin:0;">🏆 Report — Classifica per Giorno</h2>
+      <button class="btn btn-primary btn-sm" onclick="aggiornaReport()" style="font-size:.8rem;">🔄 Aggiorna</button>
+    </div>
     <div id="report-content">
-      <p style="color:#888;font-size:.85rem;">Salva la scheda per aggiornare il report.</p>
+      <p style="color:#888;font-size:.85rem;">Nessun dato caricato.</p>
     </div>
   </div>
 </div>
@@ -368,6 +371,8 @@ const PESI={
 };
 
 let session=null, adminToken=null, allievi=[], alleviRuoli={};
+// Cache punteggi per allievo: ptsCache[nome][dk] = numero | null
+const ptsCache = {};
 // Concorrenza: tracking stato salvataggio per allievo
 const dirtyAllievi  = new Set();   // nomi con modifiche non salvate
 const savingAllievi = new Set();   // nomi in fase di salvataggio
@@ -478,7 +483,8 @@ function showLoginErr(m){ document.getElementById('login-err').textContent=m; do
 function doLogout(){
   session=null; adminToken=null;
   sessionStorage.removeItem('cvc_s');
-  allievi=[]; document.getElementById('scheda-tbody').innerHTML='';
+  allievi=[]; Object.keys(ptsCache).forEach(k=>delete ptsCache[k]);
+  document.getElementById('scheda-tbody').innerHTML='';
   document.getElementById('scheda-mobile').innerHTML='';
   document.getElementById('main-nav').style.display='none';
   document.getElementById('hdr-info').textContent='';
@@ -837,6 +843,7 @@ function rimuoviAllievoBtn(el){ rimuoviAllievo(el.dataset.rimuovi); }
 async function rimuoviAllievo(nome){
   if(!confirm(`Rimuovere ${nome}? Verrà eliminato anche dal database.`)) return;
   allievi=allievi.filter(a=>a!==nome);
+  delete ptsCache[nome];
   document.getElementById(`row_${nomeToId(nome)}`)?.remove();
   document.getElementById(`mob_${nomeToId(nome)}`)?.remove();
 
@@ -865,6 +872,7 @@ function ricalcolaAllievo(nome){
   const corso=session?.corso||'';
   const id=nomeToId(nome);
   const pts=[];
+  if(!ptsCache[nome]) ptsCache[nome]={};
   DAY_KEYS.forEach(dk=>{
     const voti=CRITERI_KEYS.map(key=>{
       const el=document.getElementById(`${key}_${id}_${dk}`);
@@ -874,6 +882,7 @@ function ricalcolaAllievo(nome){
     });
     const pt=corso?calcolaPunteggio(corso,voti):null;
     pts.push(pt);
+    ptsCache[nome][dk]=pt;
     const el=document.getElementById(`pts_${id}_${dk}`);
     if(el) el.textContent=pt!==null?pt:'—';
   });
@@ -1406,15 +1415,13 @@ function aggiornaReport(){
   const container=document.getElementById('report-content');
   if(!container) return;
 
-  // Raccoglie i punteggi per ogni allievo per ogni giorno
+  // Assicura che tutti gli allievi abbiano i punteggi in cache
+  allievi.forEach(nome=>{ if(!ptsCache[nome]) ricalcolaAllievo(nome); });
+
+  // Raccoglie i punteggi dalla cache in memoria (non dal DOM)
   const data=allievi.map(nome=>{
-    const id=nomeToId(nome);
-    const ptsGiorno=DAY_KEYS.map(dk=>{
-      const el=document.getElementById(`pts_${id}_${dk}`);
-      if(!el||el.textContent==='—') return null;
-      const v=parseInt(el.textContent);
-      return isNaN(v)?null:v;
-    });
+    const cache=ptsCache[nome]||{};
+    const ptsGiorno=DAY_KEYS.map(dk=>cache[dk]??null);
     const validi=ptsGiorno.filter(p=>p!==null);
     const media=validi.length?Math.round(validi.reduce((a,b)=>a+b,0)/validi.length*10)/10:null;
     return {nome, ptsGiorno, media};
