@@ -1055,7 +1055,7 @@ function showPage(name,btn){
   document.getElementById('page-'+name).classList.add('active');
   if(btn) btn.classList.add('active');
   if(name==='admin') showAdminSection();
-  if(name==='report') aggiornaReportDaDB();
+  if(name==='report' && session) aggiornaReportDaDB();
   if(name==='scheda'){
     // Mostra la vista giusta in base al dispositivo
     document.getElementById('scheda-desktop').style.display=isMobile()?'none':'block';
@@ -1508,6 +1508,7 @@ async function aggiornaReportDaDB(){
   if(infoEl){ infoEl.style.display='none'; }
   try{
     const res=await fetchAuth(`${API}/api/turno/${session.turno}?corso=${encodeURIComponent(session.corso)}`,{headers:{'X-Auth-Token':session.token}});
+    if(!res){ container.innerHTML='<p style="color:#c00;font-size:.85rem;">⚠️ Sessione scaduta. Effettua nuovamente il login.</p>'; return; }
     const d=await res.json();
     if(!res.ok) throw new Error(d.error||'Errore API');
     const rows=d.allievi||[];
