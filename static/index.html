@@ -1055,7 +1055,7 @@ function showPage(name,btn){
   document.getElementById('page-'+name).classList.add('active');
   if(btn) btn.classList.add('active');
   if(name==='admin') showAdminSection();
-  if(name==='report') aggiornaReport();
+  if(name==='report') aggiornaReportDaDB();
   if(name==='scheda'){
     // Mostra la vista giusta in base al dispositivo
     document.getElementById('scheda-desktop').style.display=isMobile()?'none':'block';
