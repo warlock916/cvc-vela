@@ -578,19 +578,38 @@ function genera(){
     warns.push(`ℹ️ ${isEccesso.length} IS non assegnati a barche (configurazione = ${nIS} IS/barca): ${isEccesso.map(r=>r.n).join(', ')}`);
   }
 
-  // ── Ordina allievi ─────────────────────────────────────────────
-  // Prima chi ha fatto meno incontri totali; a parità considera rank e copertura IS
+  // ── Ordina allievi per numero incontri (meno incontri = va prima) ─
   const allOrd = [...tuttiAllievi].sort((a,b)=>{
     const sA = tuttiAllievi.reduce((s,x)=>s+(inc[a.n]?.[x.n]||0),0);
     const sB = tuttiAllievi.reduce((s,x)=>s+(inc[b.n]?.[x.n]||0),0);
-    if(sA!==sB) return sA-sB;
-    if(usaRanking) return (b.rank||3)-(a.rank||3);
-    return 0;
+    return sA-sB;
   });
 
   // ── Distribuisci allievi ───────────────────────────────────────
   const usati = new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
 
+  // Passo 1 (solo se usaRanking): assegna un "ancora" ad alto rank per ogni barca
+  // in modo che ogni barca abbia almeno uno studente avanzato.
+  // Ordina per rank decrescente, poi per incontri crescenti (a parità di rank).
+  if(usaRanking && tuttiAllievi.length >= barche.length){
+    const perRank = [...tuttiAllievi]
+      .filter(p=>!usati.has(p.n))
+      .sort((a,b)=>{
+        if((b.rank||3)!==(a.rank||3)) return (b.rank||3)-(a.rank||3);
+        const sA=tuttiAllievi.reduce((s,x)=>s+(inc[a.n]?.[x.n]||0),0);
+        const sB=tuttiAllievi.reduce((s,x)=>s+(inc[b.n]?.[x.n]||0),0);
+        return sA-sB;
+      });
+    barche.forEach(b=>{
+      const liberi=perRank.filter(p=>!usati.has(p.n));
+      if(!liberi.length) return;
+      const anchor=liberi[0];
+      b.pers.push({...anchor, rOggi:anchor.r});
+      usati.add(anchor.n);
+    });
+  }
+
+  // Passo 2: riempi i posti restanti con logica incontri + copertura IS
   barche.forEach(barca=>{
     while(barca.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').length < barca.cap){
       const liberi = allOrd.filter(p=>!usati.has(p.n));
@@ -608,7 +627,6 @@ function genera(){
           const covB = covRef[refNome]?.[best.n]||0;
           if(covC!==covB) return covC<covB?c:best;
         }
-        if(usaRanking) return (c.rank||3)<(best.rank||3)?c:best;
         return best;
       }, liberi[0]);
 
@@ -702,6 +720,7 @@ function renderEq(barche, data, mpt, warns, editMode=false){
                 ontouchend="touchEndPersona(event)"`:''}>
               <span class="${RBADGE[p.rOggi]||'rA'}">${p.rOggi}</span>
               <span>${esc(p.n)}${p.c?' '+esc(p.c):''}</span>
+              ${(p.rank&&p.rank!==3&&document.getElementById('usa-ranking').checked)?`<span style="color:#aaa;font-size:.65rem;margin-left:2px;">★${p.rank}</span>`:''}
               ${p.s?`<span style="color:#aaa;font-size:.68rem;">(${esc(p.s)})</span>`:''}
             </div>`).join('')
         }
