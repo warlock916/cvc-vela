@@ -585,12 +585,15 @@ function genera(){
     return sA-sB;
   });
 
+  // Media rank globale (usata per bilanciare le barche)
+  const overallAvgRank = tuttiAllievi.length
+    ? tuttiAllievi.reduce((s,p)=>s+(p.rank||3),0)/tuttiAllievi.length : 3;
+
   // ── Distribuisci allievi ───────────────────────────────────────
   const usati = new Set(barche.flatMap(b=>b.pers.map(p=>p.n)));
 
   // Passo 1 (solo se usaRanking): assegna un "ancora" ad alto rank per ogni barca
-  // in modo che ogni barca abbia almeno uno studente avanzato.
-  // Ordina per rank decrescente, poi per incontri crescenti (a parità di rank).
+  // così ogni barca ha almeno uno studente avanzato come punto di riferimento.
   if(usaRanking && tuttiAllievi.length >= barche.length){
     const perRank = [...tuttiAllievi]
       .filter(p=>!usati.has(p.n))
@@ -610,22 +613,39 @@ function genera(){
   }
 
   // Passo 2: riempi i posti restanti con logica incontri + copertura IS
+  // + bilanciamento rank (quando usaRanking: ogni scelta mira a portare
+  //   la media di barca il più vicino possibile alla media globale)
   barche.forEach(barca=>{
     while(barca.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').length < barca.cap){
       const liberi = allOrd.filter(p=>!usati.has(p.n));
       if(!liberi.length) break;
 
-      // Scegli il candidato con meno incontri con chi è già in barca
-      // + priorità a chi non ha mai navigato con l'IS/CT di questa barca
       const refNome = barca.pers.find(p=>p.rOggi==='IS'||p.rOggi==='CT')?.n;
+
+      // Rank target per questo posto: valore che porta la media barca → overallAvgRank
+      const alsInBarca = barca.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT');
+      const nA = alsInBarca.length;
+      const sumA = alsInBarca.reduce((s,p)=>s+(p.rank||3),0);
+      const targetRank = barca.cap > nA
+        ? (barca.cap * overallAvgRank - sumA) / (barca.cap - nA)
+        : overallAvgRank;
+
       const best = liberi.reduce((best,c)=>{
+        // 1° criterio: meno incontri con chi è già in barca
         const sC = barca.pers.reduce((s,m)=>(inc[c.n]?.[m.n]||0)+s, 0);
         const sB = barca.pers.reduce((s,m)=>(inc[best.n]?.[m.n]||0)+s, 0);
         if(sC!==sB) return sC<sB?c:best;
+        // 2° criterio: meno copertura dall'IS/CT di questa barca
         if(refNome){
           const covC = covRef[refNome]?.[c.n]||0;
           const covB = covRef[refNome]?.[best.n]||0;
           if(covC!==covB) return covC<covB?c:best;
+        }
+        // 3° criterio (solo se usaRanking): rank più vicino al target di bilanciamento
+        if(usaRanking){
+          const dC = Math.abs((c.rank||3) - targetRank);
+          const dB = Math.abs((best.rank||3) - targetRank);
+          if(Math.abs(dC-dB) > 0.001) return dC<dB?c:best;
         }
         return best;
       }, liberi[0]);
@@ -698,14 +718,16 @@ function renderEq(barche, data, mpt, warns, editMode=false){
   document.getElementById('eq-grid').innerHTML = barche.map(b=>{
     const topRef = b.pers.find(p=>p.rOggi==='CT') || b.pers.find(p=>p.rOggi==='IS');
     const bg = topRef ? (RCOLOR[topRef.rOggi]||'var(--blu)') : 'var(--blu)';
-    const nAls = b.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT').length;
+    const alsB = b.pers.filter(p=>p.rOggi==='A'||p.rOggi==='AT');
+    const nAls = alsB.length;
     const nRef = b.pers.filter(p=>p.rOggi==='IS'||p.rOggi==='CT').length;
+    const avgRkB = nAls ? (alsB.reduce((s,p)=>s+(p.rank||3),0)/nAls).toFixed(1) : null;
     return `<div class="eq-box" id="eq-box-${b.id}"
       ${editMode?`ondragover="event.preventDefault();this.classList.add('drag-over')"
         ondragleave="this.classList.remove('drag-over')"
         ondrop="dropPersona(event,${b.id})"`:''}>
       <div class="eq-hdr" style="background:${bg};">
-        <span>Barca ${b.id}</span>
+        <span>Barca ${b.id}${avgRkB&&document.getElementById('usa-ranking').checked?` <span style="opacity:.7;font-size:.68rem;">★${avgRkB}</span>`:''}</span>
         <span style="opacity:.75;font-size:.7rem;">${nAls}A${nRef?'+'+nRef+'Ref':''}</span>
       </div>
       <div class="eq-body">
